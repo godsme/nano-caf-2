@@ -40,6 +40,7 @@ namespace nano_caf {
                 elem = elem->next_;
             }
         }
+
     private:
         ELEM* head_{};
         ELEM* tail_{};

@@ -3,4 +3,9 @@ project(nano_caf_2)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(nano_caf_2 include/nano-caf/scheduler/queue.h)
+include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/third-party"
+)
+
+add_library(nano_caf_2 src/scheduler/work_sharing_queue.cpp)
