@@ -15,16 +15,16 @@ namespace nano_caf {
 
         auto enqueue(ELEM* elem) noexcept -> void {
             if(elem == nullptr) return;
-            if(tail_ != nullptr) tail_->next = elem;
+            if(tail_ != nullptr) tail_->next_ = elem;
             else head_ = elem;
             tail_ = elem;
-            elem->next = nullptr;
+            elem->next_ = nullptr;
         }
 
         auto dequeue() noexcept -> ELEM* {
             if(head_ == nullptr) return nullptr;
             auto elem = head_;
-            head_ = elem->next;
+            head_ = elem->next_;
             if (head_ == nullptr) tail_ = nullptr;
             return elem;
         }
