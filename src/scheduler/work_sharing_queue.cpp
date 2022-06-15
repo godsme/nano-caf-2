@@ -10,13 +10,24 @@ namespace nano_caf {
         {
             std::unique_lock lock{lock_};
             tasks_.enqueue(task);
+            task->add_ref();
         }
         cv_.notify_one();
     }
 
     auto work_sharing_queue::dequeue() noexcept -> resumable * {
         std::unique_lock lock{lock_};
-        cv_.wait(lock, [this]{ return !tasks_.empty(); });
+        cv_.wait(lock, [this]{ return !tasks_.empty() || shutdown_; });
+        if(shutdown_) return nullptr;
         return tasks_.dequeue();
+    }
+
+    auto work_sharing_queue::shutdown() noexcept -> void {
+        if(shutdown_) return;
+        {
+            std::unique_lock lock{lock_};
+            shutdown_ = true;
+        }
+        cv_.notify_all();
     }
 }

@@ -16,11 +16,13 @@ namespace nano_caf {
 
         auto enqueue(resumable*) noexcept -> void;
         auto dequeue() noexcept -> resumable*;
+        auto shutdown() noexcept -> void;
 
     private:
         nano_caf::queue<resumable> tasks_{};
         std::condition_variable cv_{};
         std::mutex lock_{};
+        bool shutdown_{};
     };
 }
 
