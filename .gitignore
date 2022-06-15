@@ -3,7 +3,7 @@
 
 cmake-build-debug/*
 cmake-build-debug-coverage/*
-cmake-build-release/*
+cmake-build-Release/*
 .idea/*
 doc/build/*
 doc/source/_ext/__pycache__/*

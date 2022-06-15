@@ -8,8 +8,8 @@ include_directories(
 )
 
 add_library(nano_caf_2
-        include/nano-caf/scheduler/list_elem.h
-        include/nano-caf/scheduler/queue.h
-        include/nano-caf/scheduler/resumable.h
-        include/nano-caf/scheduler/work_sharing_queue.h
-        src/scheduler/work_sharing_queue.cpp)
+        include/nano-caf/scheduler/ListElem.h
+        include/nano-caf/scheduler/Queue.h
+        include/nano-caf/scheduler/Resumable.h
+        include/nano-caf/scheduler/WorkSharingQueue.h
+        src/scheduler/WorkSharingQueue.cpp)
