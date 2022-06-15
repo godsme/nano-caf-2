@@ -10,9 +10,7 @@ using namespace nano_caf;
 namespace {
     struct DummyTask : Resumable {
         DummyTask(int id) : id{id} {}
-        auto Resume() noexcept -> bool override {
-            return true;
-        }
+        auto Resume() noexcept -> void override {}
         int id{};
     };
 }

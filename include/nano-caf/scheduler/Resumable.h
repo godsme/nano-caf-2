@@ -11,7 +11,7 @@ namespace nano_caf {
     struct Resumable : ListElem<Resumable> {
         virtual ~Resumable() = default;
 
-        virtual auto Resume() noexcept -> bool = 0;
+        virtual auto Resume() noexcept -> void = 0;
 
         virtual auto AddRef() noexcept -> void {}
         virtual auto Release() noexcept -> void {
