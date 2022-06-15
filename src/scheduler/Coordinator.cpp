@@ -22,6 +22,12 @@ namespace nano_caf {
         for(auto&& worker : m_workers) {
             worker.WaitDone();
         }
+
+        while(1) {
+            auto* task = m_pendingTasks.Dequeue();
+            if(task == nullptr) break;
+            task->Release();
+        }
     }
 }
 
