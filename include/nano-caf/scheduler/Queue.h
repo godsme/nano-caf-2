@@ -34,6 +34,11 @@ namespace nano_caf {
         }
 
         ~Queue() {
+            CleanUp();
+        }
+
+    private:
+        auto CleanUp() noexcept -> void {
             auto* elem = m_head;
             while(elem != nullptr) {
                 std::unique_ptr<ELEM> ptr{elem};

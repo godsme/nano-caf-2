@@ -17,7 +17,9 @@ namespace nano_caf {
         auto Enqueue(Resumable*) noexcept -> void;
         auto Dequeue() noexcept -> Resumable*;
         auto Shutdown() noexcept -> void;
+        auto CleanUp() noexcept -> void;
 
+        ~WorkSharingQueue();
     private:
         nano_caf::Queue<Resumable> m_tasks{};
         std::condition_variable m_cv{};

@@ -30,4 +30,17 @@ namespace nano_caf {
         }
         m_cv.notify_all();
     }
+
+    auto WorkSharingQueue::CleanUp() noexcept -> void {
+        std::unique_lock lock{m_lock};
+        while(1) {
+            auto* task = m_tasks.Dequeue();
+            if(task == nullptr) break;
+            task->Release();
+        }
+    }
+
+    WorkSharingQueue::~WorkSharingQueue() {
+        CleanUp();
+    }
 }
