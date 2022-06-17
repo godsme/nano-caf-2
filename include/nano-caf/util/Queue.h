@@ -21,6 +21,26 @@ namespace nano_caf {
             elem->m_next = nullptr;
         }
 
+        auto PushFront(ELEM* elem) noexcept -> void {
+            if(elem == nullptr) return;
+            elem->m_next = m_head;
+            m_head = elem;
+            if(m_tail == nullptr) m_tail = elem;
+        }
+
+        auto Concat(Queue& another) noexcept -> void {
+            if(another.Empty()) return;
+            if(Empty()) {
+                std::swap(m_head, another.m_head);
+                std::swap(m_tail, another.m_tail);
+            } else {
+                m_tail->m_next = another.m_head;
+                m_tail = another.m_tail;
+                another.m_head = nullptr;
+                another.m_tail = nullptr;
+            }
+        }
+
         auto Dequeue() noexcept -> ELEM* {
             if(m_head == nullptr) return nullptr;
             auto elem = m_head;
@@ -33,17 +53,16 @@ namespace nano_caf {
             return m_head == nullptr;
         }
 
-        ~Queue() {
-            CleanUp();
-        }
-
-    private:
         auto CleanUp() noexcept -> void {
             auto* elem = m_head;
             while(elem != nullptr) {
                 std::unique_ptr<ELEM> ptr{elem};
                 elem = elem->m_next;
             }
+        }
+
+        ~Queue() {
+            CleanUp();
         }
 
     private:

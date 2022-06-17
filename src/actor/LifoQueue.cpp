@@ -67,6 +67,10 @@ namespace nano_caf {
         CleanUp(msg);
     }
 
+    auto LifoQueue::IsClosed() const noexcept -> bool {
+        return m_stack == Eof();
+    }
+
     LifoQueue::~LifoQueue() {
         Close();
     }

@@ -2,6 +2,7 @@
 // Created by Darwin Yuan on 2022/6/17.
 //
 #include <nano-caf/util/SharedPtrCtlBlock.h>
+#include <nano-caf/util/SharedPtr.h>
 
 namespace nano_caf {
 
@@ -24,10 +25,10 @@ namespace nano_caf {
         while (count != 0) {
             if (m_refs.compare_exchange_weak(count, count + 1,
                                              std::memory_order_relaxed)) {
-                return {this, false};
+                return SharedPtr<SharedPtrCtlBlock>{this, false};
             }
         }
 
-        return nullptr;
+        return SharedPtr<SharedPtrCtlBlock>{nullptr};
     }
 }

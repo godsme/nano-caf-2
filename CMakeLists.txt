@@ -9,13 +9,15 @@ include_directories(
 )
 
 add_library(nano_caf
-        include/nano-caf/scheduler/ListElem.h
-        include/nano-caf/scheduler/Queue.h
+        include/nano-caf/util/ListElem.h
+        include/nano-caf/util/Queue.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
+        include/nano-caf/actor/MailBox.h
+        include/nano-caf/actor/ExitReason.h
         include/nano-caf/util/SharedPtr.h
         include/nano-caf/util/CacheLineSize.h
         include/nano-caf/util/SharedPtrCtlBlock.h
@@ -26,6 +28,7 @@ add_library(nano_caf
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
         src/actor/LifoQueue.cpp
+        src/actor/MailBox.cpp
         src/actor/SchedActor.cpp
         src/util/SharedPtrCtlBlock.cpp)
 

@@ -6,8 +6,22 @@
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 
 namespace nano_caf {
-    auto SchedActor::Resume() noexcept -> void {
+    SchedActor::SchedActor() : m_initialized{0}, m_exit{0} {}
 
+    auto SchedActor::HandleMsgInternal(Message& msg) noexcept -> TaskResult {
+        UserDefinedHandleMessage(msg);
+        return m_exit ? TaskResult::DONE : TaskResult::RESUME;
+    }
+
+    auto SchedActor::Resume() noexcept -> void {
+        if(!m_initialized) {
+            Init();
+            m_initialized = 1;
+        }
+
+        MailBox::Consume([this](Message& msg) -> TaskResult {
+            return HandleMsgInternal(msg);
+        });
     }
 
     auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {

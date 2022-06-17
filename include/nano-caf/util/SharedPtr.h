@@ -5,42 +5,65 @@
 #ifndef NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
 #define NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
 
-namespace nano_caf {
+#include <nano-caf/util/CacheLineSize.h>
+#include <string_view>
 
+namespace nano_caf {
+    struct SharedPtrCtlBlock;
     template <typename T>
     struct SharedPtr {
-        SharedPtr(T* ptr, bool addRef = true) : m_ptr{ptr} {
+        explicit SharedPtr(T* ptr, bool addRef = true) noexcept : m_ptr{ptr} {
             if(ptr != nullptr && addRef) {
-                ptr->AddRef();
+                CtlBlock()->AddRef();
             }
         }
 
-        SharedPtr(SharedPtr const& p) : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr const& p) noexcept : m_ptr{p.m_ptr} {
             if(m_ptr != nullptr) {
-                p->AddRef();
+                CtlBlock()->AddRef();
             }
         }
 
-        SharedPtr(SharedPtr&& p) : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr&& p) noexcept : m_ptr{p.m_ptr} {
             p.m_ptr = nullptr;
         }
 
-        ~SharedPtr() {
+        auto operator=(SharedPtr const& another) noexcept -> SharedPtr& {
+            Release();
+            m_ptr = another.m_ptr;
+            if(m_ptr != nullptr) {
+                CtlBlock()->AddRef();
+            }
+
+            return *this;
+        }
+
+        auto operator=(SharedPtr&& another) noexcept -> SharedPtr& {
+            std::swap(m_ptr, another.m_ptr);
+            return *this;
+        }
+
+        ~SharedPtr() noexcept {
             Release();
         }
 
-        auto Release() -> void {
+        auto Release() noexcept -> void {
             if (m_ptr) {
-                m_ptr->Release();
+                CtlBlock()->Release();
                 m_ptr = nullptr;
             }
         }
 
-        T* operator->()  const noexcept { return m_ptr; }
-        T& operator*()   const noexcept { return *m_ptr; }
+        auto operator->()  const noexcept -> T* { return m_ptr; }
+        auto operator*()   const noexcept -> T& { return *m_ptr; }
 
         explicit operator bool() const noexcept {
             return m_ptr != nullptr;
+        }
+
+    private:
+        auto CtlBlock() noexcept -> SharedPtrCtlBlock* {
+            return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(m_ptr) - CACHE_LINE_SIZE);
         }
 
     private:

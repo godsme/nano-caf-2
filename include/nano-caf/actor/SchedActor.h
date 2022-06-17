@@ -7,11 +7,14 @@
 
 #include <nano-caf/scheduler/Resumable.h>
 #include <nano-caf/util/CacheLineSize.h>
+#include <nano-caf/actor/MailBox.h>
+#include <nano-caf/actor/ExitReason.h>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
 
-    struct SchedActor : Resumable {
+    struct SchedActor : private MailBox, Resumable {
+        SchedActor();
         auto Resume() noexcept -> void override;
 
     private:
@@ -20,6 +23,26 @@ namespace nano_caf {
 
     private:
         auto CtlBlock() noexcept -> SharedPtrCtlBlock*;
+        auto Close() noexcept -> void;
+
+    private:
+        auto HandleMsgInternal(Message&) noexcept -> TaskResult;
+
+    protected:
+        auto Exit_(ExitReason reason) -> void {
+            if(!m_exit) {
+                m_exit = 1;
+                m_reason = reason;
+            }
+        }
+    private:
+        virtual auto Init() noexcept -> void {}
+        virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
+
+    private:
+        uint8_t m_initialized:1;
+        uint8_t m_exit:1;
+        ExitReason m_reason;
     };
 }
 

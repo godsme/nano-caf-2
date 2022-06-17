@@ -5,7 +5,7 @@
 #ifndef NANO_CAF_2_C065636D56EF4329AE2EF93354B0F81E
 #define NANO_CAF_2_C065636D56EF4329AE2EF93354B0F81E
 
-#include <nano-caf/scheduler/ListElem.h>
+#include "nano-caf/util/ListElem.h"
 
 namespace nano_caf {
     struct Resumable : ListElem<Resumable> {
