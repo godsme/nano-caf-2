@@ -10,20 +10,26 @@ using namespace std::chrono_literals;
 
 namespace {
     struct MySchedActor : SchedActor {
-        virtual auto Init() noexcept -> void {
+        virtual auto Init() noexcept -> void override {
             inited = true;
             initTimes++;
         }
 
-        virtual auto UserDefinedHandleMessage(Message& msg) noexcept -> void {
+        virtual auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
             REQUIRE(initTimes == 1);
             msgs[numOfMsgs++] = msg.m_id;
+            if(msg.m_id == 10) SchedActor::Exit_(ExitReason::SHUTDOWN);
+        }
+
+        auto ExitHandler(ExitReason reason) noexcept -> void override {
+            exitReason = reason;
         }
 
         bool inited{false};
         MessageId msgs[10];
         size_t numOfMsgs{0};
         size_t initTimes{0};
+        ExitReason exitReason{ExitReason::NORMAL};
     };
 
     bool claimed = false;
@@ -95,6 +101,19 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(actor->msgs[0] == 7);
         REQUIRE(actor->msgs[1] == 5);
         REQUIRE(allocatedBlocks == 0);
+
+        actor->numOfMsgs = 0;
+        REQUIRE(actor->SendMsg(new MyMessage{8, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{9, Message::Category::NORMAL}) == MailBox::Result::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{10, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(task->Resume() == TaskResult::DONE);
+        REQUIRE(actor->initTimes == 1);
+        REQUIRE(actor->numOfMsgs == 1);
+        REQUIRE(actor->msgs[0] == 10);
+        REQUIRE(allocatedBlocks == 0);
+        REQUIRE(actor->exitReason == ExitReason::SHUTDOWN);
+
+        REQUIRE(actor->SendMsg(new MyMessage{11, Message::Category::NORMAL}) == MailBox::Result::CLOSED);
 
         REQUIRE_FALSE(claimed);
         block->AddRef();

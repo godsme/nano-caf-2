@@ -82,7 +82,7 @@ namespace nano_caf {
             }
         }
 
-        LifoQueue::Close();
+        Close();
 
         return TaskResult::DONE;
     }
