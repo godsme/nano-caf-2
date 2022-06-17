@@ -6,6 +6,10 @@
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 
 namespace nano_caf {
+    auto SchedActor::Resume() noexcept -> void {
+
+    }
+
     auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
         return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
     }
