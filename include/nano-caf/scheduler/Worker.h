@@ -9,6 +9,7 @@
 
 namespace nano_caf {
     struct WorkSharingQueue;
+    struct Resumable;
 
     struct Worker {
         Worker(WorkSharingQueue& tasks)
@@ -21,6 +22,7 @@ namespace nano_caf {
 
     private:
         auto Run() noexcept -> void;
+        auto ScheduleTask(Resumable*) noexcept -> void;
 
     private:
         std::thread m_tid;

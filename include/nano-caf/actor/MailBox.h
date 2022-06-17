@@ -8,13 +8,10 @@
 #include <nano-caf/actor/LifoQueue.h>
 #include <nano-caf/util/Queue.h>
 #include <nano-caf/message/Message.h>
+#include <nano-caf/scheduler/TaskResult.h>
 #include <functional>
 
 namespace nano_caf {
-    enum class TaskResult {
-        RESUME,
-        DONE
-    };
 
     struct MailBox : private LifoQueue {
         using Consumer = std::function<auto (Message&) -> TaskResult>;
@@ -23,7 +20,7 @@ namespace nano_caf {
 
         using LifoQueue::Enqueue;
 
-        auto Consume(Consumer consumer) -> void;
+        auto Consume(std::size_t quota, Consumer) -> TaskResult;
 
         auto Empty() const -> bool {
             return m_normal.Empty() && m_urgent.Empty();

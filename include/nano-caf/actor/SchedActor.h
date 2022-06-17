@@ -15,7 +15,7 @@ namespace nano_caf {
 
     struct SchedActor : private MailBox, Resumable {
         SchedActor();
-        auto Resume() noexcept -> void override;
+        auto Resume() noexcept -> TaskResult override;
 
     private:
         auto AddRef() noexcept -> void override;
@@ -24,9 +24,6 @@ namespace nano_caf {
     private:
         auto CtlBlock() noexcept -> SharedPtrCtlBlock*;
         auto Close() noexcept -> void;
-
-    private:
-        auto HandleMsgInternal(Message&) noexcept -> TaskResult;
 
     protected:
         auto Exit_(ExitReason reason) -> void {

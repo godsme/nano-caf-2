@@ -17,9 +17,10 @@ namespace {
     std::size_t numOfTasks = 0;
     struct DummyTask : Resumable {
         DummyTask(int id) : id{id} {}
-        auto Resume() noexcept -> void override {
+        auto Resume() noexcept -> TaskResult override {
             ids[id - 1] = id;
             std::this_thread::sleep_for(10ms);
+            return TaskResult::DONE;
         }
 
         auto operator new(std::size_t size) noexcept -> void* {

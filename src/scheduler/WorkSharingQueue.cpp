@@ -15,6 +15,15 @@ namespace nano_caf {
         m_cv.notify_one();
     }
 
+    auto WorkSharingQueue::Reschedule(Resumable* task) noexcept -> void {
+        if(task == nullptr) return;
+        {
+            std::unique_lock lock{m_lock};
+            m_tasks.Enqueue(task);
+        }
+        m_cv.notify_one();
+    }
+
     auto WorkSharingQueue::Dequeue() noexcept -> Resumable * {
         std::unique_lock lock{m_lock};
         m_cv.wait(lock, [this]{ return !m_tasks.Empty() || m_shutdown; });
@@ -38,6 +47,11 @@ namespace nano_caf {
             if(task == nullptr) break;
             task->Release();
         }
+    }
+
+    auto WorkSharingQueue::IsEmpty() const noexcept -> bool {
+        std::unique_lock lock{m_lock};
+        return m_tasks.Empty();
     }
 
     WorkSharingQueue::~WorkSharingQueue() {

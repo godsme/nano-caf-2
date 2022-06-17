@@ -10,6 +10,7 @@
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
+
     template <typename T>
     struct SharedPtr {
         explicit SharedPtr(T* ptr, bool addRef = true) noexcept : m_ptr{ptr} {

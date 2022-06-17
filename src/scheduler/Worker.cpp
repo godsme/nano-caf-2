@@ -6,12 +6,22 @@
 #include <nano-caf/scheduler/WorkSharingQueue.h>
 
 namespace nano_caf {
+    auto Worker::ScheduleTask(Resumable* task) noexcept -> void {
+        while(1) {
+            if(task->Resume() == TaskResult::DONE) {
+                task->Release();
+                return;
+            } else if(!m_tasks.IsEmpty()) {
+                m_tasks.Reschedule(task);
+                return;
+            }
+        }
+    }
     auto Worker::Run() noexcept -> void {
         while(1) {
             auto* task = m_tasks.Dequeue();
             if(task == nullptr) break;
-            task->Resume();
-            task->Release();
+            ScheduleTask(task);
         }
     }
 

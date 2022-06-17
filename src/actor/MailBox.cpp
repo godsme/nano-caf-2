@@ -32,7 +32,7 @@ namespace nano_caf {
 
     auto MailBox::Reload() noexcept -> bool {
         auto* msg = LifoQueue::TakeAll();
-        if(msg == nullptr) return false;
+        if(msg == nullptr && Empty()) return false;
 
         if(msg->m_next == nullptr) {
             // only 1 message in the LIFO queue
@@ -45,34 +45,45 @@ namespace nano_caf {
     }
 
     namespace {
-        auto Process(Queue<Message>& queue, MailBox::Consumer& f) -> TaskResult {
+        auto Process(Queue<Message>& queue, std::size_t& quota, MailBox::Consumer& f) -> TaskResult {
             while(1) {
+                if(quota == 0) return TaskResult::RESUME;
                 auto msg = std::unique_ptr<Message>(queue.Dequeue());
                 if(msg == nullptr) return TaskResult::RESUME;
                 if(f(*msg) == TaskResult::DONE) {
                     return TaskResult::DONE;
                 }
+                --quota;
             }
         }
     }
 
-    auto MailBox::Consume(Consumer f) -> void {
+    auto MailBox::Consume(std::size_t quota, Consumer f) -> TaskResult {
+        std::size_t remain = quota;
+
         while(1) {
             while(!Reload()) {
-                if(LifoQueue::IsClosed()) return;
-                if(LifoQueue::TryBlock()) return;
+                if(LifoQueue::IsClosed()) return TaskResult::DONE;
+                if(LifoQueue::TryBlock()) return TaskResult::DONE;
             }
 
-            if(Process(m_urgent, f) == TaskResult::DONE) {
+            // There must be some unconsumed messages in mailbox.
+            if(remain == 0) return TaskResult::RESUME;
+
+            if(Process(m_urgent, remain, f) == TaskResult::DONE) {
                 break;
             }
 
-            if(Process(m_normal, f) == TaskResult::DONE) {
+            if(remain == 0) continue;
+
+            if(Process(m_normal, remain, f) == TaskResult::DONE) {
                 break;
             }
         }
 
         LifoQueue::Close();
+
+        return TaskResult::DONE;
     }
 
     auto MailBox::Close() noexcept -> void {

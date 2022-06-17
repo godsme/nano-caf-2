@@ -71,6 +71,10 @@ namespace nano_caf {
         return m_stack == Eof();
     }
 
+    auto LifoQueue::IsBlocked() const noexcept -> bool {
+        return m_stack == Blocked();
+    }
+
     LifoQueue::~LifoQueue() {
         Close();
     }

@@ -26,6 +26,7 @@ namespace nano_caf {
         auto TryBlock() noexcept -> bool;
 
         auto IsClosed() const noexcept -> bool;
+        auto IsBlocked() const noexcept -> bool;
 
         auto Close() noexcept -> void;
 

@@ -14,6 +14,7 @@ add_library(nano_caf
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
+        include/nano-caf/scheduler/TaskResult.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/MailBox.h

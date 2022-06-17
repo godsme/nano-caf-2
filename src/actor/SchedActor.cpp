@@ -8,19 +8,17 @@
 namespace nano_caf {
     SchedActor::SchedActor() : m_initialized{0}, m_exit{0} {}
 
-    auto SchedActor::HandleMsgInternal(Message& msg) noexcept -> TaskResult {
-        UserDefinedHandleMessage(msg);
-        return m_exit ? TaskResult::DONE : TaskResult::RESUME;
-    }
+    constexpr std::size_t MAX_CONSUMED_MSGS_PER_ROUND = 3;
 
-    auto SchedActor::Resume() noexcept -> void {
+    auto SchedActor::Resume() noexcept -> TaskResult {
         if(!m_initialized) {
             Init();
             m_initialized = 1;
         }
 
-        MailBox::Consume([this](Message& msg) -> TaskResult {
-            return HandleMsgInternal(msg);
+        return MailBox::Consume(MAX_CONSUMED_MSGS_PER_ROUND, [this](Message& msg) -> TaskResult {
+            UserDefinedHandleMessage(msg);
+            return m_exit ? TaskResult::DONE : TaskResult::RESUME;
         });
     }
 
