@@ -6,9 +6,8 @@
 #define NANO_CAF_2_D1D5BDA44099401BACF7FA215DE6558E
 
 #include <nano-caf/util/SharedPtr.h>
+#include <nano-caf/util/CacheLineSize.h>
 #include <atomic>
-
-inline constexpr std::size_t CACHE_LINE_SIZE = 64;
 
 namespace nano_caf {
     struct SharedPtrCtlBlock {

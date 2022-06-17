@@ -15,7 +15,9 @@ add_library(nano_caf
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/actor/LifoQueue.h
+        include/nano-caf/actor/SchedActor.h
         include/nano-caf/util/SharedPtr.h
+        include/nano-caf/util/CacheLineSize.h
         include/nano-caf/util/SharedPtrCtlBlock.h
         include/nano-caf/util/SharedBlock.h
         include/nano-caf/util/DefaultMemClaimer.h
@@ -24,6 +26,7 @@ add_library(nano_caf
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
         src/actor/LifoQueue.cpp
+        src/actor/SchedActor.cpp
         src/util/SharedPtrCtlBlock.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
