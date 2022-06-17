@@ -55,6 +55,7 @@ namespace nano_caf {
             }
         }
 
+        auto Get() const noexcept -> T* { return m_ptr; }
         auto operator->()  const noexcept -> T* { return m_ptr; }
         auto operator*()   const noexcept -> T& { return *m_ptr; }
 

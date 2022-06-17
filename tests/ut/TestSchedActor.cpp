@@ -52,50 +52,54 @@ namespace {
     };
 }
 
-SCENARIO("SchedActor") {
+SCENARIO("SchedActor Resume") {
     claimed = false;
     auto* block = (new Actor{})->Get();
-    auto* actor = block->Get<MySchedActor>();
+    {
+        auto actor = SharedPtr<MySchedActor>(block->Get<MySchedActor>(), false);
 
-    REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-    REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
-    REQUIRE(allocatedBlocks == 2);
+        REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(allocatedBlocks == 2);
 
-    auto* task = static_cast<Resumable*>(actor);
-    REQUIRE(task->Resume() == TaskResult::DONE);
-    REQUIRE(actor->inited);
-    REQUIRE(actor->initTimes == 1);
-    REQUIRE(actor->numOfMsgs == 2);
-    REQUIRE(actor->msgs[0] == 2);
-    REQUIRE(actor->msgs[1] == 1);
-    REQUIRE(allocatedBlocks == 0);
+        auto *task = static_cast<Resumable *>(actor.Get());
+        REQUIRE(task->Resume() == TaskResult::DONE);
+        REQUIRE(actor->inited);
+        REQUIRE(actor->initTimes == 1);
+        REQUIRE(actor->numOfMsgs == 2);
+        REQUIRE(actor->msgs[0] == 2);
+        REQUIRE(actor->msgs[1] == 1);
+        REQUIRE(allocatedBlocks == 0);
 
-    actor->numOfMsgs = 0;
+        actor->numOfMsgs = 0;
 
-    REQUIRE(actor->SendMsg(new MyMessage{3, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-    REQUIRE(actor->SendMsg(new MyMessage{4, Message::Category::URGENT}) == MailBox::Result::OK);
-    REQUIRE(actor->SendMsg(new MyMessage{5, Message::Category::NORMAL}) == MailBox::Result::OK);
-    REQUIRE(actor->SendMsg(new MyMessage{6, Message::Category::URGENT}) == MailBox::Result::OK);
-    REQUIRE(allocatedBlocks == 4);
+        REQUIRE(actor->SendMsg(new MyMessage{3, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{4, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{5, Message::Category::NORMAL}) == MailBox::Result::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{6, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(allocatedBlocks == 4);
 
-    REQUIRE(task->Resume() == TaskResult::SUSPENDED);
-    REQUIRE(actor->initTimes == 1);
-    REQUIRE(actor->numOfMsgs == 3);
-    REQUIRE(actor->msgs[0] == 4);
-    REQUIRE(actor->msgs[1] == 6);
-    REQUIRE(actor->msgs[2] == 3);
-    REQUIRE(allocatedBlocks == 1);
+        REQUIRE(task->Resume() == TaskResult::SUSPENDED);
+        REQUIRE(actor->initTimes == 1);
+        REQUIRE(actor->numOfMsgs == 3);
+        REQUIRE(actor->msgs[0] == 4);
+        REQUIRE(actor->msgs[1] == 6);
+        REQUIRE(actor->msgs[2] == 3);
+        REQUIRE(allocatedBlocks == 1);
 
-    actor->numOfMsgs = 0;
-    REQUIRE(actor->SendMsg(new MyMessage{7, Message::Category::URGENT}) == MailBox::Result::OK);
-    REQUIRE(task->Resume() == TaskResult::DONE);
-    REQUIRE(actor->initTimes == 1);
-    REQUIRE(actor->numOfMsgs == 2);
-    REQUIRE(actor->msgs[0] == 7);
-    REQUIRE(actor->msgs[1] == 5);
-    REQUIRE(allocatedBlocks == 0);
+        actor->numOfMsgs = 0;
+        REQUIRE(actor->SendMsg(new MyMessage{7, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(task->Resume() == TaskResult::DONE);
+        REQUIRE(actor->initTimes == 1);
+        REQUIRE(actor->numOfMsgs == 2);
+        REQUIRE(actor->msgs[0] == 7);
+        REQUIRE(actor->msgs[1] == 5);
+        REQUIRE(allocatedBlocks == 0);
 
-    REQUIRE_FALSE(claimed);
-    block->Release();
+        REQUIRE_FALSE(claimed);
+        block->AddRef();
+        block->Release();
+        REQUIRE_FALSE(claimed);
+    }
     REQUIRE(claimed);
 }
