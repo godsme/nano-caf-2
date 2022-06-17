@@ -54,11 +54,11 @@ namespace nano_caf {
         }
 
         auto CleanUp() noexcept -> void {
+            m_tail = nullptr;
             while(m_head != nullptr) {
                 std::unique_ptr<ELEM> ptr{m_head};
                 m_head = m_head->m_next;
             }
-            m_tail = nullptr;
         }
 
         ~Queue() {
