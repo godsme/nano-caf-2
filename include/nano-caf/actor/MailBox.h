@@ -15,10 +15,13 @@ namespace nano_caf {
 
     struct MailBox : private LifoQueue {
         using Consumer = std::function<auto (Message&) -> TaskResult>;
+        using Result = LifoQueue::Result;
 
         MailBox() = default;
 
-        using LifoQueue::Enqueue;
+        auto SendMsg(Message* msg) noexcept -> LifoQueue::Result {
+            return LifoQueue::Enqueue(msg);
+        }
 
         auto Consume(std::size_t quota, Consumer) -> TaskResult;
 

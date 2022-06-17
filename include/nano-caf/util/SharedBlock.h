@@ -21,6 +21,10 @@ namespace nano_caf {
             new (m_object) OBJ{std::forward<ARGS>(args)...};
         }
 
+        auto Get() noexcept -> SharedPtrCtlBlock* {
+            return &m_ctlBlock;
+        }
+
     private:
         static auto DestroyObject(void* obj) noexcept -> void {
             reinterpret_cast<OBJ*>(obj)->~OBJ();

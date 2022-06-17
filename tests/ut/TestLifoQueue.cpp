@@ -10,5 +10,5 @@ using namespace nano_caf;
 SCENARIO("Lifo") {
     LifoQueue queue;
 
-    queue.Enqueue(new Message{});
+    //queue.Enqueue(new Message{});
 }

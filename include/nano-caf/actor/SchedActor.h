@@ -9,12 +9,18 @@
 #include <nano-caf/util/CacheLineSize.h>
 #include <nano-caf/actor/MailBox.h>
 #include <nano-caf/actor/ExitReason.h>
+#include <future>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
 
-    struct SchedActor : private MailBox, Resumable {
-        SchedActor();
+    struct SchedActor : protected MailBox, Resumable {
+        explicit SchedActor(bool syncRequired = false);
+        ~SchedActor();
+
+        using MailBox::SendMsg;
+
+    private:
         auto Resume() noexcept -> TaskResult override;
 
     private:
@@ -33,9 +39,16 @@ namespace nano_caf {
         virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
 
     private:
+        union Sync {
+            Sync() {}
+            ~Sync() {}
+            std::promise<ExitReason> m_promise;
+        } m_sync;
+
+        ExitReason m_reason;
         uint8_t m_initialized:1;
         uint8_t m_exit:1;
-        ExitReason m_reason;
+        uint8_t m_syncRequired:1;
     };
 }
 

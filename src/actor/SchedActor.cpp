@@ -6,9 +6,20 @@
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 
 namespace nano_caf {
-    SchedActor::SchedActor() : m_initialized{0}, m_exit{0} {}
+    SchedActor::SchedActor(bool syncRequired)
+        : m_initialized{0}, m_exit{0}, m_syncRequired{syncRequired} {
+        if(m_syncRequired) {
+            new (&m_sync.m_promise) std::promise<ExitReason>{};
+        }
+    }
 
-    constexpr std::size_t MAX_CONSUMED_MSGS_PER_ROUND = 3;
+    SchedActor::~SchedActor() {
+        if(m_syncRequired) {
+            m_sync.m_promise.~promise<ExitReason>();
+        }
+    }
+
+    inline constexpr std::size_t MAX_CONSUMED_MSGS_PER_ROUND = 3;
 
     auto SchedActor::Resume() noexcept -> TaskResult {
         if(!m_initialized) {
@@ -22,7 +33,7 @@ namespace nano_caf {
                 ExitHandler(m_reason);
                 return TaskResult::DONE;
             }
-            return TaskResult::RESUME;
+            return TaskResult::SUSPENDED;
         });
     }
 

@@ -7,7 +7,7 @@
 
 namespace nano_caf {
     enum class TaskResult {
-        RESUME,
+        SUSPENDED,
         DONE
     };
 }

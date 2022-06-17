@@ -18,12 +18,13 @@ namespace nano_caf {
         Queue<Message> urgent;
 
         do {
-            if(msg->m_category == Message::Category::URGENT) {
-                urgent.Enqueue(msg);
-            } else {
-                normal.Enqueue(msg);
-            }
+            auto* m = msg;
             msg = msg->m_next;
+            if(m->m_category == Message::Category::URGENT) {
+                urgent.PushFront(m);
+            } else {
+                normal.PushFront(m);
+            }
         } while(msg != nullptr);
 
         m_urgent.Concat(urgent);
@@ -32,8 +33,7 @@ namespace nano_caf {
 
     auto MailBox::Reload() noexcept -> bool {
         auto* msg = LifoQueue::TakeAll();
-        if(msg == nullptr && Empty()) return false;
-
+        if(msg == nullptr) return !Empty();
         if(msg->m_next == nullptr) {
             // only 1 message in the LIFO queue
             ReloadOne(msg);
@@ -45,16 +45,17 @@ namespace nano_caf {
     }
 
     namespace {
-        auto Process(Queue<Message>& queue, std::size_t& quota, MailBox::Consumer& f) -> TaskResult {
-            while(1) {
-                if(quota == 0) return TaskResult::RESUME;
+        auto Process(Queue<Message>& queue, std::size_t& remain, MailBox::Consumer& f) -> TaskResult {
+            while(remain > 0) {
                 auto msg = std::unique_ptr<Message>(queue.Dequeue());
-                if(msg == nullptr) return TaskResult::RESUME;
+                if(msg == nullptr) return TaskResult::SUSPENDED;
                 if(f(*msg) == TaskResult::DONE) {
                     return TaskResult::DONE;
                 }
-                --quota;
+                --remain;
             }
+
+            return TaskResult::SUSPENDED;
         }
     }
 
@@ -68,7 +69,7 @@ namespace nano_caf {
             }
 
             // There must be some unconsumed messages in mailbox.
-            if(remain == 0) return TaskResult::RESUME;
+            if(remain == 0) return TaskResult::SUSPENDED;
 
             if(Process(m_urgent, remain, f) == TaskResult::DONE) {
                 break;

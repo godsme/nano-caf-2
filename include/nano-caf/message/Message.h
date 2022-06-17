@@ -16,6 +16,11 @@ namespace nano_caf {
             URGENT
         };
 
+        Message(MessageId type_id,  Category category = Category::NORMAL)
+            : m_id(type_id)
+            , m_category(category)
+        {}
+
         template<typename BODY>
         auto Body() const noexcept -> BODY const* {
             return nullptr;
@@ -23,6 +28,8 @@ namespace nano_caf {
 
         MessageId m_id;
         Category m_category;
+
+        virtual ~Message() = default;
     };
 }
 

@@ -37,6 +37,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestWorkSharingQueue.cpp
         tests/ut/TestWorker.cpp
         tests/ut/TestCoordinator.cpp
-        tests/ut/TestLifoQueue.cpp)
+        tests/ut/TestLifoQueue.cpp
+        tests/ut/TestSchedActor.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)

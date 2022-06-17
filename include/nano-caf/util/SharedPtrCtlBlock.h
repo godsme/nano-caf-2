@@ -12,7 +12,7 @@
 namespace nano_caf {
     struct SharedPtrCtlBlock {
         using ObjectDestructor = auto (*)(void*) noexcept -> void;
-        using BlockDestructor = auto (*)(SharedPtrCtlBlock*) noexcept -> void;
+        using BlockDestructor = auto (*)(void*) noexcept -> void;
 
         SharedPtrCtlBlock(ObjectDestructor objectDtor, BlockDestructor blockDtor) noexcept
             : m_objectDestructor{objectDtor}
