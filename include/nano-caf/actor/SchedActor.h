@@ -23,17 +23,13 @@ namespace nano_caf {
 
     private:
         auto CtlBlock() noexcept -> SharedPtrCtlBlock*;
-        auto Close() noexcept -> void;
 
     protected:
-        auto Exit_(ExitReason reason) -> void {
-            if(!m_exit) {
-                m_exit = 1;
-                m_reason = reason;
-            }
-        }
+        auto Exit_(ExitReason reason) -> void;
+
     private:
         virtual auto Init() noexcept -> void {}
+        virtual auto ExitHandler(ExitReason) noexcept -> void {}
         virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
 
     private:

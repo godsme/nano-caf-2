@@ -18,8 +18,19 @@ namespace nano_caf {
 
         return MailBox::Consume(MAX_CONSUMED_MSGS_PER_ROUND, [this](Message& msg) -> TaskResult {
             UserDefinedHandleMessage(msg);
-            return m_exit ? TaskResult::DONE : TaskResult::RESUME;
+            if(m_exit) {
+                ExitHandler(m_reason);
+                return TaskResult::DONE;
+            }
+            return TaskResult::RESUME;
         });
+    }
+
+    auto SchedActor::Exit_(ExitReason reason) -> void {
+        if(!m_exit) {
+            m_exit = 1;
+            m_reason = reason;
+        }
     }
 
     auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
