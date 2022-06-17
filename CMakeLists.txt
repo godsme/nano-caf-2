@@ -23,7 +23,8 @@ add_library(nano_caf
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
-        src/actor/LifoQueue.cpp)
+        src/actor/LifoQueue.cpp
+        src/util/SharedPtrCtlBlock.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestWorkSharingQueue.cpp

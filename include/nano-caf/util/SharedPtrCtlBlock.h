@@ -5,6 +5,7 @@
 #ifndef NANO_CAF_2_D1D5BDA44099401BACF7FA215DE6558E
 #define NANO_CAF_2_D1D5BDA44099401BACF7FA215DE6558E
 
+#include <nano-caf/util/SharedPtr.h>
 #include <atomic>
 
 inline constexpr std::size_t CACHE_LINE_SIZE = 64;
@@ -34,23 +35,13 @@ namespace nano_caf {
             m_refs.fetch_add(1, std::memory_order_relaxed);
         }
 
-        auto Release() noexcept -> void {
-            if (m_refs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-                m_objectDestructor(Get<void*>());
-                ReleaseWeak();
-            }
-        }
-
         auto AddWeakRef() noexcept -> void {
             m_weakRefs.fetch_add(1, std::memory_order_relaxed);
         }
 
-        auto ReleaseWeak() noexcept -> void {
-            if (m_weakRefs == 1
-                || m_weakRefs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-                m_blockDestructor(this);
-            }
-        }
+        auto Release() noexcept -> void;
+        auto ReleaseWeak() noexcept -> void;
+        auto Lock() noexcept -> SharedPtr<SharedPtrCtlBlock>;
 
     private:
         std::atomic<std::size_t> m_refs{1};
