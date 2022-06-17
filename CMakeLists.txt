@@ -14,8 +14,11 @@ add_library(nano_caf
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
-        include/nano-caf/util/IntrusivePtr.h
         include/nano-caf/actor/LifoQueue.h
+        include/nano-caf/util/SharedPtr.h
+        include/nano-caf/util/SharedPtrCtlBlock.h
+        include/nano-caf/util/SharedBlock.h
+        include/nano-caf/util/DefaultMemClaimer.h
         include/nano-caf/message/Message.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp

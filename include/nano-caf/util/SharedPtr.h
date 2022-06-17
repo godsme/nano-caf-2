@@ -2,30 +2,30 @@
 // Created by Darwin Yuan on 2022/6/16.
 //
 
-#ifndef NANO_CAF_2_556622B36CEF4638AAE9E29AA60535D3
-#define NANO_CAF_2_556622B36CEF4638AAE9E29AA60535D3
+#ifndef NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
+#define NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
 
 namespace nano_caf {
 
     template <typename T>
-    struct IntrusivePtr {
-        IntrusivePtr(T* ptr, bool addRef = true) : m_ptr{ptr} {
+    struct SharedPtr {
+        SharedPtr(T* ptr, bool addRef = true) : m_ptr{ptr} {
             if(ptr != nullptr && addRef) {
                 ptr->AddRef();
             }
         }
 
-        IntrusivePtr(IntrusivePtr const& p) : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr const& p) : m_ptr{p.m_ptr} {
             if(m_ptr != nullptr) {
                 p->AddRef();
             }
         }
 
-        IntrusivePtr(IntrusivePtr&& p) : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr&& p) : m_ptr{p.m_ptr} {
             p.m_ptr = nullptr;
         }
 
-        ~IntrusivePtr() {
+        ~SharedPtr() {
             Release();
         }
 
@@ -48,4 +48,4 @@ namespace nano_caf {
     };
 }
 
-#endif //NANO_CAF_2_556622B36CEF4638AAE9E29AA60535D3
+#endif //NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
