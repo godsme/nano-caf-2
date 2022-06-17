@@ -27,16 +27,16 @@ namespace nano_caf {
             return const_cast<OBJ*>(reinterpret_cast<OBJ const*>(reinterpret_cast<char const*>(this) + CACHE_LINE_SIZE));
         }
 
-        auto UseCount() const noexcept -> std::size_t {
-            return m_refs.load(std::memory_order_relaxed);
-        }
-
         auto AddRef() noexcept -> void {
             m_refs.fetch_add(1, std::memory_order_relaxed);
         }
 
         auto AddWeakRef() noexcept -> void {
             m_weakRefs.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        auto UseCount() const noexcept -> std::size_t {
+            return m_refs.load(std::memory_order_relaxed);
         }
 
         auto Release() noexcept -> void;
