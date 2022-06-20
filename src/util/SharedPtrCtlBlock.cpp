@@ -8,11 +8,11 @@ namespace nano_caf {
     auto SharedPtrCtlBlock::Release() noexcept -> void {
         if (m_refs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             m_objectDestructor(Get<void*>());
-            ReleaseWeak();
+            ReleaseWeakRef();
         }
     }
 
-    auto SharedPtrCtlBlock::ReleaseWeak() noexcept -> void {
+    auto SharedPtrCtlBlock::ReleaseWeakRef() noexcept -> void {
         if (m_weakRefs == 1
             || m_weakRefs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             m_blockDestructor(this);

@@ -3,8 +3,11 @@
 //
 
 #include <nano-caf/scheduler/WorkSharingQueue.h>
+#include <nano-caf/util/Queue.tcc>
 
 namespace nano_caf {
+    template struct Queue<Resumable>;
+
     auto WorkSharingQueue::Reschedule(Resumable* task) noexcept -> void {
         {
             std::unique_lock lock{m_lock};

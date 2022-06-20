@@ -3,8 +3,12 @@
 //
 
 #include <nano-caf/actor/MailBox.h>
+#include <nano-caf/message/Message.h>
+#include <nano-caf/util/Queue.tcc>
 
 namespace nano_caf {
+    template struct Queue<Message>;
+
     auto MailBox::ReloadOne(Message* msg) noexcept -> void {
         if(msg->m_category == Message::Category::URGENT) {
             m_urgent.Enqueue(msg);

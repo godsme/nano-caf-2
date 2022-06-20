@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../maco/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
 
@@ -14,6 +15,7 @@ add_library(nano_caf
         include/nano-caf/util/MacroReflex.h
         include/nano-caf/util/ListElem.h
         include/nano-caf/util/Queue.h
+        include/nano-caf/util/Queue.tcc
         include/nano-caf/util/SharedPtrDataHolder.h
         include/nano-caf/util/SharedPtr.h
         include/nano-caf/util/WeakPtr.h
@@ -30,7 +32,6 @@ add_library(nano_caf
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
-        include/nano-caf/actor/ActorWeakHandle.h
         include/nano-caf/message/Message.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp

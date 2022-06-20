@@ -38,7 +38,7 @@ namespace nano_caf {
         }
 
         auto Release() noexcept -> void;
-        auto ReleaseWeak() noexcept -> void;
+        auto ReleaseWeakRef() noexcept -> void;
         auto Lock() noexcept -> bool;
 
     private:

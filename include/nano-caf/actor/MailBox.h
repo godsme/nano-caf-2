@@ -7,11 +7,11 @@
 
 #include <nano-caf/actor/LifoQueue.h>
 #include <nano-caf/util/Queue.h>
-#include <nano-caf/message/Message.h>
 #include <nano-caf/scheduler/TaskResult.h>
 #include <functional>
 
 namespace nano_caf {
+    struct Message;
 
     struct MailBox : private LifoQueue {
         using Consumer = std::function<auto (Message&) -> TaskResult>;

@@ -3,6 +3,8 @@
 //
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/util/SharedPtr.h>
+#include <nano-caf/message/Message.h>
+
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -26,7 +28,7 @@ namespace {
         }
 
         bool inited{false};
-        MessageId msgs[10];
+        MsgTypeId msgs[10];
         size_t numOfMsgs{0};
         size_t initTimes{0};
         ExitReason exitReason{ExitReason::NORMAL};
@@ -54,6 +56,10 @@ namespace {
         auto operator delete(void* p) noexcept -> void {
             allocatedBlocks--;
             ::operator delete(p);
+        }
+
+        auto GetBody() const noexcept -> void const* override {
+            return nullptr;
         }
     };
 }

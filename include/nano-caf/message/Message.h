@@ -6,8 +6,9 @@
 #define NANO_CAF_2_D6D87D954DAC419D8DBBF6CD13EC7177
 
 #include <nano-caf/util/ListElem.h>
-
-using MessageId = uint64_t;
+#include <nano-caf/actor/SchedActor.h>
+#include <nano-caf/util/WeakPtr.h>
+#include <nano-caf/message/MsgTypeId.h>
 
 namespace nano_caf {
     struct Message : ListElem<Message>  {
@@ -16,21 +17,29 @@ namespace nano_caf {
             URGENT
         };
 
-        Message(MessageId type_id,  Category category = Category::NORMAL)
-            : m_id(type_id)
+        Message(MsgTypeId typeId,  Category category = Category::NORMAL)
+            : m_id(typeId)
             , m_category(category)
+        {}
+
+        Message(SharedPtr<SchedActor> const& sender, MsgTypeId typeId,  Category category = Category::NORMAL)
+                : m_id(typeId)
+                , m_category(category)
         {}
 
         template<typename BODY>
         auto Body() const noexcept -> BODY const* {
-            return nullptr;
+            return m_id == BODY::TypeId ? reinterpret_cast<BODY const*>(GetBody()) : nullptr;
         }
+
         virtual ~Message() = default;
 
     private:
+        virtual auto GetBody() const noexcept -> void const* = 0;
 
     public:
-        MessageId m_id;
+        WeakPtr<SchedActor> m_sender;
+        MsgTypeId m_id;
         Category m_category;
     };
 }

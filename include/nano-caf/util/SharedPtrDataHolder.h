@@ -6,11 +6,10 @@
 #define NANO_CAF_2_596CCED255394A3A9081033D515D8153
 
 #include <nano-caf/util/CacheLineSize.h>
+#include <nano-caf/util/SharedPtrCtlBlock.h>
 #include <string_view>
 
 namespace nano_caf {
-    struct SharedPtrCtlBlock;
-
     template <typename T>
     struct SharedPtrDataHolder {
 
@@ -27,7 +26,7 @@ namespace nano_caf {
         explicit SharedPtrDataHolder(T* ptr) noexcept : m_ptr{ptr} {}
 
     protected:
-        auto CtlBlock() noexcept -> SharedPtrCtlBlock* {
+        auto CtlBlock() const noexcept -> SharedPtrCtlBlock* {
             return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(m_ptr) - CACHE_LINE_SIZE);
         }
 

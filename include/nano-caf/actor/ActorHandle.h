@@ -15,6 +15,8 @@ namespace nano_caf {
         using Parent = SharedPtr<SchedActor>;
         using Parent::Parent;
 
+        ActorHandle(SharedPtr<SchedActor>&& rhs) : Parent(std::move(rhs)) {}
+
         template<typename MSG, Message::Category category = Message::NORMAL, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
             return Status::FAILED;

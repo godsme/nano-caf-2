@@ -5,7 +5,7 @@
 #ifndef NANO_CAF_2_6FEB09B36F8246E18D93B01878B398C5
 #define NANO_CAF_2_6FEB09B36F8246E18D93B01878B398C5
 
-#include "nano-caf/util/Queue.h"
+#include <nano-caf/util/Queue.h>
 #include <nano-caf/scheduler/Resumable.h>
 #include <condition_variable>
 #include <mutex>
