@@ -10,6 +10,8 @@ include_directories(
 
 add_library(nano_caf
         include/nano-caf/Status.h
+        include/nano-caf/util/TypeList.h
+        include/nano-caf/util/MacroReflex.h
         include/nano-caf/util/ListElem.h
         include/nano-caf/util/Queue.h
         include/nano-caf/scheduler/Resumable.h
