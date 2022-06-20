@@ -26,7 +26,7 @@ add_library(nano_caf
         include/nano-caf/util/CacheLineSize.h
         include/nano-caf/util/SharedPtrCtlBlock.h
         include/nano-caf/util/SharedBlock.h
-        include/nano-caf/util/DefaultMemClaimer.h
+        include/nano-caf/util/DefaultMemAllocator.h
         include/nano-caf/message/Message.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp

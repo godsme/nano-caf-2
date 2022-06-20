@@ -6,17 +6,17 @@
 #define NANO_CAF_2_5C2F027F5D9F49F6B495DA6A99A3166C
 
 #include <nano-caf/util/SharedPtrCtlBlock.h>
-#include <nano-caf/util/DefaultMemClaimer.h>
+#include <nano-caf/util/DefaultMemAllocator.h>
 
 namespace nano_caf {
-    template<typename OBJ, typename MEM_CLAIMER = DefaultMemClaimer>
+    template<typename OBJ, typename MEM_ALLOCATOR = DefaultMemAllocator>
     struct alignas(CACHE_LINE_SIZE) SharedBlock {
         static_assert(alignof(OBJ) <= CACHE_LINE_SIZE);
         static_assert(sizeof(SharedPtrCtlBlock) <= CACHE_LINE_SIZE);
 
         template<typename ... ARGS>
         SharedBlock(ARGS&& ... args)
-            : m_ctlBlock{DestroyObject, MEM_CLAIMER::Claim}
+            : m_ctlBlock{DestroyObject, MEM_ALLOCATOR::Free}
         {
             new (m_object) OBJ{std::forward<ARGS>(args)...};
         }

@@ -34,7 +34,7 @@ namespace {
 
     bool claimed = false;
     struct MemClaimer {
-        static auto Claim(void* p) noexcept -> void {
+        static auto Free(void* p) noexcept -> void {
             claimed = true;
             ::operator delete(p);
         }
