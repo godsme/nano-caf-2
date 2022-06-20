@@ -5,27 +5,32 @@
 #ifndef NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
 #define NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7
 
-#include <nano-caf/util/CacheLineSize.h>
-#include <string_view>
+#include <nano-caf/util/SharedPtrDataHolder.h>
+#include <nano-caf/util/SharedBlock.h>
 
 namespace nano_caf {
-    struct SharedPtrCtlBlock;
-
     template <typename T>
-    struct SharedPtr {
-        explicit SharedPtr(T* ptr, bool addRef = true) noexcept : m_ptr{ptr} {
+    struct SharedPtr : SharedPtrDataHolder<T> {
+    private:
+        using Parent = SharedPtrDataHolder<T>;
+        using Parent::m_ptr;
+        using Parent::CtlBlock;
+
+    public:
+        SharedPtr() noexcept = default;
+        explicit SharedPtr(T* ptr, bool addRef = true) noexcept : Parent{ptr} {
             if(ptr != nullptr && addRef) {
                 CtlBlock()->AddRef();
             }
         }
 
-        SharedPtr(SharedPtr const& p) noexcept : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr const& p) noexcept : Parent{p.Get()}  {
             if(m_ptr != nullptr) {
                 CtlBlock()->AddRef();
             }
         }
 
-        SharedPtr(SharedPtr&& p) noexcept : m_ptr{p.m_ptr} {
+        SharedPtr(SharedPtr&& p) noexcept : Parent{p.Get()}  {
             p.m_ptr = nullptr;
         }
 
@@ -54,23 +59,15 @@ namespace nano_caf {
                 m_ptr = nullptr;
             }
         }
-
-        auto Get() const noexcept -> T* { return m_ptr; }
-        auto operator->()  const noexcept -> T* { return m_ptr; }
-        auto operator*()   const noexcept -> T& { return *m_ptr; }
-
-        explicit operator bool() const noexcept {
-            return m_ptr != nullptr;
-        }
-
-    private:
-        auto CtlBlock() noexcept -> SharedPtrCtlBlock* {
-            return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(m_ptr) - CACHE_LINE_SIZE);
-        }
-
-    private:
-        T* m_ptr;
     };
+
+    template <typename Tp, typename MEM_CLAIMER = DefaultMemClaimer, typename ... ARGS>
+    auto MakeShared(ARGS&& ... args) -> SharedPtr<Tp> {
+        auto* p = new SharedBlock<Tp, MEM_CLAIMER>{std::forward<ARGS>(args)...};
+        if(p == nullptr) return {};
+        return SharedPtr<Tp>{p->Get(), false};
+    }
+
 }
 
 #endif //NANO_CAF_2_B6AA6A48734F4E79BCC6F6B079B426D7

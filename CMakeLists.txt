@@ -9,6 +9,7 @@ include_directories(
 )
 
 add_library(nano_caf
+        include/nano-caf/Status.h
         include/nano-caf/util/ListElem.h
         include/nano-caf/util/Queue.h
         include/nano-caf/scheduler/Resumable.h
@@ -19,7 +20,9 @@ add_library(nano_caf
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
+        include/nano-caf/util/SharedPtrDataHolder.h
         include/nano-caf/util/SharedPtr.h
+        include/nano-caf/util/WeakPtr.h
         include/nano-caf/util/CacheLineSize.h
         include/nano-caf/util/SharedPtrCtlBlock.h
         include/nano-caf/util/SharedBlock.h
@@ -34,6 +37,7 @@ add_library(nano_caf
         src/util/SharedPtrCtlBlock.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
+        tests/ut/TestSharedPtr.cpp
         tests/ut/TestWorkSharingQueue.cpp
         tests/ut/TestWorker.cpp
         tests/ut/TestCoordinator.cpp

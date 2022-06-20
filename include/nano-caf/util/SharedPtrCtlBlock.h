@@ -5,7 +5,6 @@
 #ifndef NANO_CAF_2_D1D5BDA44099401BACF7FA215DE6558E
 #define NANO_CAF_2_D1D5BDA44099401BACF7FA215DE6558E
 
-#include <nano-caf/util/SharedPtr.h>
 #include <nano-caf/util/CacheLineSize.h>
 #include <atomic>
 
@@ -40,7 +39,7 @@ namespace nano_caf {
 
         auto Release() noexcept -> void;
         auto ReleaseWeak() noexcept -> void;
-        auto Lock() noexcept -> SharedPtr<SharedPtrCtlBlock>;
+        auto Lock() noexcept -> bool;
 
     private:
         std::atomic<std::size_t> m_refs{1};

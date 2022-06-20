@@ -2,7 +2,7 @@
 // Created by Darwin Yuan on 2022/6/17.
 //
 #include <nano-caf/actor/SchedActor.h>
-#include <nano-caf/util/SharedBlock.h>
+#include <nano-caf/util/SharedPtr.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -60,9 +60,9 @@ namespace {
 
 SCENARIO("SchedActor Resume") {
     claimed = false;
-    auto* block = (new Actor{})->Get();
+    auto* rawActor = (new Actor{})->Get();
     {
-        auto actor = SharedPtr<MySchedActor>(block->Get<MySchedActor>(), false);
+        auto actor = SharedPtr<MySchedActor>(rawActor, false);
 
         REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
         REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
@@ -115,9 +115,6 @@ SCENARIO("SchedActor Resume") {
 
         REQUIRE(actor->SendMsg(new MyMessage{11, Message::Category::NORMAL}) == MailBox::Result::CLOSED);
 
-        REQUIRE_FALSE(claimed);
-        block->AddRef();
-        block->Release();
         REQUIRE_FALSE(claimed);
     }
     REQUIRE(claimed);

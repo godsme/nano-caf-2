@@ -5,23 +5,17 @@
 #include <nano-caf/scheduler/WorkSharingQueue.h>
 
 namespace nano_caf {
-    auto WorkSharingQueue::Enqueue(Resumable* task) noexcept -> void {
-        if(task == nullptr) return;
+    auto WorkSharingQueue::Reschedule(Resumable* task) noexcept -> void {
         {
             std::unique_lock lock{m_lock};
             m_tasks.Enqueue(task);
-            task->AddRef();
         }
         m_cv.notify_one();
     }
 
-    auto WorkSharingQueue::Reschedule(Resumable* task) noexcept -> void {
-        if(task == nullptr) return;
-        {
-            std::unique_lock lock{m_lock};
-            m_tasks.Enqueue(task);
-        }
-        m_cv.notify_one();
+    auto WorkSharingQueue::Enqueue(Resumable* task) noexcept -> void {
+        task->AddRef();
+        Reschedule(task);
     }
 
     auto WorkSharingQueue::Dequeue() noexcept -> Resumable * {

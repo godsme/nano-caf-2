@@ -22,6 +22,7 @@ namespace nano_caf {
         auto IsEmpty() const noexcept -> bool;
 
         ~WorkSharingQueue();
+
     private:
         nano_caf::Queue<Resumable> m_tasks{};
         std::condition_variable m_cv{};
