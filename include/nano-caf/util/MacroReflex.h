@@ -16,11 +16,10 @@
 namespace nano_caf::detail {
     template<typename T, size_t ... I>
     auto DeduceMsgFieldTypes(std::index_sequence<I...>)
-    -> TypeList<typename T::template __SeCrEtE_field<I, T>::Type...>;
+        -> TypeList<typename T::template __SeCrEtE_field<I, T>::Type...>;
 
     template<typename T>
-    using MsgFieldsTypes =
-            decltype(detail::DeduceMsgFieldTypes<T>(std::make_index_sequence<T::NuM_oF_fIeLdS>{}));
+    using MsgFieldsTypes = decltype(detail::DeduceMsgFieldTypes<T>(std::make_index_sequence<T::NuM_oF_fIeLdS>{}));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

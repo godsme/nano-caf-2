@@ -14,6 +14,13 @@ add_library(nano_caf
         include/nano-caf/util/MacroReflex.h
         include/nano-caf/util/ListElem.h
         include/nano-caf/util/Queue.h
+        include/nano-caf/util/SharedPtrDataHolder.h
+        include/nano-caf/util/SharedPtr.h
+        include/nano-caf/util/WeakPtr.h
+        include/nano-caf/util/CacheLineSize.h
+        include/nano-caf/util/SharedPtrCtlBlock.h
+        include/nano-caf/util/SharedBlock.h
+        include/nano-caf/util/DefaultMemAllocator.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
@@ -22,13 +29,8 @@ add_library(nano_caf
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
-        include/nano-caf/util/SharedPtrDataHolder.h
-        include/nano-caf/util/SharedPtr.h
-        include/nano-caf/util/WeakPtr.h
-        include/nano-caf/util/CacheLineSize.h
-        include/nano-caf/util/SharedPtrCtlBlock.h
-        include/nano-caf/util/SharedBlock.h
-        include/nano-caf/util/DefaultMemAllocator.h
+        include/nano-caf/actor/ActorHandle.h
+        include/nano-caf/actor/ActorWeakHandle.h
         include/nano-caf/message/Message.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
