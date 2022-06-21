@@ -11,9 +11,9 @@ namespace nano_caf::detail {
 
     template<typename T, Message::Category CATEGORY>
     struct MessageBase : Message {
-        MessageBase() : Message(T::TYPE_ID, CATEGORY) {}
+        MessageBase() : Message(T::ID, CATEGORY) {}
         MessageBase(ActorPtr const& sender)
-        : Message(sender, T::TYPE_ID, CATEGORY) {}
+        : Message(sender, T::ID, CATEGORY) {}
     };
 
 

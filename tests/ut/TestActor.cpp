@@ -19,7 +19,7 @@ namespace {
     };
 
     struct MyMessage {
-        constexpr static MsgTypeId TYPE_ID = 1;
+        constexpr static MsgTypeId ID = 1;
         int a;
         int b;
     };

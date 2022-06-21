@@ -10,7 +10,7 @@ namespace nano_caf {
     template struct Queue<Message>;
 
     auto MailBox::ReloadOne(Message* msg) noexcept -> void {
-        if(msg->m_category == Message::Category::URGENT) {
+        if(msg->category == Message::Category::URGENT) {
             m_urgent.Enqueue(msg);
         } else {
             m_normal.Enqueue(msg);
@@ -24,7 +24,7 @@ namespace nano_caf {
         do {
             auto* m = msg;
             msg = msg->m_next;
-            if(m->m_category == Message::Category::URGENT) {
+            if(m->category == Message::Category::URGENT) {
                 urgent.PushFront(m);
             } else {
                 normal.PushFront(m);

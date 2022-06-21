@@ -16,19 +16,20 @@ namespace nano_caf {
             URGENT
         };
 
-        Message(MsgTypeId typeId,  Category category = Category::NORMAL)
-            : m_id(typeId)
-            , m_category(category)
+        explicit Message(MsgTypeId id,  Category category = Category::NORMAL)
+            : id(id)
+            , category(category)
         {}
 
-        Message(ActorPtr const& sender, MsgTypeId typeId,  Category category = Category::NORMAL)
-                : m_id(typeId)
-                , m_category(category)
+        Message(ActorPtr const& sender, MsgTypeId id,  Category category = Category::NORMAL)
+                : sender{sender}
+                , id{id}
+                , category{category}
         {}
 
         template<typename BODY>
         auto Body() const noexcept -> BODY const* {
-            return m_id == BODY::TypeId ? reinterpret_cast<BODY const*>(GetBody()) : nullptr;
+            return id == BODY::ID ? reinterpret_cast<BODY const*>(GetBody()) : nullptr;
         }
 
         virtual ~Message() = default;
@@ -37,9 +38,9 @@ namespace nano_caf {
         virtual auto GetBody() const noexcept -> void const* = 0;
 
     public:
-        ActorWeakPtr m_sender;
-        MsgTypeId m_id;
-        Category m_category;
+        ActorWeakPtr sender;
+        MsgTypeId id;
+        Category category;
     };
 }
 

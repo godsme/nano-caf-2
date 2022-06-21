@@ -19,8 +19,8 @@ namespace {
 
         virtual auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
             REQUIRE(initTimes == 1);
-            msgs[numOfMsgs++] = msg.m_id;
-            if(msg.m_id == 10) SchedActor::Exit_(ExitReason::SHUTDOWN);
+            msgs[numOfMsgs++] = msg.id;
+            if(msg.id == 10) SchedActor::Exit_(ExitReason::SHUTDOWN);
         }
 
         auto ExitHandler(ExitReason reason) noexcept -> void override {

@@ -56,7 +56,7 @@ namespace nano_caf::detail {
 
         auto CurrentSender() const noexcept -> ActorHandle override {
             if(m_currentMsg == nullptr) return {};
-            auto sender = m_currentMsg->m_sender.Lock();
+            auto sender = m_currentMsg->sender.Lock();
             return sender ? ActorHandle{sender.Get()} : ActorHandle{};
         }
 
