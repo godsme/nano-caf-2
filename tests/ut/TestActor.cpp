@@ -12,6 +12,10 @@ namespace {
     struct MyActor : Actor {
         MyActor(int a, int b) : a{a}, b{b} {}
         int a{}, b{};
+
+        auto HandleMessage(Message& msg) noexcept -> void {
+
+        }
     };
 
     struct MyMessage {
