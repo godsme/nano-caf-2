@@ -3,7 +3,7 @@
 //
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/util/SharedPtr.h>
-#include <nano-caf/message/Message.h>
+#include <nano-caf/msg/Message.h>
 
 #include <catch.hpp>
 

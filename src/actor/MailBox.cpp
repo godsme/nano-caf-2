@@ -3,7 +3,7 @@
 //
 
 #include <nano-caf/actor/MailBox.h>
-#include <nano-caf/message/Message.h>
+#include <nano-caf/msg/Message.h>
 #include <nano-caf/util/Queue.tcc>
 
 namespace nano_caf {

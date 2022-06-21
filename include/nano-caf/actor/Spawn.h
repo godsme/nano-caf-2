@@ -12,14 +12,14 @@ namespace nano_caf::detail {
     struct ActorHasInit : std::false_type {};
 
     template<typename T>
-    struct ActorHasInit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().on_init())>>>
+    struct ActorHasInit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnInit())>>>
             : std::true_type {};
 
     template<typename T, typename = void>
     struct ActorHasExit : std::false_type {};
 
     template<typename T>
-    struct ActorHasExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().on_exit())>>>
+    struct ActorHasExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnExit(ExitReason::NORMAL))>>>
             : std::true_type {};
 
     template<typename T>
@@ -41,18 +41,18 @@ namespace nano_caf::detail {
 
         auto Init() noexcept -> void override {
             if constexpr (ActorHasInit<T>::value) {
-                T::on_init();
+                T::OnInit();
             }
         }
 
-        auto ExitHandler() noexcept -> void override {
+        auto ExitHandler(ExitReason reason) noexcept -> void override {
             if constexpr (ActorHasExit<T>::value) {
-                T::on_exit();
+                T::OnExit(reason);
             }
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
-            T::handle_message(msg);
+            T::HandleMessage(msg);
         }
     };
 }
@@ -61,7 +61,7 @@ namespace nano_caf {
     template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto Spawn(ARGS&& ... args) -> ActorHandle {
         using ActorObject = detail::InternalActor<T>;
-        auto&& handle = MakeShared<ActorObject>(std::forward<ARGS>(args)...);
+        auto&& handle = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
         if(!handle) {
             return {};
         } else {

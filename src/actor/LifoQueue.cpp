@@ -2,7 +2,7 @@
 // Created by Darwin Yuan on 2022/6/16.
 //
 #include <nano-caf/actor/LifoQueue.h>
-#include <nano-caf/message/Message.h>
+#include <nano-caf/msg/Message.h>
 #include <memory>
 
 namespace nano_caf {
