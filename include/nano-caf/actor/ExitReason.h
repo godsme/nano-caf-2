@@ -10,6 +10,7 @@
 namespace nano_caf {
     enum ExitReason : uint8_t {
         NORMAL,
+        ABNORMAL,
         SHUTDOWN,
         UNKNOWN
     };

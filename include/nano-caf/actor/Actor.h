@@ -14,13 +14,13 @@ namespace nano_caf {
 
     protected:
         template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
-        inline auto Send(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
-            return to.Send<T, CATEGORY>(Self(), std::forward<ARGS>(args)...);
+        inline auto SendTo(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
+            return to.Send<T, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::forward<ARGS>(args)...);
         }
 
         template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         inline auto Reply(ARGS&& ... args) const noexcept -> Status {
-            return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
+            return SendTo<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
         }
 
     protected:

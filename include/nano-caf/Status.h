@@ -12,6 +12,7 @@ namespace nano_caf {
         OK,
         FAILED,
         NULL_PTR,
+        NULL_ACTOR,
         CLOSED
     };
 }

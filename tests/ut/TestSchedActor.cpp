@@ -12,13 +12,7 @@ using namespace std::chrono_literals;
 
 namespace {
     struct MySchedActor : SchedActor {
-        virtual auto Init() noexcept -> void override {
-            inited = true;
-            initTimes++;
-        }
-
         virtual auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
-            REQUIRE(initTimes == 1);
             msgs[numOfMsgs++] = msg.id;
             if(msg.id == 10) SchedActor::Exit_(ExitReason::SHUTDOWN);
         }
@@ -27,10 +21,8 @@ namespace {
             exitReason = reason;
         }
 
-        bool inited{false};
         MsgTypeId msgs[10];
         size_t numOfMsgs{0};
-        size_t initTimes{0};
         ExitReason exitReason{ExitReason::NORMAL};
     };
 
@@ -76,8 +68,6 @@ SCENARIO("SchedActor Resume") {
 
         auto *task = static_cast<Resumable *>(actor.Get());
         REQUIRE(task->Resume() == TaskResult::DONE);
-        REQUIRE(actor->inited);
-        REQUIRE(actor->initTimes == 1);
         REQUIRE(actor->numOfMsgs == 2);
         REQUIRE(actor->msgs[0] == 2);
         REQUIRE(actor->msgs[1] == 1);
@@ -92,7 +82,6 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(allocatedBlocks == 4);
 
         REQUIRE(task->Resume() == TaskResult::SUSPENDED);
-        REQUIRE(actor->initTimes == 1);
         REQUIRE(actor->numOfMsgs == 3);
         REQUIRE(actor->msgs[0] == 4);
         REQUIRE(actor->msgs[1] == 6);
@@ -102,7 +91,6 @@ SCENARIO("SchedActor Resume") {
         actor->numOfMsgs = 0;
         REQUIRE(actor->SendMsg(new MyMessage{7, Message::Category::URGENT}) == MailBox::Result::OK);
         REQUIRE(task->Resume() == TaskResult::DONE);
-        REQUIRE(actor->initTimes == 1);
         REQUIRE(actor->numOfMsgs == 2);
         REQUIRE(actor->msgs[0] == 7);
         REQUIRE(actor->msgs[1] == 5);
@@ -113,7 +101,6 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(actor->SendMsg(new MyMessage{9, Message::Category::NORMAL}) == MailBox::Result::OK);
         REQUIRE(actor->SendMsg(new MyMessage{10, Message::Category::URGENT}) == MailBox::Result::OK);
         REQUIRE(task->Resume() == TaskResult::DONE);
-        REQUIRE(actor->initTimes == 1);
         REQUIRE(actor->numOfMsgs == 1);
         REQUIRE(actor->msgs[0] == 10);
         REQUIRE(allocatedBlocks == 0);

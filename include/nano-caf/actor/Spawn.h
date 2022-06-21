@@ -28,8 +28,9 @@ namespace nano_caf::detail {
         using SchedActor::m_currentMsg;
     public:
         template<typename ... ARGS>
-        InternalActor(ARGS&&...args)
-            : T{std::forward<ARGS>(args)...}
+        InternalActor(bool sync, ARGS&&...args)
+            : SchedActor{sync}
+            , T{std::forward<ARGS>(args)...}
         {}
 
         virtual ~InternalActor() = default;
@@ -42,7 +43,7 @@ namespace nano_caf::detail {
             return ActorHandle{const_cast<InternalActor*>(this), true};
         }
 
-        auto Init() noexcept -> void override {
+        auto InitHandler() noexcept -> void override {
             if constexpr (ActorHasInit<T>::value) {
                 T::OnInit();
             }
@@ -67,13 +68,18 @@ namespace nano_caf::detail {
 }
 
 namespace nano_caf {
-    template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
+    template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto Spawn(ARGS&& ... args) -> ActorHandle {
         using ActorObject = detail::InternalActor<T>;
-        auto&& handle = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
+        auto&& handle = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
         if(!handle) {
             return {};
         } else {
+            if constexpr(detail::ActorHasInit<T>::value) {
+                if(handle->Init() != TaskResult::SUSPENDED) {
+                    return {};
+                }
+            }
             return ActorHandle{handle.Get()};
         }
     }

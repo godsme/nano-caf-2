@@ -6,9 +6,15 @@
 #include <nano-caf/scheduler/ActorSystem.h>
 
 namespace nano_caf {
+    auto ActorHandle::Wait(ExitReason& reason) noexcept -> Status {
+        auto actor = ActorPtr::Get();
+        if(actor == nullptr) return Status::NULL_ACTOR;
+        return actor->Wait(reason);
+    }
+
     auto ActorHandle::Send(Message* msg) const noexcept -> Status {
         auto actor = ActorPtr::Get();
-        if(actor == nullptr) return Status::NULL_PTR;
+        if(actor == nullptr) return Status::NULL_ACTOR;
 
         switch (actor->SendMsg(msg)) {
             case LifoQueue::Result::OK:

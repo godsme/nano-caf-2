@@ -24,8 +24,10 @@ namespace nano_caf {
 
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeMessage<MSG, CATEGORY>(sender, std::forward<ARGS>(args)...));
+            return Send(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
+
+        auto Wait(ExitReason& reason) noexcept -> Status;
 
     private:
         auto Send(Message*) const noexcept -> Status;

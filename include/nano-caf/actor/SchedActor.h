@@ -9,6 +9,7 @@
 #include <nano-caf/util/CacheLineSize.h>
 #include <nano-caf/actor/MailBox.h>
 #include <nano-caf/actor/ExitReason.h>
+#include <nano-caf/Status.h>
 #include <future>
 
 namespace nano_caf {
@@ -18,10 +19,17 @@ namespace nano_caf {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();
 
+        auto Init() noexcept -> TaskResult;
         using MailBox::SendMsg;
+
+        auto Wait(ExitReason& reason) noexcept -> Status;
 
     private:
         auto Resume() noexcept -> TaskResult override;
+
+    private:
+        auto ExitCheck() noexcept -> TaskResult;
+        auto TrySync() noexcept -> void;
 
     private:
         auto AddRef() noexcept -> void override;
@@ -34,7 +42,7 @@ namespace nano_caf {
         auto Exit_(ExitReason reason) -> void;
 
     private:
-        virtual auto Init() noexcept -> void {}
+        virtual auto InitHandler() noexcept -> void {}
         virtual auto ExitHandler(ExitReason) noexcept -> void {}
         virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
 
