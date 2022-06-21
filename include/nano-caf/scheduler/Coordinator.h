@@ -8,18 +8,21 @@
 #include <nano-caf/scheduler/WorkSharingQueue.h>
 #include <nano-caf/scheduler/Resumable.h>
 #include <nano-caf/scheduler/Worker.h>
+#include <nano-caf/Status.h>
 #include <vector>
 
 namespace nano_caf {
     struct Coordinator {
-        explicit Coordinator(std::size_t numOfWorkers);
+        Coordinator() = default;
 
-        auto Schedule(Resumable*) noexcept -> void;
+        auto StartUp(std::size_t numOfWorkers) noexcept -> void;
+        auto Schedule(Resumable*) noexcept -> Status;
         auto Shutdown() noexcept -> void;
 
     private:
         WorkSharingQueue m_pendingTasks;
         std::vector<Worker> m_workers;
+        bool working{};
     };
 }
 

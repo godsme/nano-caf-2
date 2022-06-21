@@ -5,7 +5,8 @@
 #include <nano-caf/scheduler/Coordinator.h>
 
 namespace nano_caf {
-    Coordinator::Coordinator(std::size_t numOfWorkers) {
+    auto Coordinator::StartUp(std::size_t numOfWorkers) noexcept -> void {
+        if(working) return;
         m_workers.reserve(numOfWorkers);
         for(std::size_t i=0; i<numOfWorkers; ++i) {
             m_workers.emplace_back(m_pendingTasks);
@@ -13,8 +14,10 @@ namespace nano_caf {
         }
     }
 
-    auto Coordinator::Schedule(Resumable* task) noexcept -> void {
+    auto Coordinator::Schedule(Resumable* task) noexcept -> Status {
+        if(!working) return Status::CLOSED;
         m_pendingTasks.Enqueue(task);
+        return Status::OK;
     }
 
     auto Coordinator::Shutdown() noexcept -> void {
