@@ -26,9 +26,10 @@ namespace nano_caf::detail {
     struct InternalActor : SchedActor, private T {
         template<typename ... ARGS>
         InternalActor(ARGS&&...args)
-        : T{std::forward<ARGS>(args)...} {}
+            : T{std::forward<ARGS>(args)...}
+        {}
 
-        ~SchedActor() = default;
+        virtual ~InternalActor() = default;
 
         auto Exit(ExitReason reason) noexcept -> void override {
             SchedActor::Exit_(reason);
@@ -54,6 +55,19 @@ namespace nano_caf::detail {
             T::handle_message(msg);
         }
     };
+}
+
+namespace nano_caf {
+    template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
+    auto MakeActor(ARGS&& ... args) -> ActorHandle {
+        using ActorObject = detail::InternalActor<T>;
+        auto&& handle = MakeShared<ActorObject>(std::forward<ARGS>(args)...);
+        if(!(bool)handle) {
+            return {};
+        } else {
+            return {handle.Get()};
+        }
+    }
 }
 
 #endif //NANO_CAF_2_61F428315F9E41D58DE43222D7AF9BDE
