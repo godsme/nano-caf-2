@@ -34,6 +34,7 @@ add_library(nano_caf
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
+        include/nano-caf/actor/Actor.h
         include/nano-caf/msg/Message.h
         include/nano-caf/msg/MakeMessage.h
         src/scheduler/WorkSharingQueue.cpp
@@ -42,12 +43,14 @@ add_library(nano_caf
         src/actor/LifoQueue.cpp
         src/actor/MailBox.cpp
         src/actor/SchedActor.cpp
+        src/actor/ActorHandle.cpp
         src/util/SharedPtrCtlBlock.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestSharedPtr.cpp
         tests/ut/TestWorkSharingQueue.cpp
         tests/ut/TestWorker.cpp
+        tests/ut/TestActor.cpp
         tests/ut/TestCoordinator.cpp
         tests/ut/TestLifoQueue.cpp
         tests/ut/TestSchedActor.cpp)

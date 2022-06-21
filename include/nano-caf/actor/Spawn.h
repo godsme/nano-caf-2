@@ -24,6 +24,9 @@ namespace nano_caf::detail {
 
     template<typename T>
     struct InternalActor : SchedActor, private T {
+    private:
+        using SchedActor::m_currentMsg;
+    public:
         template<typename ... ARGS>
         InternalActor(ARGS&&...args)
             : T{std::forward<ARGS>(args)...}
@@ -36,7 +39,7 @@ namespace nano_caf::detail {
         }
 
         auto Self() const noexcept -> ActorHandle override {
-            return this;
+            return ActorHandle{const_cast<InternalActor*>(this), true};
         }
 
         auto Init() noexcept -> void override {
@@ -49,6 +52,12 @@ namespace nano_caf::detail {
             if constexpr (ActorHasExit<T>::value) {
                 T::OnExit(reason);
             }
+        }
+
+        auto CurrentSender() const noexcept -> ActorHandle override {
+            if(m_currentMsg == nullptr) return {};
+            auto sender = m_currentMsg->m_sender.Lock();
+            return sender ? ActorHandle{sender.Get()} : ActorHandle{};
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
@@ -65,7 +74,7 @@ namespace nano_caf {
         if(!handle) {
             return {};
         } else {
-            return {handle.Get()};
+            return ActorHandle{handle.Get()};
         }
     }
 }

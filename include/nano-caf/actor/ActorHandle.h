@@ -6,7 +6,7 @@
 #define NANO_CAF_2_18EE9B4948A14E4F89BFE3893421ECE2
 
 #include <nano-caf/actor/ActorPtr.h>
-#include <nano-caf/msg/Message.h>
+#include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/Status.h>
 
 namespace nano_caf {
@@ -17,14 +17,14 @@ namespace nano_caf {
 
         ActorHandle(ActorPtr&& rhs) : ActorPtr(std::move(rhs)) {}
 
-        template<typename MSG, Message::Category category = Message::NORMAL, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
-            return Status::FAILED;
+            return Send(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
-        template<typename MSG, Message::Category category = Message::NORMAL, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
-            return Status::FAILED;
+            return Send(MakeMessage<MSG, CATEGORY>(sender, std::forward<ARGS>(args)...));
         }
 
     private:

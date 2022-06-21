@@ -45,6 +45,11 @@ namespace nano_caf {
             std::promise<ExitReason> m_promise;
         } m_sync;
 
+    protected:
+        Message* m_currentMsg{};
+
+    private:
+
         ExitReason m_reason;
         uint8_t m_initialized:1;
         uint8_t m_exit:1;
