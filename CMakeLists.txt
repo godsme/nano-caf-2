@@ -40,6 +40,7 @@ add_library(nano_caf
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
+        src/scheduler/ActorSystem.cpp
         src/actor/LifoQueue.cpp
         src/actor/MailBox.cpp
         src/actor/SchedActor.cpp

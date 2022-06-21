@@ -3,6 +3,7 @@
 //
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/actor/Actor.h>
+#include <nano-caf/scheduler/ActorSystem.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -20,6 +21,8 @@ namespace {
     };
 }
 SCENARIO("Actor") {
+    ActorSystem::Instance().StartUp(1);
     auto actor = Spawn<MyActor>(1, 2);
     REQUIRE(actor.Send<MyMessage>(10, 20) == Status::OK);
+    ActorSystem::Instance().Shutdown();
 }

@@ -12,6 +12,7 @@ namespace nano_caf {
             m_workers.emplace_back(m_pendingTasks);
             m_workers[i].Launch();
         }
+        working = true;
     }
 
     auto Coordinator::Schedule(Resumable* task) noexcept -> Status {
@@ -26,6 +27,7 @@ namespace nano_caf {
             worker.WaitDone();
         }
         m_pendingTasks.CleanUp();
+        working = false;
     }
 }
 

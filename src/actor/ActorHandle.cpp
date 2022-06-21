@@ -3,6 +3,7 @@
 //
 
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/scheduler/ActorSystem.h>
 
 namespace nano_caf {
     auto ActorHandle::Send(Message* msg) const noexcept -> Status {
@@ -13,11 +14,9 @@ namespace nano_caf {
             case LifoQueue::Result::OK:
                 return Status::OK;
             case LifoQueue::Result::CLOSED:
-                delete msg;
                 return Status::CLOSED;
             case LifoQueue::Result::BLOCKED: {
-                // TODO:
-                return Status::OK;
+                return ActorSystem::Instance().Schedule(actor);
             }
             default:
                 return Status::NULL_PTR;
