@@ -2,8 +2,8 @@
 // Created by Darwin Yuan on 2022/6/21.
 //
 
-#ifndef NANO_CAF_2_61F428315F9E41D58DE43222D7AF9BDE
-#define NANO_CAF_2_61F428315F9E41D58DE43222D7AF9BDE
+#ifndef NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
+#define NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 
 #include <nano-caf/actor/ActorHandle.h>
 
@@ -59,10 +59,10 @@ namespace nano_caf::detail {
 
 namespace nano_caf {
     template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
-    auto MakeActor(ARGS&& ... args) -> ActorHandle {
+    auto Spawn(ARGS&& ... args) -> ActorHandle {
         using ActorObject = detail::InternalActor<T>;
         auto&& handle = MakeShared<ActorObject>(std::forward<ARGS>(args)...);
-        if(!(bool)handle) {
+        if(!handle) {
             return {};
         } else {
             return {handle.Get()};
@@ -70,4 +70,4 @@ namespace nano_caf {
     }
 }
 
-#endif //NANO_CAF_2_61F428315F9E41D58DE43222D7AF9BDE
+#endif //NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4

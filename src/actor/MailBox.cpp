@@ -39,7 +39,7 @@ namespace nano_caf {
         auto* msg = LifoQueue::TakeAll();
         if(msg == nullptr) return !Empty();
         if(msg->m_next == nullptr) {
-            // only 1 message in the LIFO queue
+            // only 1 msg in the LIFO queue
             ReloadOne(msg);
         } else {
             ReloadMany(msg);

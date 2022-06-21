@@ -29,11 +29,13 @@ add_library(nano_caf
         include/nano-caf/scheduler/TaskResult.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
-        include/nano-caf/actor/InternalActor.h
+        include/nano-caf/actor/ActorPtr.h
+        include/nano-caf/actor/Spawn.h
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
-        include/nano-caf/message/Message.h
+        include/nano-caf/msg/Message.h
+        include/nano-caf/msg/MakeMessage.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
