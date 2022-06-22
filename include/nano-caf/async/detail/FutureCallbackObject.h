@@ -16,20 +16,16 @@ namespace nano_caf {
 namespace nano_caf::detail {
     template<typename R, typename A, typename F, typename = std::enable_if<std::is_invocable_v<F, A>>>
     struct FutureCallbackObject : FutureObject<R>, FutureObserver<A> {
-        using Subject = std::shared_ptr<FutureObject<A>>;
         using Callback = std::decay_t<F>;
         using Super = FutureObject<R>;
         using ValueType = typename FutureObserver<A>::ValueType;
 
-        FutureCallbackObject(Subject subject, F&& callback)
-            : m_subject{std::move(subject)}
-            , m_callback{std::forward<F>(callback)}
+        FutureCallbackObject(F&& callback)
+            : m_callback{std::forward<F>(callback)}
         {
         }
 
-        ~FutureCallbackObject() {
-            DetachSubject();
-        }
+        ~FutureCallbackObject() = default;
 
     private:
         auto GetResult(ValueType const& value) -> decltype(auto) {
@@ -49,31 +45,17 @@ namespace nano_caf::detail {
             }
         }
 
-        auto DoCommit() noexcept -> void {
-            Super::Commit();
-            DetachSubject();
-        }
-
         auto OnFutureReady(ValueType const& value) noexcept -> void override {
             Super::SetValue(GetResult(value));
-            DoCommit();
+            Super::Commit();
         }
 
         auto OnFutureFail(Status cause) noexcept -> void override {
             Super::OnFail(cause);
-            DoCommit();
+            Super::Commit();
         }
 
     private:
-        auto DetachSubject() noexcept -> void {
-            if(m_subject) {
-                m_subject->DeregisterObserver(this);
-                m_subject.reset();
-            }
-        }
-
-    private:
-        Subject m_subject;
         Callback m_callback;
     };
 }

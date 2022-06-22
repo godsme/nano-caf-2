@@ -13,23 +13,40 @@
 namespace nano_caf {
     struct OnActorContext;
 
+    namespace detail {
+        template <typename F, typename A>
+        struct InvokeResult {
+            using Type = std::invoke_result_t<F, A>;
+        };
+
+        template <typename F>
+        struct InvokeResult<F, void> {
+            using Type = std::invoke_result_t<F>;
+        };
+
+        template <typename F, typename A>
+        using InvokeResultType = typename InvokeResult<F, A>::Type;
+    }
+
     template<typename T>
     struct Future final {
         using ObjectType = std::shared_ptr<detail::FutureObject<T>>;
-        using value_type = T;
 
         Future() noexcept = default;
-        Future(OnActorContext& context, ObjectType object) noexcept
-            : m_context{&context}
-            , m_object{std::move(object)}
+        Future(ObjectType object) noexcept
+            : m_object{std::move(object)}
         {}
 
-        template<typename F, typename R = std::invoke_result_t<F, T>, typename = std::enable_if_t<!std::is_void_v<T> && !IS_FUTURE<R>>>
-        auto Then(F&& callback) noexcept -> Future<R> {
-            if(m_context == nullptr || !m_object) return {};
+        explicit operator bool() const {
+            return (bool)m_object;
+        }
 
-            auto cb = std::make_shared<detail::FutureCallbackObject<T, R, F>>(*m_context, m_object, std::forward<F>(callback));
-            return {*m_context, cb};
+        template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<!IS_FUTURE<R>>>
+        auto Then(F&& callback) noexcept -> Future<R> {
+            if(!m_object) return {};
+            auto cb = std::make_shared<detail::FutureCallbackObject<T, R, F>>(std::forward<F>(callback));
+            m_object->RegisterObserver(cb);
+            return Future<R>{cb};
         }
 
 //        template<typename F, typename R = std::invoke_result_t<F>, typename = std::enable_if_t<std::is_void_v<T> && !Is_Future<R>>>
@@ -87,24 +104,7 @@ namespace nano_caf {
 //            return static_cast<bool>(object_);
 //        }
 //
-//        ~future() noexcept {
-//            if(object_ && object_.unique() && !object_->ready()) {
-//                context_->add_future(object_);
-//            }
-//        }
-
     private:
-//        template<typename R, typename F, typename A>
-//        friend struct detail::future_proxy_object;
-//
-//        template<typename ... Xs>
-//        friend struct detail::when_all_object;
-
-        template<typename>
-        friend struct Future;
-
-    private:
-        OnActorContext* m_context{};
         ObjectType m_object;
     };
 }
