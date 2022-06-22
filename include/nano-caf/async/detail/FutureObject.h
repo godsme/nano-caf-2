@@ -39,6 +39,10 @@ namespace nano_caf::detail {
             m_value.template emplace<1>(std::forward<T>(value));
         }
 
+        auto SetValue() noexcept -> void {
+            m_value.template emplace<1>(Void::Instance());
+        }
+
         auto OnFail(Status cause) noexcept -> void {
             m_value.template emplace<2>(cause);
         }
