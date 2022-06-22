@@ -7,7 +7,7 @@
 
 #include <nano-caf/util/ListElem.h>
 #include <nano-caf/actor/ActorPtr.h>
-#include <nano-caf/msg/MsgTypeId.h>
+#include "MsgTypeId.h"
 
 namespace nano_caf {
     struct Message : ListElem<Message>  {

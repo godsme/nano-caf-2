@@ -4,28 +4,24 @@
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/actor/Actor.h>
 #include <nano-caf/scheduler/ActorSystem.h>
+#include <nano-caf/msg/PredefinedMsgs.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
 
 namespace {
     struct Ping {
-        constexpr static MsgTypeId ID = 1;
+        constexpr static MsgTypeId ID = 11;
         std::size_t num;
     };
 
     struct Pong {
-        constexpr static MsgTypeId ID = 2;
+        constexpr static MsgTypeId ID = 12;
         std::size_t num;
     };
 
-    struct Shutdown {
-        constexpr static MsgTypeId ID = 3;
-        ExitReason reason;
-    };
-
     struct Dead {
-        constexpr static MsgTypeId ID = 4;
+        constexpr static MsgTypeId ID = 13;
         ExitReason reason;
     };
 
@@ -39,8 +35,8 @@ namespace {
                     }
                     break;
                 }
-                case Shutdown::ID: {
-                    auto reason = msg.Body<Shutdown>()->reason;
+                case ExitMsg::ID: {
+                    auto reason = msg.Body<ExitMsg>()->reason;
                     if(Reply<Dead>(reason) != Status::OK) {
                         Exit(ExitReason::ABNORMAL);
                     } else {
@@ -73,7 +69,7 @@ namespace {
                 case Pong::ID: {
                     auto num = msg.Body<Pong>()->num;
                     if(num >= times) {
-                        if(Send<Shutdown>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
+                        if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
                             Exit(ExitReason::ABNORMAL);
                         }
                     } else if(Reply<Ping>(num + 1) != Status::OK) {

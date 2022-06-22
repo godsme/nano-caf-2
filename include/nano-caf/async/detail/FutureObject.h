@@ -6,6 +6,7 @@
 #define NANO_CAF_2_FAF61F286041433CA454B541C8DC233B
 
 #include <nano-caf/async/detail/FutureObserver.h>
+#include <nano-caf/async/PromiseDoneNotifier.h>
 #include <nano-caf/async/FailHandler.h>
 #include <nano-caf/util/Void.h>
 #include <nano-caf/Status.h>
@@ -14,7 +15,7 @@
 
 namespace nano_caf::detail {
     template<typename R>
-    struct FutureObject {
+    struct FutureObject : PromiseDoneNotifier {
         using ObserverType = std::shared_ptr<FutureObserver<R>>;
 
         FutureObject() = default;
@@ -53,11 +54,15 @@ namespace nano_caf::detail {
             m_value.template emplace<2>(cause);
         }
 
+        auto Present() const noexcept -> bool {
+            return m_value.index() == 1;
+        }
+
         auto GetValue() noexcept -> decltype(auto) {
             return std::get<1>(m_value);
         }
 
-        auto Commit() noexcept -> void {
+        auto Commit() noexcept -> void override {
             switch (m_value.index()) {
                 case 2:
                     if(m_onFail) m_onFail(std::get<2>(m_value));
