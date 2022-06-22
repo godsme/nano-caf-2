@@ -6,6 +6,7 @@
 #define NANO_CAF_2_FAF61F286041433CA454B541C8DC233B
 
 #include <nano-caf/async/detail/FutureObserver.h>
+#include <nano-caf/async/FailHandler.h>
 #include <nano-caf/actor/OnActorContext.h>
 #include <nano-caf/util/Void.h>
 #include <nano-caf/Status.h>
@@ -34,6 +35,10 @@ namespace nano_caf::detail {
             }
         }
 
+        auto SetFailHandler(FailHandler&& handler) noexcept -> void {
+            m_onFail = std::move(handler);
+        }
+
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueType>>>
         auto SetValue(T&& value) noexcept -> void {
             m_value.template emplace<1>(std::forward<T>(value));
@@ -52,9 +57,15 @@ namespace nano_caf::detail {
         }
 
         auto Commit() noexcept -> void {
-            if(m_value.index() != 0) {
-                NotifyObservers();
-                Destroy();
+            switch (m_value.index()) {
+                case 2:
+                    if(m_onFail) m_onFail(std::get<2>(m_value));
+                    [[fallthrough]];
+                case 1:
+                    NotifyObservers();
+                    Destroy();
+                    break;
+                default: break;
             }
         }
 
@@ -80,8 +91,9 @@ namespace nano_caf::detail {
 
     protected:
         OnActorContext& m_context;
-        std::variant<std::monostate, ValueType, Status> m_value;
-        std::deque<FutureObserver<R>*> m_observers;
+        std::variant<std::monostate, ValueType, Status> m_value{};
+        FailHandler m_onFail{};
+        std::deque<FutureObserver<R>*> m_observers{};
     };
 }
 

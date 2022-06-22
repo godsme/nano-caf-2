@@ -66,6 +66,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestCoordinator.cpp
         tests/ut/TestLifoQueue.cpp
         tests/ut/TestSchedActor.cpp
-        tests/ut/TestFutureObject.cpp)
+        tests/ut/TestFutureObject.cpp
+        tests/ut/TestFutureCallbackObject.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)

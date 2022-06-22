@@ -15,7 +15,7 @@ namespace nano_caf {
 
 namespace nano_caf::detail {
     template<typename R, typename A, typename F, typename = std::enable_if<std::is_invocable_v<F, A>>>
-    struct FutureCallbackObject : FutureObject<R>, FutureObserver<A> {
+    struct FutureCallbackObject : FutureObject<R>, private FutureObserver<A> {
         using Subject = std::shared_ptr<FutureObject<A>>;
         using Callback = std::decay_t<F>;
         using Super = FutureObject<R>;
