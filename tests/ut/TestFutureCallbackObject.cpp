@@ -20,10 +20,8 @@ namespace {
 }
 
 SCENARIO("int FutureCallbackObject") {
-    OnActorContext context;
-    REQUIRE(context.Empty());
-    std::weak_ptr<detail::FutureObject<int>> weakSubject;
-    Observer observer1, observer2;
+    auto observer1 = std::make_shared<Observer>();
+    auto observer2 = std::make_shared<Observer>();
     Status cause{Status::OK};
 
     auto callback = [](int a) -> std::string {
@@ -31,72 +29,64 @@ SCENARIO("int FutureCallbackObject") {
     };
 
     using ObjectType = detail::FutureCallbackObject<std::string, int, decltype(callback)>;
-    std::weak_ptr<ObjectType> weak;
-    {
-        auto subject = std::make_shared<detail::FutureObject<int>>(context);
-        weakSubject = subject;
-        auto obj = std::make_shared<ObjectType>(context, subject, std::move(callback));
-        weak = obj;
-        context.AddObject(obj);
-        obj->RegisterObserver(observer1);
-        obj->RegisterObserver(observer2);
-        obj->SetFailHandler([&](Status reason) {
-            cause = reason;
-        });
-    }
+    auto subject = std::make_shared<detail::FutureObject<int>>();
+    auto obj = std::make_shared<ObjectType>(subject, std::move(callback));
+    subject->RegisterObserver(obj);
+    REQUIRE(obj.use_count() == 2);
 
-    REQUIRE(weakSubject.use_count() == 1);
-    REQUIRE(weak.use_count() == 1);
+    obj->RegisterObserver(observer1);
+    obj->RegisterObserver(observer2);
+
+    REQUIRE(observer1.use_count() == 2);
+    REQUIRE(observer2.use_count() == 2);
+
+    obj->SetFailHandler([&](Status reason) {
+        cause = reason;
+    });
 
     WHEN("set value on subject") {
-        {
-            auto subject = weakSubject.lock();
-            subject->SetValue(101);
-            REQUIRE(observer1.result.index() == 0);
-            REQUIRE(observer2.result.index() == 0);
+        subject->SetValue(101);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
 
-            THEN("once committed, all observer should be notified") {
-                subject->Commit();
+        THEN("once committed, all observer should be notified") {
+            subject->Commit();
 
-                REQUIRE(observer1.result.index() == 1);
-                REQUIRE(observer2.result.index() == 1);
-                REQUIRE(std::get<1>(observer1.result) == "201");
-                REQUIRE(std::get<1>(observer2.result) == "201");
+            REQUIRE(observer1->result.index() == 1);
+            REQUIRE(observer2->result.index() == 1);
+            REQUIRE(std::get<1>(observer1->result) == "201");
+            REQUIRE(std::get<1>(observer2->result) == "201");
 
-                REQUIRE(cause == Status::OK);
+            REQUIRE(cause == Status::OK);
 
-                THEN("callback object should be deregistered") {
-                    REQUIRE(context.Empty());
-                    REQUIRE(weak.expired());
-                }
+            THEN("callback object should be deregistered") {
+                REQUIRE(obj.use_count() == 1);
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
         }
-        REQUIRE(weakSubject.expired());
     }
 
     WHEN("fail") {
-        {
-            auto subject = weakSubject.lock();
-            subject->OnFail(Status::CLOSED);
-            REQUIRE(observer1.result.index() == 0);
-            REQUIRE(observer2.result.index() == 0);
+        subject->OnFail(Status::CLOSED);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
 
-            THEN("once committed, all observer should be notified") {
-                subject->Commit();
+        THEN("once committed, all observer should be notified") {
+            subject->Commit();
 
-                REQUIRE(observer1.result.index() == 2);
-                REQUIRE(observer2.result.index() == 2);
-                REQUIRE(std::get<2>(observer1.result) == Status::CLOSED);
-                REQUIRE(std::get<2>(observer2.result) == Status::CLOSED);
+            REQUIRE(observer1->result.index() == 2);
+            REQUIRE(observer2->result.index() == 2);
+            REQUIRE(std::get<2>(observer1->result) == Status::CLOSED);
+            REQUIRE(std::get<2>(observer2->result) == Status::CLOSED);
 
-                REQUIRE(cause == Status::CLOSED);
+            REQUIRE(cause == Status::CLOSED);
 
-                THEN("callback object should be deregistered") {
-                    REQUIRE(context.Empty());
-                    REQUIRE(weak.expired());
-                }
+            THEN("callback object should be deregistered") {
+                REQUIRE(obj.use_count() == 1);
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
         }
-        REQUIRE(weakSubject.expired());
     }
 }

@@ -15,21 +15,24 @@
 
 namespace nano_caf::detail {
     template<typename R>
-    struct FutureObject : ObjectRegistry::Object {
+    struct FutureObject {
         using ValueType = typename ValueTypeTrait<R>::ValueType;
+        using ObserverType = std::shared_ptr<FutureObserver<R>>;
 
-        explicit FutureObject(OnActorContext& context) : m_context{context} {}
+        FutureObject() = default;
 
-        auto RegisterObserver(FutureObserver<R>& observer) noexcept -> void {
+        auto RegisterObserver(ObserverType observer) noexcept -> void {
             if(m_value.index() == 0) {
-                m_observers.emplace_back(&observer);
+                m_observers.emplace_back(std::move(observer));
             } else {
                 NotifyObserver(observer);
             }
         }
 
-        auto DeregisterObserver(FutureObserver<R>& observer) noexcept -> void {
-            auto result = std::find(m_observers.begin(), m_observers.end(), &observer);
+        auto DeregisterObserver(FutureObserver<R>* observer) noexcept -> void {
+            auto result = std::find_if(m_observers.begin(), m_observers.end(), [observer](auto&& obj) {
+                return obj.get() == observer;
+            });
             if(result != m_observers.end()) {
                 m_observers.erase(result);
             }
@@ -63,37 +66,31 @@ namespace nano_caf::detail {
                     [[fallthrough]];
                 case 1:
                     NotifyObservers();
-                    Destroy();
                     break;
                 default: break;
             }
         }
 
     private:
-        auto Destroy() noexcept -> void {
-            DeregisterFrom(m_context);
-        }
-
-        auto NotifyObserver(FutureObserver<R>& observer) noexcept -> void {
+        auto NotifyObserver(ObserverType& observer) noexcept -> void {
             switch(m_value.index()) {
-                case 1: observer.OnFutureReady(std::get<1>(m_value)); break;
-                case 2: observer.OnFutureFail(std::get<2>(m_value)); break;
+                case 1: observer->OnFutureReady(std::get<1>(m_value)); break;
+                case 2: observer->OnFutureFail(std::get<2>(m_value)); break;
                 default: break; // should never be here.
             }
         }
 
         auto NotifyObservers() noexcept -> void {
             for (auto&& observer: m_observers) {
-                NotifyObserver(*observer);
+                NotifyObserver(observer);
             }
             m_observers.clear();
         }
 
     protected:
-        OnActorContext& m_context;
         std::variant<std::monostate, ValueType, Status> m_value{};
         FailHandler m_onFail{};
-        std::deque<FutureObserver<R>*> m_observers{};
+        std::deque<ObserverType> m_observers{};
     };
 }
 

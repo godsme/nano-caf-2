@@ -20,73 +20,74 @@ namespace {
 }
 
 SCENARIO("int FutureObject") {
-    OnActorContext context;
-    REQUIRE(context.Empty());
-    Observer observer1, observer2;
+    auto observer1 = std::make_shared<Observer>();
+    auto observer2 = std::make_shared<Observer>();
 
-    std::weak_ptr<detail::FutureObject<int>> weak;
-    {
-        auto obj = std::make_shared<detail::FutureObject<int>>(context);
-        context.AddObject(obj);
-        weak = obj;
-        REQUIRE(weak.use_count() == 2);
-        obj->RegisterObserver(observer1);
-        obj->RegisterObserver(observer2);
-    }
+    auto obj = std::make_shared<detail::FutureObject<int>>();
 
-    REQUIRE(weak.use_count() == 1);
+    REQUIRE(observer1.use_count() == 1);
+    REQUIRE(observer2.use_count() == 1);
+
+    obj->RegisterObserver(observer1);
+    obj->RegisterObserver(observer2);
+
+    REQUIRE(observer1.use_count() == 2);
+    REQUIRE(observer2.use_count() == 2);
+
+    REQUIRE(obj.use_count() == 1);
 
     WHEN("future failed, if not commit, observers should not be notified") {
-        auto obj = weak.lock();
         obj->OnFail(Status::CLOSED);
-        REQUIRE(observer1.result.index() == 0);
-        REQUIRE(observer2.result.index() == 0);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
+
+        REQUIRE(observer1.use_count() == 2);
+        REQUIRE(observer2.use_count() == 2);
 
         THEN("once commit, all observers should be notified") {
-            REQUIRE_FALSE(context.Empty());
             obj->Commit();
-            REQUIRE(observer1.result.index() == 2);
-            REQUIRE(observer2.result.index() == 2);
-            REQUIRE(std::get<2>(observer1.result) == Status::CLOSED);
-            REQUIRE(std::get<2>(observer2.result) == Status::CLOSED);
-            THEN("after commit, it should be deregistered from registry") {
-                REQUIRE(context.Empty());
+            REQUIRE(observer1->result.index() == 2);
+            REQUIRE(observer2->result.index() == 2);
+            REQUIRE(std::get<2>(observer1->result) == Status::CLOSED);
+            REQUIRE(std::get<2>(observer2->result) == Status::CLOSED);
+            THEN("after commit, observers should be cleared") {
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
 
             THEN("if register a new observer, it should be notified immediately") {
-                Observer observer3;
-                REQUIRE(observer3.result.index() == 0);
+                auto observer3 = std::make_shared<Observer>();
+                REQUIRE(observer3->result.index() == 0);
                 obj->RegisterObserver(observer3);
-                REQUIRE(observer3.result.index() == 2);
-                REQUIRE(std::get<2>(observer3.result) == Status::CLOSED);
+                REQUIRE(observer3->result.index() == 2);
+                REQUIRE(std::get<2>(observer3->result) == Status::CLOSED);
             }
         }
     }
 
     WHEN("future succeed, if not commit, observers should not be notified") {
-        auto obj = weak.lock();
         obj->SetValue(101);
-        REQUIRE(observer1.result.index() == 0);
-        REQUIRE(observer2.result.index() == 0);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
 
         THEN("once commit, all observers should be notified") {
-            REQUIRE_FALSE(context.Empty());
             obj->Commit();
-            REQUIRE(observer1.result.index() == 1);
-            REQUIRE(observer2.result.index() == 1);
-            REQUIRE(std::get<1>(observer1.result) == 101);
-            REQUIRE(std::get<1>(observer2.result) == 101);
+            REQUIRE(observer1->result.index() == 1);
+            REQUIRE(observer2->result.index() == 1);
+            REQUIRE(std::get<1>(observer1->result) == 101);
+            REQUIRE(std::get<1>(observer2->result) == 101);
 
-            THEN("after commit, it should be deregistered from registry") {
-                REQUIRE(context.Empty());
+            THEN("after commit, observers should be cleared") {
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
 
             THEN("if register a new observer, it should be notified immediately") {
-                Observer observer3;
-                REQUIRE(observer3.result.index() == 0);
+                auto observer3 = std::make_shared<Observer>();
+                REQUIRE(observer3->result.index() == 0);
                 obj->RegisterObserver(observer3);
-                REQUIRE(observer3.result.index() == 1);
-                REQUIRE(std::get<1>(observer3.result) == 101);
+                REQUIRE(observer3->result.index() == 1);
+                REQUIRE(std::get<1>(observer3->result) == 101);
             }
         }
     }
@@ -106,70 +107,70 @@ namespace {
 }
 
 SCENARIO("void FutureObject") {
-    OnActorContext context;
-    REQUIRE(context.Empty());
-    VoidObserver observer1, observer2;
+    auto observer1 = std::make_shared<VoidObserver>();
+    auto observer2 = std::make_shared<VoidObserver>();
 
-    std::weak_ptr<detail::FutureObject<void>> weak;
-    {
-        auto obj = std::make_shared<detail::FutureObject<void>>(context);
-        context.AddObject(obj);
-        weak = obj;
-        REQUIRE(weak.use_count() == 2);
-        obj->RegisterObserver(observer1);
-        obj->RegisterObserver(observer2);
-    }
+    auto obj = std::make_shared<detail::FutureObject<void>>();
 
-    REQUIRE(weak.use_count() == 1);
+    REQUIRE(observer1.use_count() == 1);
+    REQUIRE(observer2.use_count() == 1);
+
+    obj->RegisterObserver(observer1);
+    obj->RegisterObserver(observer2);
+
+    REQUIRE(observer1.use_count() == 2);
+    REQUIRE(observer2.use_count() == 2);
+
+    REQUIRE(obj.use_count() == 1);
 
     WHEN("future failed, if not commit, observers should not be notified") {
-        auto obj = weak.lock();
         obj->OnFail(Status::CLOSED);
-        REQUIRE(observer1.result.index() == 0);
-        REQUIRE(observer2.result.index() == 0);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
 
         THEN("once commit, all observers should be notified") {
-            REQUIRE_FALSE(context.Empty());
             obj->Commit();
-            REQUIRE(observer1.result.index() == 2);
-            REQUIRE(observer2.result.index() == 2);
-            REQUIRE(std::get<2>(observer1.result) == Status::CLOSED);
-            REQUIRE(std::get<2>(observer2.result) == Status::CLOSED);
+            REQUIRE(observer1->result.index() == 2);
+            REQUIRE(observer2->result.index() == 2);
+            REQUIRE(std::get<2>(observer1->result) == Status::CLOSED);
+            REQUIRE(std::get<2>(observer2->result) == Status::CLOSED);
             THEN("after commit, it should be deregistered from registry") {
-                REQUIRE(context.Empty());
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
 
             THEN("if register a new observer, it should be notified immediately") {
-                VoidObserver observer3;
-                REQUIRE(observer3.result.index() == 0);
+                auto observer3 = std::make_shared<VoidObserver>();
+                REQUIRE(observer3->result.index() == 0);
                 obj->RegisterObserver(observer3);
-                REQUIRE(observer3.result.index() == 2);
-                REQUIRE(std::get<2>(observer3.result) == Status::CLOSED);
+                REQUIRE(observer3->result.index() == 2);
+                REQUIRE(std::get<2>(observer3->result) == Status::CLOSED);
             }
         }
     }
 
     WHEN("future succeed, if not commit, observers should not be notified") {
-        auto obj = weak.lock();
         obj->SetValue();
-        REQUIRE(observer1.result.index() == 0);
-        REQUIRE(observer2.result.index() == 0);
+        REQUIRE(observer1->result.index() == 0);
+        REQUIRE(observer2->result.index() == 0);
 
         THEN("once commit, all observers should be notified") {
-            REQUIRE_FALSE(context.Empty());
             obj->Commit();
-            REQUIRE(observer1.result.index() == 1);
-            REQUIRE(observer2.result.index() == 1);
+            REQUIRE(observer1->result.index() == 1);
+            REQUIRE(observer2->result.index() == 1);
 
             THEN("after commit, it should be deregistered from registry") {
-                REQUIRE(context.Empty());
+                REQUIRE(observer1.use_count() == 1);
+                REQUIRE(observer2.use_count() == 1);
             }
 
             THEN("if register a new observer, it should be notified immediately") {
-                VoidObserver observer3;
-                REQUIRE(observer3.result.index() == 0);
+                auto observer3 = std::make_shared<VoidObserver>();
+                REQUIRE(observer3->result.index() == 0);
+                REQUIRE(observer3->result.index() == 0);
                 obj->RegisterObserver(observer3);
-                REQUIRE(observer3.result.index() == 1);
+                REQUIRE(observer3->result.index() == 1);
+                REQUIRE(observer3.use_count() == 1);
             }
         }
     }

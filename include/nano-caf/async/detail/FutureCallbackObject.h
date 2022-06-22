@@ -15,18 +15,16 @@ namespace nano_caf {
 
 namespace nano_caf::detail {
     template<typename R, typename A, typename F, typename = std::enable_if<std::is_invocable_v<F, A>>>
-    struct FutureCallbackObject : FutureObject<R>, private FutureObserver<A> {
+    struct FutureCallbackObject : FutureObject<R>, FutureObserver<A> {
         using Subject = std::shared_ptr<FutureObject<A>>;
         using Callback = std::decay_t<F>;
         using Super = FutureObject<R>;
         using ValueType = typename FutureObserver<A>::ValueType;
 
-        FutureCallbackObject(OnActorContext& context, Subject subject, F&& callback)
-            : FutureObject<R>{context}
-            , m_subject{std::move(subject)}
+        FutureCallbackObject(Subject subject, F&& callback)
+            : m_subject{std::move(subject)}
             , m_callback{std::forward<F>(callback)}
         {
-            if(m_subject) m_subject->RegisterObserver(*this);
         }
 
         ~FutureCallbackObject() {
@@ -69,7 +67,7 @@ namespace nano_caf::detail {
     private:
         auto DetachSubject() noexcept -> void {
             if(m_subject) {
-                m_subject->DeregisterObserver(*this);
+                m_subject->DeregisterObserver(this);
                 m_subject.reset();
             }
         }
