@@ -39,9 +39,11 @@ add_library(nano_caf
         include/nano-caf/actor/Actor.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
+        include/nano-caf/async/detail/InvokeResultType.h
         include/nano-caf/async/detail/FutureObject.h
         include/nano-caf/async/detail/FutureObserver.h
         include/nano-caf/async/detail/FutureCallbackObject.h
+        include/nano-caf/async/detail/FutureCallbackProxy.h
         include/nano-caf/async/Future.h
         include/nano-caf/util/ObjectRegistry.h
         include/nano-caf/async/Promise.h

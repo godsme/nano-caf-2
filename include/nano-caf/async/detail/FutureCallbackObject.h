@@ -6,15 +6,12 @@
 #define NANO_CAF_2_AF515DE488C74271BFBFDB365BEC3FC6
 
 #include <nano-caf/async/detail/FutureObject.h>
+#include <nano-caf/async/detail/InvokeResultType.h>
 #include <type_traits>
 #include <memory>
 
-namespace nano_caf {
-    struct OnActorContext;
-};
-
 namespace nano_caf::detail {
-    template<typename R, typename A, typename F, typename = std::enable_if<std::is_invocable_v<F, A>>>
+    template<typename R, typename A, typename F, typename = std::enable_if_t<std::is_same_v<R, InvokeResultType<F, A>>>>
     struct FutureCallbackObject : FutureObject<R>, FutureObserver<A> {
         using Callback = std::decay_t<F>;
         using Super = FutureObject<R>;

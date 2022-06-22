@@ -14,6 +14,17 @@ namespace nano_caf {
 
     template<typename T>
     constexpr bool IS_FUTURE<Future<T>> = true;
+
+    template<typename T>
+    struct FutureTrait;
+
+    template<typename R>
+    struct FutureTrait<Future<R>> {
+        using Type = R;
+    };
+
+    template<typename T>
+    using FutureOfType = typename FutureTrait<T>::Type;
 }
 
 #endif //NANO_CAF_2_43A5CDBD68AF463EBD1FA2A6AA3ACBD0
