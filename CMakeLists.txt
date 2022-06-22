@@ -23,11 +23,13 @@ add_library(nano_caf
         include/nano-caf/util/SharedPtrCtlBlock.h
         include/nano-caf/util/SharedBlock.h
         include/nano-caf/util/DefaultMemAllocator.h
+        include/nano-caf/util/Void.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/scheduler/TaskResult.h
         include/nano-caf/actor/LifoQueue.h
+        include/nano-caf/actor/OnActorContext.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h
         include/nano-caf/actor/Spawn.h
@@ -35,10 +37,12 @@ add_library(nano_caf
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
         include/nano-caf/actor/Actor.h
+        include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
-        include/nano-caf/async/PromiseDoneNotifier.h
         include/nano-caf/async/detail/FutureObject.h
         include/nano-caf/async/detail/FutureObserver.h
+        include/nano-caf/async/detail/FutureCallbackObject.h
+        include/nano-caf/async/Future.h
         include/nano-caf/util/ObjectRegistry.h
         include/nano-caf/async/Promise.h
         include/nano-caf/msg/Message.h
@@ -51,7 +55,8 @@ add_library(nano_caf
         src/actor/MailBox.cpp
         src/actor/SchedActor.cpp
         src/actor/ActorHandle.cpp
-        src/util/SharedPtrCtlBlock.cpp)
+        src/util/SharedPtrCtlBlock.cpp
+        src/util/ObjectRegistry.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestSharedPtr.cpp
@@ -60,6 +65,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestActor.cpp
         tests/ut/TestCoordinator.cpp
         tests/ut/TestLifoQueue.cpp
-        tests/ut/TestSchedActor.cpp)
+        tests/ut/TestSchedActor.cpp
+        tests/ut/TestFutureObject.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)

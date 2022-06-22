@@ -8,16 +8,19 @@
 #include <nano-caf/scheduler/Resumable.h>
 #include <nano-caf/util/CacheLineSize.h>
 #include <nano-caf/actor/MailBox.h>
+#include <nano-caf/actor/OnActorContext.h>
 #include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/Status.h>
-#include <nano-caf/util/ObjectRegistry.h>
 #include <future>
 #include <variant>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
 
-    struct SchedActor : protected MailBox, Resumable {
+    struct SchedActor
+            : protected MailBox
+            , protected OnActorContext
+            , Resumable {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();
 
@@ -53,7 +56,6 @@ namespace nano_caf {
         std::variant<std::monostate, ExitReason> m_exitReason;
 
     protected:
-        ObjectRegistry m_futureRegistry;
         Message* m_currentMsg{};
     };
 }

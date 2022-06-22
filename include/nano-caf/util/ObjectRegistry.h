@@ -11,27 +11,25 @@
 namespace nano_caf {
     struct ObjectRegistry {
         struct Object {
-            virtual auto OnRegistered() noexcept -> void = 0;
+            Object() = default;
+
+            auto OnRegistered() noexcept -> void {
+                m_registered = true;
+            }
+
             virtual ~Object() = default;
+
+        protected:
+            auto DeregisterFrom(ObjectRegistry& registry) noexcept -> void;
+
+        private:
+            bool m_registered{};
         };
 
         using ElemType = std::shared_ptr<Object>;
 
-        auto AddObject(ElemType object) noexcept -> void {
-            auto [obj, inserted] = m_objects.insert(std::move(object));
-            if(inserted) {
-                (*obj)->OnRegistered();
-            }
-        }
-
-        auto RemoveObject(Object* object) noexcept -> void {
-            auto found = std::find_if(m_objects.begin(), m_objects.end(), [target = object](auto&& obj) {
-                return obj.get() == target;
-            });
-            if(found != m_objects.end()) {
-                m_objects.erase(found);
-            }
-        }
+        auto AddObject(ElemType object) noexcept -> void;
+        auto RemoveObject(Object* object) noexcept -> void;
 
         auto Empty() const noexcept -> bool {
             return m_objects.empty();
