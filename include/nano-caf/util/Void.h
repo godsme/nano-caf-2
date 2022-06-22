@@ -22,6 +22,9 @@ namespace nano_caf {
     struct ValueTypeTrait<void> {
         using ValueType = Void;
     };
+
+    template<typename T>
+    using ValueTypeOf = typename ValueTypeTrait<T>::ValueType;
 }
 
 #endif //NANO_CAF_2_68671F02BDB24C978CE625F91A0654CA

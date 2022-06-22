@@ -7,26 +7,17 @@
 
 #include <nano-caf/Status.h>
 #include <nano-caf/actor/ActorPtr.h>
+#include <nano-caf/util/Void.h>
 
 namespace nano_caf {
     template<typename T>
     struct Future;
 
     template<typename T>
-    struct AbstractPromiseBase {
+    struct AbstractPromise {
         virtual auto OnFail(Status, ActorPtr&& to) noexcept -> void = 0;
-        virtual auto Connect(Future<T>&&, ActorWeakPtr&&) noexcept -> void = 0;
-        virtual ~AbstractPromiseBase() = default;
-    };
-
-    template<typename T>
-    struct AbstractPromise : AbstractPromiseBase<T> {
-        virtual auto Reply(T&& value, ActorPtr&&) noexcept -> void = 0;
-    };
-
-    template<>
-    struct AbstractPromise<void> : AbstractPromiseBase<void> {
-        virtual auto Reply(ActorPtr&&) noexcept -> void = 0;
+        virtual auto Join(Future<T>&&, ActorWeakPtr&&) noexcept -> void = 0;
+        virtual auto Reply(ValueTypeOf<T>&& value, ActorPtr&&) noexcept -> void = 0;
     };
 }
 

@@ -8,7 +8,6 @@
 #include <nano-caf/scheduler/Resumable.h>
 #include <nano-caf/util/CacheLineSize.h>
 #include <nano-caf/actor/MailBox.h>
-#include <nano-caf/actor/OnActorContext.h>
 #include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/Status.h>
 #include <future>
@@ -19,7 +18,6 @@ namespace nano_caf {
 
     struct SchedActor
             : protected MailBox
-            , protected OnActorContext
             , Resumable {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();

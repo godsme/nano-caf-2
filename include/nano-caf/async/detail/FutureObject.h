@@ -7,7 +7,6 @@
 
 #include <nano-caf/async/detail/FutureObserver.h>
 #include <nano-caf/async/FailHandler.h>
-#include <nano-caf/actor/OnActorContext.h>
 #include <nano-caf/util/Void.h>
 #include <nano-caf/Status.h>
 #include <variant>
@@ -16,7 +15,6 @@
 namespace nano_caf::detail {
     template<typename R>
     struct FutureObject {
-        using ValueType = typename ValueTypeTrait<R>::ValueType;
         using ObserverType = std::shared_ptr<FutureObserver<R>>;
 
         FutureObject() = default;
@@ -42,7 +40,7 @@ namespace nano_caf::detail {
             m_onFail = std::move(handler);
         }
 
-        template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueType>>>
+        template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
         auto SetValue(T&& value) noexcept -> void {
             m_value.template emplace<1>(std::forward<T>(value));
         }
@@ -88,7 +86,7 @@ namespace nano_caf::detail {
         }
 
     protected:
-        std::variant<std::monostate, ValueType, Status> m_value{};
+        std::variant<std::monostate, ValueTypeOf<R>, Status> m_value{};
         FailHandler m_onFail{};
         std::deque<ObserverType> m_observers{};
     };
