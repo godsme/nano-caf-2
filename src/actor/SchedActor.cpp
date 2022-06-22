@@ -6,15 +6,14 @@
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 
 namespace nano_caf {
-    SchedActor::SchedActor(bool syncRequired)
-        : m_initialized{0}, m_exit{0} {
+    SchedActor::SchedActor(bool syncRequired) {
         if(syncRequired) {
             m_promise.emplace<std::promise<ExitReason>>();
         }
     }
 
     SchedActor::~SchedActor() {
-        if(!m_exit) {
+        if(m_exitReason.index() == 0) {
             ExitHandler(ExitReason::UNKNOWN);
         }
     }
@@ -31,13 +30,13 @@ namespace nano_caf {
 
     inline auto SchedActor::TrySync() noexcept -> void {
         if(m_promise.index() == 1) {
-            std::get<1>(m_promise).set_value(m_reason);
+            std::get<1>(m_promise).set_value(std::get<1>(m_exitReason));
         }
     }
 
     auto SchedActor::ExitCheck() noexcept -> TaskResult {
-        if(m_exit) {
-            ExitHandler(m_reason);
+        if(m_exitReason.index() == 1) {
+            ExitHandler(std::get<1>(m_exitReason));
             TrySync();
             return TaskResult::DONE;
         }
@@ -59,9 +58,8 @@ namespace nano_caf {
     }
 
     auto SchedActor::Exit_(ExitReason reason) -> void {
-        if(!m_exit) {
-            m_exit = 1;
-            m_reason = reason;
+        if(m_exitReason.index() == 0) {
+            m_exitReason.emplace<1>(reason);
         }
     }
 

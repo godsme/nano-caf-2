@@ -50,15 +50,11 @@ namespace nano_caf {
 
     private:
         std::variant<std::monostate, std::promise<ExitReason>> m_promise;
+        std::variant<std::monostate, ExitReason> m_exitReason;
 
     protected:
         ObjectRegistry m_futureRegistry;
         Message* m_currentMsg{};
-
-    private:
-        ExitReason m_reason;
-        uint8_t m_initialized:1;
-        uint8_t m_exit:1;
     };
 }
 
