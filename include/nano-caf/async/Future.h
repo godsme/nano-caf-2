@@ -36,8 +36,8 @@ namespace nano_caf {
         template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<IS_FUTURE<R>>>
         auto Then(F&& callback) noexcept -> R {
             if(!m_object) return {};
-            using ObjectType = detail::FutureCallbackProxy<FutureOfType<R>, T, F>;
-            auto cb = std::make_shared<ObjectType>(std::forward<F>(callback));
+            using Object = detail::FutureCallbackProxy<FutureOfType<R>, T, F>;
+            auto cb = std::make_shared<Object>(std::forward<F>(callback));
             m_object->RegisterObserver(cb);
             return R{cb};
         }
