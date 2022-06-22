@@ -52,6 +52,10 @@ namespace nano_caf {
             return *this;
         }
 
+        auto Release() noexcept -> void {
+            m_object.reset();
+        }
+
     private:
         template<typename, typename, typename>
         friend struct detail::FutureCallbackProxy;
