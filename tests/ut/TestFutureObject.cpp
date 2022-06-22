@@ -19,6 +19,25 @@ namespace {
     };
 }
 
+SCENARIO("FutureObject destruct") {
+    auto observer1 = std::make_shared<Observer>();
+    auto observer2 = std::make_shared<Observer>();
+    REQUIRE(observer1.use_count() == 1);
+    REQUIRE(observer2.use_count() == 1);
+
+    {
+        auto obj = std::make_shared<detail::FutureObject<int>>();
+        obj->RegisterObserver(observer1);
+        obj->RegisterObserver(observer2);
+
+        REQUIRE(observer1.use_count() == 2);
+        REQUIRE(observer2.use_count() == 2);
+    }
+
+    REQUIRE(observer1.use_count() == 1);
+    REQUIRE(observer2.use_count() == 1);
+}
+
 SCENARIO("int FutureObject") {
     auto observer1 = std::make_shared<Observer>();
     auto observer2 = std::make_shared<Observer>();
