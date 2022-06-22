@@ -42,35 +42,15 @@ namespace nano_caf {
             return R{cb};
         }
 
-//        template<typename F, typename R = std::invoke_result_t<F>, typename = std::enable_if_t<std::is_void_v<T> && Is_Future<R>>>
-//        auto then(F&& callback) noexcept -> std::invoke_result_t<F> {
-//            if(context_ == nullptr || !object_) return {};
-//
-//            auto cb = std::make_shared<detail::future_proxy_object<R, F, T>>(*context_, object_, std::forward<F>(callback));
-//            return R{*context_, cb};
-//        }
-//
-//        template<typename F, typename = std::enable_if_t<std::is_invocable_r_v<void, F, status_t>>>
-//        auto fail(F&& on_fail) noexcept -> future<T>& {
-//            if(!object_) {
-//                on_fail(status_t::invalid_data);
-//            } else {
-//                object_->set_fail_handler(std::forward<F>(on_fail));
-//            }
-//            return *this;
-//        }
-//
-//        auto cancel(status_t cause) noexcept -> void {
-//            if(object_) {
-//                object_->cancel(cause);
-//                object_.release();
-//            }
-//        }
-//
-//        inline auto valid() const noexcept -> bool {
-//            return static_cast<bool>(object_);
-//        }
-//
+        template<typename F, typename = std::enable_if_t<std::is_invocable_r_v<void, F, Status>>>
+        auto Fail(F&& on_fail) noexcept -> Future<T>& {
+            if(!m_object) {
+                on_fail(Status::NULL_PTR);
+            } else {
+                m_object->SetFailHandler(std::forward<F>(on_fail));
+            }
+            return *this;
+        }
 
     private:
         template<typename, typename, typename>
