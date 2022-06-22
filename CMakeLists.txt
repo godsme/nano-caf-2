@@ -48,6 +48,7 @@ add_library(nano_caf
         include/nano-caf/msg/Message.h
         include/nano-caf/msg/MakeMessage.h
         include/nano-caf/msg/MsgDef.h
+        include/nano-caf/util/CallableTrait.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
