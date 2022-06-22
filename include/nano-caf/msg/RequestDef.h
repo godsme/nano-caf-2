@@ -22,7 +22,7 @@ namespace nano_caf::detail {
         using MethodType  = ATOM;
         using ResultType  = typename CallableTrait<SIGNATURE>::ResultType;
         using ArgsType    = typename CallableTrait<SIGNATURE>::DecayedArgsType;
-        using PatternType = typename CallableTrait<SIGNATURE>::DecayedArgsType::template PrependType<ATOM>;
+        using PatternType = typename ArgsType::template PrependType<ATOM>;
         using MsgType     = typename ArgsType::template ExportTo<std::tuple>;
     };
 }
