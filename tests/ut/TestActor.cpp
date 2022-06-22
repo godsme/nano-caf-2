@@ -5,7 +5,6 @@
 #include <nano-caf/actor/Actor.h>
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <catch.hpp>
-#include <iostream>
 
 using namespace nano_caf;
 
@@ -63,7 +62,7 @@ namespace {
             if(!pongActor) {
                 Exit(ExitReason::ABNORMAL);
             } else {
-                if(SendTo<Ping>(pongActor, std::size_t(0)) != Status::OK) {
+                if(Send<Ping>(pongActor, std::size_t(0)) != Status::OK) {
                     Exit(ExitReason::ABNORMAL);
                 }
             }
@@ -74,7 +73,7 @@ namespace {
                 case Pong::ID: {
                     auto num = msg.Body<Pong>()->num;
                     if(num >= times) {
-                        if(SendTo<Shutdown>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
+                        if(Send<Shutdown>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
                             Exit(ExitReason::ABNORMAL);
                         }
                     } else if(Reply<Ping>(num + 1) != Status::OK) {
@@ -91,8 +90,9 @@ namespace {
     };
 }
 
-SCENARIO("Actor") {
+SCENARIO("Ping Pong Actor") {
     ActorSystem::Instance().StartUp(1);
+
     auto ping = Spawn<PingActor, true>(std::size_t(100));
     REQUIRE(ping);
 

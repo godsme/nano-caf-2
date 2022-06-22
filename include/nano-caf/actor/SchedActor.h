@@ -10,7 +10,9 @@
 #include <nano-caf/actor/MailBox.h>
 #include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/Status.h>
+#include <nano-caf/util/ObjectRegistry.h>
 #include <future>
+#include <variant>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
@@ -47,21 +49,16 @@ namespace nano_caf {
         virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
 
     private:
-        union Sync {
-            Sync() {}
-            ~Sync() {}
-            std::promise<ExitReason> m_promise;
-        } m_sync;
+        std::variant<std::monostate, std::promise<ExitReason>> m_promise;
 
     protected:
+        ObjectRegistry m_futureRegistry;
         Message* m_currentMsg{};
 
     private:
-
         ExitReason m_reason;
         uint8_t m_initialized:1;
         uint8_t m_exit:1;
-        uint8_t m_syncRequired:1;
     };
 }
 

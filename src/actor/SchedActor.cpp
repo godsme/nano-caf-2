@@ -7,9 +7,9 @@
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired)
-        : m_initialized{0}, m_exit{0}, m_syncRequired{syncRequired} {
-        if(m_syncRequired) {
-            new (&m_sync.m_promise) std::promise<ExitReason>{};
+        : m_initialized{0}, m_exit{0} {
+        if(syncRequired) {
+            m_promise.emplace<std::promise<ExitReason>>();
         }
     }
 
@@ -17,15 +17,11 @@ namespace nano_caf {
         if(!m_exit) {
             ExitHandler(ExitReason::UNKNOWN);
         }
-
-        if(m_syncRequired) {
-            m_sync.m_promise.~promise<ExitReason>();
-        }
     }
 
     auto SchedActor::Wait(ExitReason& reason) noexcept -> Status {
-        if(!m_syncRequired) return Status::FAILED;
-        auto&& future = m_sync.m_promise.get_future();
+        if(m_promise.index() == 0) return Status::FAILED;
+        auto&& future = std::get<1>(m_promise).get_future();
         future.wait();
         reason = future.get();
         return Status::OK;
@@ -34,8 +30,8 @@ namespace nano_caf {
     inline constexpr std::size_t MAX_CONSUMED_MSGS_PER_ROUND = 3;
 
     inline auto SchedActor::TrySync() noexcept -> void {
-        if(m_syncRequired) {
-            m_sync.m_promise.set_value(m_reason);
+        if(m_promise.index() == 1) {
+            std::get<1>(m_promise).set_value(m_reason);
         }
     }
 

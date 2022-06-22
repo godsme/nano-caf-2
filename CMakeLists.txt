@@ -35,6 +35,12 @@ add_library(nano_caf
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
         include/nano-caf/actor/Actor.h
+        include/nano-caf/async/AbstractPromise.h
+        include/nano-caf/async/PromiseDoneNotifier.h
+        include/nano-caf/async/detail/FutureObject.h
+        include/nano-caf/async/detail/FutureObserver.h
+        include/nano-caf/util/ObjectRegistry.h
+        include/nano-caf/async/Promise.h
         include/nano-caf/msg/Message.h
         include/nano-caf/msg/MakeMessage.h
         src/scheduler/WorkSharingQueue.cpp

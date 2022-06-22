@@ -31,7 +31,7 @@ namespace nano_caf {
         auto Body() const noexcept -> BODY const* {
             return id == BODY::ID ? reinterpret_cast<BODY const*>(GetBody()) : nullptr;
         }
-
+        
         virtual ~Message() = default;
 
     private:
