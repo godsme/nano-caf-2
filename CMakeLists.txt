@@ -36,7 +36,7 @@ add_library(nano_caf
         include/nano-caf/actor/detail/BehaviorBase.h
         include/nano-caf/actor/detail/Behaviors.h
         include/nano-caf/actor/detail/MsgTypeTrait.h
-        include/nano-caf/actor/detail/BehaviorTrait.h
+        include/nano-caf/actor/detail/BehaviorObject.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h
@@ -81,6 +81,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestFutureObject.cpp
         tests/ut/TestFutureCallbackObject.cpp
         tests/ut/TestFuture.cpp
+        tests/ut/TestBehaviorObject.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)

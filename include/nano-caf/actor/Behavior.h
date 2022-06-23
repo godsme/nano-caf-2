@@ -7,7 +7,7 @@
 
 #include <nano-caf/util/CallableTrait.h>
 #include <nano-caf/actor/detail/MsgHandler.h>
-#include <nano-caf/actor/detail/BehaviorTrait.h>
+#include <nano-caf/actor/detail/BehaviorObject.h>
 #include <nano-caf/actor/detail/Behaviors.h>
 #include <memory>
 

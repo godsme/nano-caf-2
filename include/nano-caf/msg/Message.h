@@ -8,8 +8,10 @@
 #include <nano-caf/util/ListElem.h>
 #include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/msg/MsgTypeId.h>
+#include <nano-caf/msg/RequestConcept.h>
 
 namespace nano_caf {
+    template<typename T>
     struct AbstractPromise;
 
     struct Message : ListElem<Message>  {
@@ -35,7 +37,12 @@ namespace nano_caf {
         }
 
         template<typename BODY>
-        auto Promise() const noexcept -> AbstractPromise* {
+        auto Body() noexcept -> BODY* {
+            return const_cast<BODY*>(const_cast<Message const*>(this)->template Body<BODY>());
+        }
+
+        template<typename BODY, std::enable_if_t<IS_REQUEST<BODY>>>
+        auto Promise() const noexcept -> AbstractPromise<typename BODY::ResultType>* {
             return nullptr;
         }
 

@@ -62,12 +62,12 @@ namespace nano_caf::detail {
 }
 
 namespace nano_caf {
-    template<typename T, Message::Category CATEGORY, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
     auto MakeMessage(ARGS&& ... args) -> Message* {
         return new detail::MessageEntity<T, CATEGORY>(std::forward<ARGS>(args)...);
     }
 
-    template<typename T, Message::Category CATEGORY, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
     auto MakeMessage(ActorPtr const& sender, ARGS&& ... args) -> Message* {
         return new detail::MessageEntity<T, CATEGORY>(sender, std::forward<ARGS>(args)...);
     }

@@ -2,8 +2,8 @@
 // Created by Darwin Yuan on 2022/6/23.
 //
 
-#ifndef NANO_CAF_2_D8BF146691404EA4B32FC20EE3D19C6D
-#define NANO_CAF_2_D8BF146691404EA4B32FC20EE3D19C6D
+#ifndef NANO_CAF_2_142192B507274CADBFFCBEC979A70E95
+#define NANO_CAF_2_142192B507274CADBFFCBEC979A70E95
 
 #include <nano-caf/msg/Atom.h>
 #include <nano-caf/util/CallableTrait.h>
@@ -77,4 +77,4 @@ namespace nano_caf::detail {
     using BehaviorObject = typename BehaviorTrait<F>::Type;
 }
 
-#endif //NANO_CAF_2_D8BF146691404EA4B32FC20EE3D19C6D
+#endif //NANO_CAF_2_142192B507274CADBFFCBEC979A70E95
