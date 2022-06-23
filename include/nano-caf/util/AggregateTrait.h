@@ -32,7 +32,7 @@ namespace nano_caf {
         using FieldsTypes = typename detail::AggregateFieldsType<NUM_OF_FIELDS, T>::Type;
 
         template <typename F>
-        static auto call(T& obj, F&& f) {
+        static auto Call(T& obj, F&& f) {
             return detail::AggregateFieldsType<NUM_OF_FIELDS, T>::Call(obj, std::forward<F>(f));
         }
     };

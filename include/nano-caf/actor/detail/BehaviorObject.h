@@ -18,8 +18,14 @@ namespace nano_caf::detail {
     template<typename T>
     constexpr bool NonConstLref = !std::is_const_v<T> && std::is_lvalue_reference_v<T>;
 
+    template<typename F, typename = void>
+    constexpr bool IS_ATOM_PATTERN = false;
+
     template<typename F>
-    struct BehaviorTrait<F, std::enable_if_t<IS_MSG_ATOM<F>>> {
+    constexpr bool IS_ATOM_PATTERN<F, std::enable_if_t<IS_MSG_ATOM<std::decay_t<FirstArg<F>>>>> = true;
+
+    template<typename F>
+    struct BehaviorTrait<F, std::enable_if_t<IS_ATOM_PATTERN<F>>> {
     private:
         static_assert(!NonConstLref<FirstArg<F>>, "the atom type cannot be non-const-lvalue-ref");
         using AtomType = std::decay_t<FirstArg<F>>;
@@ -34,7 +40,7 @@ namespace nano_caf::detail {
         template <typename ... Ts>
         using InvokeResult_i = std::invoke_result_t<F, AtomType, Ts...>;
         using InvokeResult = typename FieldsTypes::template ExportTo<InvokeResult_i>;
-        using MsgResultType = typename MsgTypeTrait<MsgType>::result_type;
+        using MsgResultType = typename MsgTypeTrait<MsgType>::ResultType;
 
         static_assert(std::is_same_v<InvokeResult, MsgResultType> ||
                       std::is_same_v<InvokeResult, Future<MsgResultType>>,
@@ -44,7 +50,7 @@ namespace nano_caf::detail {
 
     public:
         struct Type : Base {
-            using Base::bBasease;
+            using Base::Base;
             auto operator()(Message &msg) noexcept -> bool {
                 return Base::HandleMsg(msg, [](MsgType& msg, F& f) -> InvokeResult {
                     return MsgTypeTrait<MsgType>::Call(msg, [&](auto &&... args) -> InvokeResult {
@@ -56,7 +62,7 @@ namespace nano_caf::detail {
     };
 
     template<typename F>
-    struct BehaviorTrait<F, std::enable_if_t<!IS_MSG_ATOM<F>>> {
+    struct BehaviorTrait<F, std::enable_if_t<!IS_ATOM_PATTERN<F>>> {
     private:
         static_assert((CallableTrait<F>::NUM_OF_ARGS == 1), "only message argument is allowed");
         using MsgType = std::decay_t<FirstArg<F>>;
