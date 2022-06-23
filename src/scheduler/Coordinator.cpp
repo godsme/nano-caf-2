@@ -6,10 +6,11 @@
 
 namespace nano_caf {
     auto Coordinator::StartUp(std::size_t numOfWorkers) noexcept -> void {
-        if(working) return;
+        if(working || numOfWorkers == 0) return;
+        m_pendingTasks = std::make_unique<WorkSharingQueue>();
         m_workers.reserve(numOfWorkers);
         for(std::size_t i=0; i<numOfWorkers; ++i) {
-            m_workers.emplace_back(m_pendingTasks);
+            m_workers.emplace_back(*m_pendingTasks);
             m_workers[i].Launch();
         }
         working = true;
@@ -17,16 +18,17 @@ namespace nano_caf {
 
     auto Coordinator::Schedule(Resumable* task) noexcept -> Status {
         if(!working) return Status::CLOSED;
-        m_pendingTasks.Enqueue(task);
+        m_pendingTasks->Enqueue(task);
         return Status::OK;
     }
 
     auto Coordinator::Shutdown() noexcept -> void {
-        m_pendingTasks.Shutdown();
+        m_pendingTasks->Shutdown();
         for(auto&& worker : m_workers) {
             worker.WaitDone();
         }
-        m_pendingTasks.CleanUp();
+        m_workers.clear();
+        m_pendingTasks.reset();
         working = false;
     }
 }

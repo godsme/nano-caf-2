@@ -23,8 +23,17 @@ namespace nano_caf::detail {
     struct ActorHasExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnExit(ExitReason::NORMAL))>>>
             : std::true_type {};
 
+    template<typename T, typename = void>
+    struct ActorHasHandleMsg : std::false_type {};
+
+    template<typename T>
+    struct ActorHasHandleMsg<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().HandleMessage(std::declval<Message&>()))>>>
+            : std::true_type {};
+
     template<typename T>
     struct InternalActor : SchedActor, private T {
+    private:
+        static_assert(ActorHasHandleMsg<T>::value, "missing `auto HandleMessage(Message&) noexcept -> void`");
     private:
         using SchedActor::m_currentMsg;
     public:

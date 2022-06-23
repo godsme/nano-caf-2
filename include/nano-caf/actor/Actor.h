@@ -26,7 +26,7 @@ namespace nano_caf {
     protected:
         virtual auto Self() const noexcept -> ActorHandle = 0;
         virtual auto Exit(ExitReason) noexcept -> void = 0;
-        virtual auto HandleMessage(Message&) noexcept -> void = 0;
+
     private:
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
     };

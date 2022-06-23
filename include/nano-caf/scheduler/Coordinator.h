@@ -10,6 +10,7 @@
 #include <nano-caf/scheduler/Worker.h>
 #include <nano-caf/Status.h>
 #include <vector>
+#include <memory>
 
 namespace nano_caf {
     struct Coordinator {
@@ -20,7 +21,7 @@ namespace nano_caf {
         auto Shutdown() noexcept -> void;
 
     private:
-        WorkSharingQueue m_pendingTasks;
+        std::unique_ptr<WorkSharingQueue> m_pendingTasks{};
         std::vector<Worker> m_workers;
         bool working{};
     };

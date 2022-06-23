@@ -16,10 +16,21 @@ namespace nano_caf {
         template<typename ... ARGS>
         Behavior(ARGS&&...args) {
             static_assert(((CallableTrait<ARGS>::NUM_OF_ARGS > 0) && ...));
-            ptr_.reset(new detail::Behaviors{detail::BehaviorObject<ARGS>{std::move(args)}...});
+            m_ptr = std::shared_ptr<detail::MsgHandler>(new detail::Behaviors{detail::BehaviorObject<ARGS>{std::move(args)}...});
         }
 
-        std::unique_ptr<detail::MsgHandler> ptr_{};
+        Behavior() = default;
+
+        auto HandleMsg(Message& msg) noexcept -> bool {
+            return m_ptr ? m_ptr->HandleMsg(msg) : false;
+        }
+
+        operator bool() const noexcept {
+            return (bool)m_ptr;
+        }
+
+    private:
+        std::shared_ptr<detail::MsgHandler> m_ptr{};
     };
 }
 

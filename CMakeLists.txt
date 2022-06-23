@@ -46,6 +46,7 @@ add_library(nano_caf
         include/nano-caf/actor/ActorHandle.h
         include/nano-caf/actor/Behavior.h
         include/nano-caf/actor/Actor.h
+        include/nano-caf/actor/BehaviorBasedActor.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
         include/nano-caf/async/detail/InvokeResultType.h
@@ -82,6 +83,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestFutureCallbackObject.cpp
         tests/ut/TestFuture.cpp
         tests/ut/TestBehaviorObject.cpp
+        tests/ut/TestBehaviorBasedActor.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)
