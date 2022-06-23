@@ -63,9 +63,9 @@ namespace {
     );
 
     struct OpenHandler : AbstractPromise<long> {
-        virtual auto OnFail(Status, ActorPtr&& to) noexcept -> void {}
-        virtual auto Join(Future<long>&&, ActorWeakPtr&&) noexcept -> void {}
-        virtual auto Reply(ValueTypeOf<long>&& value, ActorPtr&&) noexcept -> void {
+        virtual auto OnFail(Status, ActorWeakPtr& to) noexcept -> void override {}
+        virtual auto Join(Future<long>&&, ActorWeakPtr&) noexcept -> void override  {}
+        virtual auto Reply(ValueTypeOf<long>&& value, ActorWeakPtr&) noexcept -> void override {
             m_value = value;
         }
 
@@ -94,9 +94,9 @@ SCENARIO("request behavior object non void") {
 
 namespace {
     struct CloseHandler : AbstractPromise<void> {
-        virtual auto OnFail(Status, ActorPtr&& to) noexcept -> void {}
-        virtual auto Join(Future<void>&&, ActorWeakPtr&&) noexcept -> void {}
-        virtual auto Reply(ValueTypeOf<void>&& value, ActorPtr&&) noexcept -> void {
+        virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void override {}
+        virtual auto Join(Future<void>&&, ActorWeakPtr&) noexcept -> void override {}
+        virtual auto Reply(ValueTypeOf<void>&& value, ActorWeakPtr&) noexcept -> void override {
             present = true;
         }
 

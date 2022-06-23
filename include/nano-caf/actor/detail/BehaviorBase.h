@@ -32,12 +32,12 @@ namespace nano_caf::detail {
                 }
 
                 if constexpr (IS_FUTURE<ResultType>) {
-                    p->Join(handler(*body, f_), std::move(msg.sender));
+                    p->Join(handler(*body, f_), msg.sender);
                 } else if constexpr(std::is_void_v<ResultType>) {
                     handler(*body, f_);
-                    p->Reply(std::move(Void::Instance()), std::move(msg.sender.Lock()));
+                    p->Reply(std::move(Void::Instance()), msg.sender);
                 } else {
-                    p->Reply(handler(*body, f_), std::move(msg.sender.Lock()));
+                    p->Reply(handler(*body, f_), msg.sender);
                 }
             } else {
                 handler(*body, f_);

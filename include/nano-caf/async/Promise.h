@@ -7,6 +7,8 @@
 
 #include <nano-caf/async/AbstractPromise.h>
 #include <nano-caf/async/detail/FutureObject.h>
+#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf {
     template<typename T>
@@ -18,6 +20,41 @@ namespace nano_caf {
             return {m_future};
         }
 
+        auto OnFail(Status cause, ActorWeakPtr&& to) noexcept -> void override {
+            if(!m_future) return;
+            m_future->OnFail(cause);
+            SendBack(to);
+        }
+
+        auto Join(Future<T>&& future, ActorWeakPtr&& to) noexcept -> void {
+            if constexpr(std::is_void_v<T>) {
+                future.Then([this, to = to] {
+                    Reply(std::move(Void::Instance()), to);
+                });
+            } else {
+                future.Then([this, to = to](T const& value) {
+                    Reply(value, to);
+                });
+            }
+
+            future.Fail([this, to = to](Status cause) {
+                OnFail(cause, to);
+            });;
+        }
+
+        auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr&& to) noexcept -> void {
+            if(!m_future) return;
+            m_future->SetValue(value);
+            SendBack(to);
+        }
+
+    private:
+        auto SendBack(ActorWeakPtr& to) noexcept -> void {
+            auto actor = to.Lock();
+            if(actor) {
+                ActorHandle{std::move(actor)}.Send<FutureDoneMsg>(m_future);
+            }
+        }
     private:
         std::shared_ptr<detail::FutureObject<T>> m_future;
     };
