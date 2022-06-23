@@ -7,6 +7,7 @@
 
 #include <nano-caf/util/CallableTrait.h>
 #include <nano-caf/actor/detail/MsgHandler.h>
+#include <nano-caf/actor/detail/BehaviorTrait.h>
 #include <nano-caf/actor/detail/Behaviors.h>
 #include <memory>
 
@@ -15,7 +16,7 @@ namespace nano_caf {
         template<typename ... ARGS>
         Behavior(ARGS&&...args) {
             static_assert(((CallableTrait<ARGS>::NUM_OF_ARGS > 0) && ...));
-            ptr_.reset(new detail::Behaviors{detail::Behavior<ARGS>{std::move(args)}...});
+            ptr_.reset(new detail::Behaviors{detail::BehaviorObject<ARGS>{std::move(args)}...});
         }
 
         std::unique_ptr<detail::MsgHandler> ptr_{};

@@ -13,8 +13,8 @@ namespace nano_caf::detail {
     template<typename ... ARGS>
     struct Behaviors : MsgHandler {
         Behaviors(ARGS&& ... args) : m_behaviors{std::move(args)...} {}
-        auto HandleMsg(Message& msg) noexcept -> void override {
-            Handle(msg, std::make_index_sequence<sizeof...(ARGS)>{});
+        auto HandleMsg(Message& msg) noexcept -> bool override {
+            return Handle(msg, std::make_index_sequence<sizeof...(ARGS)>{});
         }
 
     private:

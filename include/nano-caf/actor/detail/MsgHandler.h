@@ -11,7 +11,7 @@ namespace nano_caf {
 
 namespace nano_caf::detail {
     struct MsgHandler {
-        virtual auto HandleMsg(Message&) noexcept -> void;
+        virtual auto HandleMsg(Message&) noexcept -> bool = 0;
         virtual ~MsgHandler() = default;
     };
 }

@@ -8,7 +8,7 @@
 #include <nano-caf/msg/Atom.h>
 #include <nano-caf/util/CallableTrait.h>
 #include <nano-caf/actor/detail/MsgTypeTrait.h>
-#include <nano-caf/actor/detail/Behavior.h>
+#include <nano-caf/actor/detail/BehaviorBase.h>
 #include <nano-caf/async/Future.h>
 
 namespace nano_caf::detail {
@@ -72,6 +72,9 @@ namespace nano_caf::detail {
             }
         };
     };
+
+    template<typename F>
+    using BehaviorObject = typename BehaviorTrait<F>::Type;
 }
 
 #endif //NANO_CAF_2_D8BF146691404EA4B32FC20EE3D19C6D

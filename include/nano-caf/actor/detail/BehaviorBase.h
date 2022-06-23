@@ -2,8 +2,8 @@
 // Created by Darwin Yuan on 2022/6/23.
 //
 
-#ifndef NANO_CAF_2_48DBBF88487C4E3FB1160B394961DF5D
-#define NANO_CAF_2_48DBBF88487C4E3FB1160B394961DF5D
+#ifndef NANO_CAF_2_22CF1C93F4C6438DA663C2DE4443A8E9
+#define NANO_CAF_2_22CF1C93F4C6438DA663C2DE4443A8E9
 
 #include <nano-caf/util/CallableTrait.h>
 #include <nano-caf/msg/RequestConcept.h>
@@ -42,4 +42,4 @@ namespace nano_caf::detail {
     };
 }
 
-#endif //NANO_CAF_2_48DBBF88487C4E3FB1160B394961DF5D
+#endif //NANO_CAF_2_22CF1C93F4C6438DA663C2DE4443A8E9

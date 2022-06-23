@@ -31,7 +31,7 @@ add_library(nano_caf
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/scheduler/TaskResult.h
         include/nano-caf/actor/detail/MsgHandler.h
-        include/nano-caf/actor/detail/Behavior.h
+        include/nano-caf/actor/detail/BehaviorBase.h
         include/nano-caf/actor/detail/Behaviors.h
         include/nano-caf/actor/detail/MsgTypeTrait.h
         include/nano-caf/actor/detail/BehaviorTrait.h
