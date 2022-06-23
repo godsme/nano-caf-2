@@ -15,7 +15,7 @@ namespace nano_caf::detail {
 
     template <typename T>
     struct MsgTypeTrait<T, std::enable_if_t<std::is_aggregate_v<T>>> : AggregateTrait<T> {
-        using ResultType = void;
+        using ResultType = void; // ???
     };
 
     template <typename T>

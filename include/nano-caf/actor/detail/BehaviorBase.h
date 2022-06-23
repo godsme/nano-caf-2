@@ -26,17 +26,26 @@ namespace nano_caf::detail {
             if (body == nullptr) return false;
             if constexpr (IS_REQUEST<MSG_TYPE>) {
                 auto* p = msg.Promise<MSG_TYPE>();
-                if(p == nullptr) return true;
-                auto sender = msg.sender.Lock();
-                if(!sender) return true;
-                if constexpr (IS_FUTURE<ResultType>) {
-                    p->Join(handler(*body, f_), std::move(msg.sender));
-                } else {
-                    p->Reply(handler(*body, f_), std::move(sender));
+                if(p == nullptr) {
+                    // should never happend
+                    return true;
                 }
-            } else {
-                handler(*body, f_);
+                auto sender = msg.sender.Lock();
+                if(sender) {
+                    // sender actor has already dead, only do local process
+                    if constexpr (IS_FUTURE<ResultType>) {
+                        p->Join(handler(*body, f_), std::move(msg.sender));
+                    } else {
+                        p->Reply(handler(*body, f_), std::move(sender));
+                    }
+
+                    return true;
+                }
+
+                // sender actor is dead
             }
+
+            handler(*body, f_);
             return true;
         }
     };
