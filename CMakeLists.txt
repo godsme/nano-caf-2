@@ -27,6 +27,7 @@ add_library(nano_caf
         include/nano-caf/util/CallableTrait.h
         include/nano-caf/util/TupleConcept.h
         include/nano-caf/util/AggregateFieldsType.h
+        include/nano-caf/util/AggregateTrait.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h

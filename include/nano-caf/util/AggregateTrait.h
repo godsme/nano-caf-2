@@ -2,9 +2,10 @@
 // Created by Darwin Yuan on 2022/6/23.
 //
 
-#ifndef NANO_CAF_2_98F8FC38BD524E398C7E653E39792B7B
-#define NANO_CAF_2_98F8FC38BD524E398C7E653E39792B7B
+#ifndef NANO_CAF_2_6FBCC7A96BF14957A505864BDFDA6D70
+#define NANO_CAF_2_6FBCC7A96BF14957A505864BDFDA6D70
 
+#include <nano-caf/util/AggregateFieldsType.h>
 #include <type_traits>
 
 namespace nano_caf::detail {
@@ -38,4 +39,4 @@ namespace nano_caf {
 }
 
 
-#endif //NANO_CAF_2_98F8FC38BD524E398C7E653E39792B7B
+#endif //NANO_CAF_2_6FBCC7A96BF14957A505864BDFDA6D70

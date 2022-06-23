@@ -7,13 +7,14 @@
 
 #include <nano-caf/util/TupleConcept.h>
 #include <type_traits>
+#include <nano-caf/util/AggregateTrait.h>
 
 namespace nano_caf::detail {
     template <typename T, typename = void>
     struct MsgTypeTrait;
 
     template <typename T>
-    struct MsgTypeTrait<T, std::enable_if_t<std::is_aggregate_v<T>>> { //: aggregate_trait<T> {
+    struct MsgTypeTrait<T, std::enable_if_t<std::is_aggregate_v<T>>> : AggregateTrait<T> {
         using ResultType = void;
     };
 
