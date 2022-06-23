@@ -6,8 +6,8 @@
 #define NANO_CAF_2_7A2315C98A0441F596FCFB49B4552A9B
 
 #include <nano-caf/util/TupleConcept.h>
-#include <type_traits>
 #include <nano-caf/util/AggregateTrait.h>
+#include <type_traits>
 
 namespace nano_caf::detail {
     template <typename T, typename = void>
