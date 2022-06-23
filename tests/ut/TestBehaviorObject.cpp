@@ -73,7 +73,7 @@ namespace {
     };
 }
 
-SCENARIO("request behavior object") {
+SCENARIO("request behavior object non void") {
     auto* msg = MakeRequest<Msg3::Open::MsgType>(OpenHandler{}, 10);
     bool invoked = false;
     auto f = [&invoked](Msg3::Open, long a) -> long {
@@ -90,4 +90,33 @@ SCENARIO("request behavior object") {
     auto* handler = dynamic_cast<OpenHandler*>(msg->Promise<Msg3::Open::MsgType>());
     REQUIRE(handler != nullptr);
     REQUIRE(handler->m_value == 110);
+}
+
+namespace {
+    struct CloseHandler : AbstractPromise<void> {
+        virtual auto OnFail(Status, ActorPtr&& to) noexcept -> void {}
+        virtual auto Join(Future<void>&&, ActorWeakPtr&&) noexcept -> void {}
+        virtual auto Reply(ValueTypeOf<void>&& value, ActorPtr&&) noexcept -> void {
+            present = true;
+        }
+
+        bool present{};
+    };
+}
+SCENARIO("request behavior object void") {
+    auto* msg = MakeRequest<Msg3::Close::MsgType>(CloseHandler{}, 10);
+    bool invoked = false;
+    auto f = [&invoked](Msg3::Close, long a) -> void {
+        REQUIRE(a == 10);
+        invoked = true;
+    };
+
+    detail::BehaviorObject<decltype(f)> obj(std::move(f));
+
+    REQUIRE(obj(*msg));
+    REQUIRE(invoked);
+
+    auto* handler = dynamic_cast<CloseHandler*>(msg->Promise<Msg3::Close::MsgType>());
+    REQUIRE(handler != nullptr);
+    REQUIRE(handler->present);
 }
