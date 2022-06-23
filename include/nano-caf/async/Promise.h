@@ -20,13 +20,14 @@ namespace nano_caf {
             return {m_future};
         }
 
-        auto OnFail(Status cause, ActorWeakPtr&& to) noexcept -> void override {
+    private:
+        auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
             m_future->OnFail(cause);
             SendBack(to);
         }
 
-        auto Join(Future<T>&& future, ActorWeakPtr&& to) noexcept -> void {
+        auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
             if constexpr(std::is_void_v<T>) {
                 future.Then([this, to = to] {
                     Reply(std::move(Void::Instance()), to);
@@ -42,7 +43,7 @@ namespace nano_caf {
             });;
         }
 
-        auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr&& to) noexcept -> void {
+        auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
             m_future->SetValue(value);
             SendBack(to);
