@@ -6,6 +6,7 @@
 #define NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -62,7 +63,16 @@ namespace nano_caf::detail {
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
-            T::HandleMessage(msg);
+            switch(msg.id) {
+                case FutureDoneNotify::ID: {
+                    auto notifier = msg.Body<FutureDoneNotify>()->notifier;
+                    notifier->Commit();
+                    break;
+                }
+                default:
+                    T::HandleMessage(msg);
+                    break;
+            }
         }
     };
 }
