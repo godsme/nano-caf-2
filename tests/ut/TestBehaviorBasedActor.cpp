@@ -17,12 +17,12 @@ namespace {
     struct PongActor : BehaviorBasedActor {
         auto GetBehavior() noexcept -> Behavior override {
             return {
-                [this](Ping_atom, std::size_t num) {
+                [this](Ping::Atom, std::size_t num) {
                     if(Reply<Pong>(num) != Status::OK) {
                         Exit(ExitReason::ABNORMAL);
                     }
                 },
-                [this](ExitMsg_atom, ExitReason reason) {
+                [this](ExitMsg::Atom, ExitReason reason) {
                     if(Reply<Dead>(reason) != Status::OK) {
                         Exit(ExitReason::ABNORMAL);
                     } else {
@@ -52,7 +52,7 @@ namespace {
 
         auto GetBehavior() noexcept -> Behavior override {
             return {
-                [this](Pong_atom, std::size_t num) {
+                [this](Pong::Atom, std::size_t num) {
                     if(num >= times) {
                         if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
                             Exit(ExitReason::ABNORMAL);
@@ -61,7 +61,7 @@ namespace {
                         Exit(ExitReason::ABNORMAL);
                     }
                 },
-                [this](Dead_atom, ExitReason reason) {
+                [this](Dead::Atom, ExitReason reason) {
                     Exit(reason);
                 }
             };

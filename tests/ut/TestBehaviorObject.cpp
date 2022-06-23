@@ -40,7 +40,7 @@ namespace {
 SCENARIO("atom behavior object") {
     auto* msg = MakeMessage<Msg2>(10, 20);
     bool invoked = false;
-    auto f = [&invoked](Msg2_atom, int a, int b) -> void {
+    auto f = [&invoked](Msg2::Atom, int a, int b) -> void {
         REQUIRE(a == 10);
         REQUIRE(b == 20);
         invoked = true;

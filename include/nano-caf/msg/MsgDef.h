@@ -10,15 +10,13 @@
 #include <nano-caf/msg/MsgTypeId.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-#define __CAF_def_message(name, id, ...)           \
-struct name;                                       \
-struct name##_atom : nano_caf::AtomSignature {     \
-    constexpr static nano_caf::MsgTypeId ID = id;  \
-    using MsgType = name;                          \
-};                                                 \
-struct name {                                      \
-   constexpr static nano_caf::MsgTypeId ID = id;   \
-   __REFLEX_fields_only(__VA_ARGS__)               \
+#define __CAF_def_message(name, id, ...)             \
+struct name {                                        \
+   struct Atom : nano_caf::AtomSignature {           \
+      using MsgType = name;                          \
+   };                                                \
+   constexpr static nano_caf::MsgTypeId ID = id;     \
+   __REFLEX_fields_only(__VA_ARGS__)                 \
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
