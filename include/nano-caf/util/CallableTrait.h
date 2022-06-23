@@ -21,7 +21,7 @@ namespace nano_caf::detail {
         constexpr static size_t NUM_OF_ARGS = sizeof...(ARGS);
 
         template<std::size_t I>
-        using arg = std::tuple_element_t<I, std::tuple<ARGS...>>;
+        using Arg = std::tuple_element_t<I, std::tuple<ARGS...>>;
     };
 
     template<typename R, typename ... ARGS>
@@ -67,6 +67,9 @@ namespace nano_caf {
 
     template<typename T>
     struct CallableTrait<T, std::enable_if_t<std::is_class_v<T>>> : detail::FunctionTrait<decltype(&T::operator())> {};
+
+    template<typename F>
+    using FirstArg = typename CallableTrait<F>::template Arg<0>;
 }
 
 

@@ -24,10 +24,17 @@ add_library(nano_caf
         include/nano-caf/util/SharedBlock.h
         include/nano-caf/util/DefaultMemAllocator.h
         include/nano-caf/util/Void.h
+        include/nano-caf/util/CallableTrait.h
+        include/nano-caf/util/TupleConcept.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/scheduler/TaskResult.h
+        include/nano-caf/actor/detail/MsgHandler.h
+        include/nano-caf/actor/detail/Behavior.h
+        include/nano-caf/actor/detail/Behaviors.h
+        include/nano-caf/actor/detail/MsgTypeTrait.h
+        include/nano-caf/actor/detail/BehaviorTrait.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h
@@ -35,6 +42,7 @@ add_library(nano_caf
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
         include/nano-caf/actor/ActorHandle.h
+        include/nano-caf/actor/Behavior.h
         include/nano-caf/actor/Actor.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
@@ -49,7 +57,7 @@ add_library(nano_caf
         include/nano-caf/msg/MakeMessage.h
         include/nano-caf/msg/MsgDef.h
         include/nano-caf/msg/RequestDef.h
-        include/nano-caf/util/CallableTrait.h
+        include/nano-caf/msg/RequestConcept.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp

@@ -7,9 +7,11 @@
 
 #include <nano-caf/util/ListElem.h>
 #include <nano-caf/actor/ActorPtr.h>
-#include "MsgTypeId.h"
+#include <nano-caf/msg/MsgTypeId.h>
 
 namespace nano_caf {
+    struct AbstractPromise;
+
     struct Message : ListElem<Message>  {
         enum Category : uint64_t {
             NORMAL,
@@ -30,6 +32,11 @@ namespace nano_caf {
         template<typename BODY>
         auto Body() const noexcept -> BODY const* {
             return id == BODY::ID ? reinterpret_cast<BODY const*>(GetBody()) : nullptr;
+        }
+
+        template<typename BODY>
+        auto Promise() const noexcept -> AbstractPromise* {
+            return nullptr;
         }
 
         virtual ~Message() = default;
