@@ -59,6 +59,31 @@ namespace nano_caf::detail {
             return reinterpret_cast<const void*>(static_cast<const T*>(this));
         }
     };
+
+    template<typename T, typename HANDLER, Message::Category CATEGORY>
+    struct RequestEntity : MessageEntity<T, CATEGORY> {
+        using Parent = MessageEntity<T, CATEGORY>;
+        using Handler = std::decay_t<HANDLER>;
+
+        template<typename ... ARGS>
+        RequestEntity(ActorPtr const& sender, HANDLER&& handler, ARGS&&...args)
+                : Parent{sender, std::forward<ARGS>(args)...}
+                , m_handler{std::move(handler)} {}
+
+        template<typename ... ARGS>
+        RequestEntity(HANDLER&& handler, ARGS&&...args)
+                : Parent{std::forward<ARGS>(args)...}
+                , m_handler{std::move(handler)}
+        {}
+
+        auto GetPromise() const noexcept -> void* override {
+            return reinterpret_cast<void*>(const_cast<Handler*>(&m_handler));
+        }
+
+    private:
+        static_assert(std::is_base_of_v<AbstractPromise<typename T::ResultType>, Handler>);
+        Handler m_handler;
+    };
 }
 
 namespace nano_caf {
@@ -70,6 +95,16 @@ namespace nano_caf {
     template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
     auto MakeMessage(ActorPtr const& sender, ARGS&& ... args) -> Message* {
         return new detail::MessageEntity<T, CATEGORY>(sender, std::forward<ARGS>(args)...);
+    }
+
+    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+    auto MakeRequest(ActorPtr const& sender, HANDLER&& handler, ARGS&& ... args) -> Message* {
+        return new detail::RequestEntity<T, HANDLER, CATEGORY>(sender, std::forward<HANDLER>(handler), std::forward<ARGS>(args)...);
+    }
+
+    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+    auto MakeRequest(HANDLER&& handler, ARGS&& ... args) -> Message* {
+        return new detail::RequestEntity<T, HANDLER, CATEGORY>(std::forward<HANDLER>(handler), std::forward<ARGS>(args)...);
     }
 }
 

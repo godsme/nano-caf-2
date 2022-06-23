@@ -54,7 +54,7 @@ namespace nano_caf::detail {
             auto operator()(Message &msg) noexcept -> bool {
                 return Base::HandleMsg(msg, [](MsgType& msg, F& f) -> InvokeResult {
                     return MsgTypeTrait<MsgType>::Call(msg, [&](auto &&... args) -> InvokeResult {
-                        return f(AtomType{}, std::move(args)...);
+                        return f(AtomType{}, std::forward<decltype(args)>(args)...);
                     });
                 });
             }
@@ -72,7 +72,6 @@ namespace nano_caf::detail {
     public:
         struct Type : Base {
             using Base::Base;
-
             auto operator()(Message &msg) -> bool {
                 return Base::HandleMsg(msg, [](MsgType &msg, F &f) { return f(msg); });
             }

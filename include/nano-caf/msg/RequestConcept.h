@@ -12,7 +12,7 @@ namespace nano_caf {
     constexpr bool IS_REQUEST = false;
 
     template<typename T>
-    constexpr bool IS_REQUEST<T, std::enable_if_t<T::Is_Request>> = true;
+    constexpr bool IS_REQUEST<T, std::enable_if_t<T::IS_REQUEST>> = true;
 }
 
 #endif //NANO_CAF_2_0449DE68BD0B4368AF104B7C48B1FA69

@@ -30,22 +30,16 @@ namespace nano_caf::detail {
                     // should never happend
                     return true;
                 }
-                auto sender = msg.sender.Lock();
-                if(sender) {
-                    // sender actor has already dead, only do local process
-                    if constexpr (IS_FUTURE<ResultType>) {
-                        p->Join(handler(*body, f_), std::move(msg.sender));
-                    } else {
-                        p->Reply(handler(*body, f_), std::move(sender));
-                    }
 
-                    return true;
+                if constexpr (IS_FUTURE<ResultType>) {
+                    p->Join(handler(*body, f_), std::move(msg.sender));
+                } else {
+                    p->Reply(handler(*body, f_), std::move(msg.sender.Lock()));
                 }
-
-                // sender actor is dead
+            } else {
+                handler(*body, f_);
             }
 
-            handler(*body, f_);
             return true;
         }
     };

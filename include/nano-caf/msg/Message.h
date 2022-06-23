@@ -41,16 +41,16 @@ namespace nano_caf {
             return const_cast<BODY*>(const_cast<Message const*>(this)->template Body<BODY>());
         }
 
-        template<typename BODY, std::enable_if_t<IS_REQUEST<BODY>>>
+        template<typename BODY, typename = std::enable_if_t<IS_REQUEST<BODY>>>
         auto Promise() const noexcept -> AbstractPromise<typename BODY::ResultType>* {
-            return nullptr;
+            return id == BODY::ID ? reinterpret_cast<AbstractPromise<typename BODY::ResultType>*>(GetPromise()) : nullptr;
         }
 
         virtual ~Message() = default;
 
     private:
         virtual auto GetBody() const noexcept -> void const* = 0;
-
+        virtual auto GetPromise() const noexcept -> void* { return nullptr; }
     public:
         ActorWeakPtr sender;
         MsgTypeId id;
