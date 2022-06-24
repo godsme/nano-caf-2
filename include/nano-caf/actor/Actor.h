@@ -28,7 +28,7 @@ namespace nano_caf {
         inline auto Request(ActorHandle const& to, ARGS&& ... args) const noexcept -> Future<R> {
             Promise<R> promise;
             auto&& future = promise.GetFuture();
-            auto status = to.template Request<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::move(promise), std::forward<ARGS>(args)...);
+            auto status = to.Request<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::move(promise), std::forward<ARGS>(args)...);
             if(status != Status::OK) {
                 return Promise<R>{status}.GetFuture();
             }
