@@ -9,7 +9,9 @@ namespace nano_caf {
     auto ActorHandle::Wait(ExitReason& reason) noexcept -> Status {
         auto actor = ActorPtr::Get();
         if(actor == nullptr) return Status::NULL_ACTOR;
-        return actor->Wait(reason);
+        auto result = actor->Wait(reason);
+        Release();
+        return result;
     }
 
     auto ActorHandle::Send(Message* msg) const noexcept -> Status {

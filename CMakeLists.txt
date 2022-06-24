@@ -24,6 +24,8 @@ add_library(nano_caf
         include/nano-caf/util/SharedBlock.h
         include/nano-caf/util/DefaultMemAllocator.h
         include/nano-caf/util/Void.h
+        include/nano-caf/util/Either.h
+        include/nano-caf/util/Result.h
         include/nano-caf/util/CallableTrait.h
         include/nano-caf/util/TupleConcept.h
         include/nano-caf/util/AggregateFieldsType.h
@@ -85,6 +87,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestBehaviorObject.cpp
         tests/ut/TestBehaviorBasedActor.cpp
         tests/ut/TestOnActorRequest.cpp
+        tests/ut/TestEither.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)
