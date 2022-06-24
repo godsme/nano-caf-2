@@ -31,16 +31,16 @@ namespace nano_caf {
 
         auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
             if constexpr(std::is_void_v<T>) {
-                future.Then([this, to = to] {
+                future.Then([this, to = to] () mutable {
                     Reply(std::move(Void::Instance()), to);
                 });
             } else {
-                future.Then([this, to = to](T const& value) {
+                future.Then([this, to = to](T const& value) mutable {
                     Reply(value, to);
                 });
             }
 
-            future.Fail([this, to = to](Status cause) {
+            future.Fail([this, to = to](Status cause) mutable {
                 OnFail(cause, to);
             });;
         }

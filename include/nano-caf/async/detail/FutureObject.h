@@ -40,7 +40,11 @@ namespace nano_caf::detail {
         }
 
         auto SetFailHandler(FailHandler&& handler) noexcept -> void {
-            m_onFail = std::move(handler);
+            if(!Ready()) {
+                m_onFail = std::move(handler);
+            } else if(m_value.index() == 2) {
+                handler(std::get<2>(m_value));
+            }
         }
 
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>

@@ -31,7 +31,7 @@ namespace nano_caf::detail {
             : std::true_type {};
 
     template<typename T>
-    struct InternalActor : SchedActor, private T {
+    struct InternalActor : SchedActor, T {
     private:
         static_assert(ActorHasHandleMsg<T>::value, "missing `auto HandleMessage(Message&) noexcept -> void`");
     private:

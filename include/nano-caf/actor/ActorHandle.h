@@ -27,6 +27,11 @@ namespace nano_caf {
             return Send(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+        auto Request(ActorHandle const& sender, HANDLER&& handler, ARGS&& ... args) const noexcept -> Status {
+            return Send(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
+        }
+
         auto Wait(ExitReason& reason) noexcept -> Status;
 
     private:

@@ -84,6 +84,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestFuture.cpp
         tests/ut/TestBehaviorObject.cpp
         tests/ut/TestBehaviorBasedActor.cpp
+        tests/ut/TestOnActorRequest.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)

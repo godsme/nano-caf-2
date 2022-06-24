@@ -7,6 +7,7 @@
 
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/async/Promise.h>
 
 namespace nano_caf {
     struct Actor {
@@ -21,6 +22,17 @@ namespace nano_caf {
         template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         inline auto Reply(ARGS&& ... args) const noexcept -> Status {
             return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
+        inline auto Request(ActorHandle const& to, ARGS&& ... args) const noexcept -> Future<R> {
+            Promise<R> promise;
+            auto&& future = promise.GetFuture();
+            auto status = to.template Request<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::move(promise), std::forward<ARGS>(args)...);
+            if(status != Status::OK) {
+                return Promise<R>{status}.GetFuture();
+            }
+            return future;
         }
 
     protected:
