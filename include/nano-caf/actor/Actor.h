@@ -35,8 +35,8 @@ namespace nano_caf {
             return promise.GetFuture();
         }
 
-        template<typename MSG>
-        auto Expect() noexcept -> Future<MSG&> {
+        template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>>
+        auto ExpectMsg(F&& f) noexcept -> Future<R> {
             auto handler = new detail::ExpectMsgHandler<MSG>{};
             if(handler == nullptr) {
                 return {};
@@ -44,7 +44,7 @@ namespace nano_caf {
 
             auto&& future = handler->GetFuture();
             RegisterExpectOnceHandler(MSG::ID, handler);
-            return future;
+            return future.Then(std::forward<F>(f));
         }
 
     protected:

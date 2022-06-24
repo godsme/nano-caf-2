@@ -31,15 +31,14 @@ namespace {
 
         auto GetBehavior() noexcept -> Behavior override {
             return {
-                    [this](Msg::Open, long value) -> Future<long> {
-                        return Expect<DoneNotify>()
-                                .Then([this, value](DoneNotify const& notify) -> long {
-                                    return base + value + notify.num;
-                                });
-                    },
-                    [this](ExitMsg::Atom, ExitReason reason) {
-                        Exit(reason);
-                    }
+                [this](Msg::Open, long value) -> Future<long> {
+                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
+                        return base + value + notify.num;
+                    });
+                },
+                [this](ExitMsg::Atom, ExitReason reason) {
+                    Exit(reason);
+                }
             };
         }
     };
