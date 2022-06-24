@@ -6,17 +6,19 @@
 #define NANO_CAF_2_C601717AA6D74F32826C395175572D97
 
 #include <nano-caf/async/AbstractPromise.h>
-#include <nano-caf/async/detail/FutureObject.h>
+#include <nano-caf/async/Future.h>
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf {
     template<typename T>
     struct Promise : AbstractPromise<T> {
+        Promise() : m_future{std::make_shared<detail::FutureObject<T>>()} {}
+        explicit Promise(Status cause) : Promise() {
+            m_future->OnFail(cause);
+        }
+
         auto GetFuture() noexcept -> Future<T> {
-            if(!m_future) {
-                m_future = std::make_shared<detail::FutureObject<T>>();
-            }
             return {m_future};
         }
 
@@ -24,7 +26,7 @@ namespace nano_caf {
         auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
             m_future->OnFail(cause);
-            SendBack(to);
+            Notify(to);
         }
 
         auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
@@ -43,17 +45,17 @@ namespace nano_caf {
             });;
         }
 
-        auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr& to) noexcept -> void override {
+        auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
             m_future->SetValue(value);
-            SendBack(to);
+            Notify(to);
         }
 
     private:
-        auto SendBack(ActorWeakPtr& to) noexcept -> void {
+        auto Notify(ActorWeakPtr& to) noexcept -> void {
             auto actor = to.Lock();
             if(actor) {
-                ActorHandle{std::move(actor)}.Send<FutureDoneMsg>(m_future);
+                ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(m_future);
             }
         }
     private:

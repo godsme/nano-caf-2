@@ -17,7 +17,7 @@ namespace nano_caf {
     struct AbstractPromise {
         virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void = 0;
         virtual auto Join(Future<T>&&, ActorWeakPtr&) noexcept -> void = 0;
-        virtual auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr&) noexcept -> void = 0;
+        virtual auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr&) noexcept -> void = 0;
     };
 }
 

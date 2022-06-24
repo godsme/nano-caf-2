@@ -12,6 +12,8 @@
 #include <nano-caf/Status.h>
 #include <variant>
 #include <deque>
+#include <memory>
+#include <atomic>
 
 namespace nano_caf::detail {
     template<typename R>
@@ -21,10 +23,10 @@ namespace nano_caf::detail {
         FutureObject() = default;
 
         auto RegisterObserver(ObserverType observer) noexcept -> void {
-            if(m_value.index() == 0) {
-                m_observers.emplace_back(std::move(observer));
-            } else {
+            if(Ready()) {
                 NotifyObserver(observer);
+            } else {
+                m_observers.emplace_back(std::move(observer));
             }
         }
 
@@ -44,14 +46,18 @@ namespace nano_caf::detail {
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
         auto SetValue(T&& value) noexcept -> void {
             m_value.template emplace<1>(std::forward<T>(value));
+            OnReady();
         }
 
         auto SetValue() noexcept -> void {
-            m_value.template emplace<1>(Void::Instance());
+            if constexpr(std::is_void_v<R>) {
+                SetValue(Void::Instance());
+            }
         }
 
         auto OnFail(Status cause) noexcept -> void {
             m_value.template emplace<2>(cause);
+            OnReady();
         }
 
         auto Present() const noexcept -> bool {
@@ -90,10 +96,20 @@ namespace nano_caf::detail {
             m_observers.clear();
         }
 
+    private:
+        auto OnReady() noexcept -> void {
+            m_ready.store(true, std::memory_order_release);
+        }
+
+        auto Ready() const noexcept -> bool {
+            return m_ready.load(std::memory_order_acquire);
+        }
+
     protected:
         std::variant<std::monostate, ValueTypeOf<R>, Status> m_value{};
-        FailHandler m_onFail{};
         std::deque<ObserverType> m_observers{};
+        FailHandler m_onFail{};
+        std::atomic_bool m_ready{};
     };
 }
 
