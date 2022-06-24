@@ -58,6 +58,7 @@ add_library(nano_caf
         include/nano-caf/async/detail/FutureCallbackProxy.h
         include/nano-caf/async/Future.h
         include/nano-caf/async/Promise.h
+        include/nano-caf/async/Requester.h
         include/nano-caf/msg/Message.h
         include/nano-caf/msg/MakeMessage.h
         include/nano-caf/msg/MsgDef.h

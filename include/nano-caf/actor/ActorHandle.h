@@ -7,7 +7,9 @@
 
 #include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/msg/MakeMessage.h>
+#include <nano-caf/async/Requester.h>
 #include <nano-caf/Status.h>
+#include <chrono>
 
 namespace nano_caf {
     struct ActorHandle : private ActorPtr {
@@ -27,14 +29,45 @@ namespace nano_caf {
             return Send(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
-        auto Request(ActorHandle const& sender, HANDLER&& handler, ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
+        auto Request(ARGS&& ... args) -> Result<R> {
+            return DoRequest<ATOM, R, CATEGORY>([](auto&& future) {
+                return future.get();
+            }, std::forward<ARGS>(args)...);
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
+        auto Request(std::chrono::duration<Rep, Period> duration, ARGS&& ... args) -> Result<R> {
+            return DoRequest<ATOM, R, CATEGORY>([&duration](auto&& future) {
+                if(future.wait_for(duration) != std::future_status::ready) {
+                    return Result<R>{ResultTag::CAUSE, Status::TIMEOUT};
+                }
+                return future.get();
+            }, std::forward<ARGS>(args)...);
         }
 
         auto Wait(ExitReason& reason) noexcept -> Status;
 
     private:
+        friend struct Actor;
+
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+        auto DoRequest(ActorHandle const& sender, HANDLER&& handler, ARGS&& ... args) const noexcept -> Status {
+            return Send(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
+        }
+
+        template<typename ATOM, typename R, Message::Category CATEGORY = Message::NORMAL, typename F, typename ... ARGS>
+        auto DoRequest(F&& f, ARGS&& ... args) -> Result<R> {
+            Requester<R> requester{};
+            auto&& future = requester.GetFuture();
+            auto status = Send(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(requester), std::forward<ARGS>(args)...));
+            if(status != Status::OK) {
+                return Result<R>{ResultTag::CAUSE, status};
+            }
+
+            return f(future);
+        }
+
         auto Send(Message*) const noexcept -> Status;
     };
 }

@@ -10,12 +10,12 @@
 #include <type_traits>
 
 namespace nano_caf {
-    struct LeftTag {};
-    struct RightTag {};
-
     struct EitherTag {
-        static constexpr LeftTag LEFT;
-        static constexpr RightTag RIGHT;
+        struct Left {};
+        struct Right {};
+
+        static constexpr Left LEFT;
+        static constexpr Right RIGHT;
     };
 
     template<typename L, typename R>
@@ -30,9 +30,9 @@ namespace nano_caf {
         Either(T&& value) noexcept: Parent{std::forward<T>(value)} {}
 
         template<typename ... ARGS>
-        Either(LeftTag, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<0>{}, std::forward<ARGS>(args)...} {}
+        Either(EitherTag::Left, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<0>{}, std::forward<ARGS>(args)...} {}
         template<typename ... ARGS>
-        Either(RightTag, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<1>{}, std::forward<ARGS>(args)...} {}
+        Either(EitherTag::Right, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<1>{}, std::forward<ARGS>(args)...} {}
 
         auto Left() const noexcept -> LeftType const* {
             return std::get_if<0>(static_cast<Parent const*>(this));

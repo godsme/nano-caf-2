@@ -9,12 +9,28 @@
 #include <nano-caf/Status.h>
 
 namespace nano_caf {
+    struct ResultTag {
+        struct Cause{};
+        struct Value {};
+
+        constexpr static Value CAUSE;
+        constexpr static Cause VALUE;
+    };
+
+
     template<typename T>
     struct Result : private Either<T, Status> {
         using Parent = Either<T, Status>;
 
         template<typename R>
         Result(R&& value) : Parent{std::forward<R>(value)} {}
+
+        template<typename ... ARGS>
+        Result(ResultTag::Value, ARGS&& ... args)
+            : Parent{EitherTag::LEFT, std::forward<ARGS>(args)...} {}
+
+        Result(ResultTag::Cause, Status status)
+            : Parent{EitherTag::RIGHT, status} {}
 
     };
 }

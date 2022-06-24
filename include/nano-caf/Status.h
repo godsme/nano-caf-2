@@ -11,9 +11,11 @@ namespace nano_caf {
     enum class Status : uint32_t {
         OK,
         FAILED,
+        TIMEOUT,
         NULL_PTR,
         NULL_ACTOR,
-        CLOSED
+        CLOSED,
+        DISCARDED
     };
 }
 
