@@ -7,6 +7,7 @@
 
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/detail/ExpectMsgHandler.h>
 #include <nano-caf/async/Promise.h>
 
 namespace nano_caf {
@@ -27,11 +28,22 @@ namespace nano_caf {
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
         inline auto Request(ActorHandle const& to, ARGS&& ... args) const noexcept -> Future<R> {
             Promise<R> promise;
-            auto&& future = promise.GetFuture();
-            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::move(promise), std::forward<ARGS>(args)...);
+            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
             if(status != Status::OK) {
                 return Promise<R>{status}.GetFuture();
             }
+            return promise.GetFuture();
+        }
+
+        template<typename MSG>
+        auto Expect() noexcept -> Future<MSG&> {
+            auto handler = new detail::ExpectMsgHandler<MSG>{};
+            if(handler == nullptr) {
+                return {};
+            }
+
+            auto&& future = handler->GetFuture();
+            RegisterExpectOnceHandler(MSG::ID, handler);
             return future;
         }
 
@@ -41,6 +53,7 @@ namespace nano_caf {
 
     private:
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
+        virtual auto RegisterExpectOnceHandler(MsgTypeId, detail::MsgHandler*) noexcept -> void = 0;
     };
 }
 

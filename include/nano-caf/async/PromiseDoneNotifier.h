@@ -11,4 +11,5 @@ namespace nano_caf {
         virtual ~PromiseDoneNotifier() = default;
     };
 }
+
 #endif //NANO_CAF_2_9EED4AC901964CB6AD56FE5D7717A720

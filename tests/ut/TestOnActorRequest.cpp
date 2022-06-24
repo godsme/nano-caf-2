@@ -62,11 +62,11 @@ namespace {
     };
 
     long result = 0;
-    struct ReqeustActor : BehaviorBasedActor {
+    struct RequestActor : BehaviorBasedActor {
         ActorHandle server{};
 
         long value{};
-        ReqeustActor(long value) : value{value} {}
+        RequestActor(long value) : value{value} {}
 
         auto OnInit() -> void {
             server = Spawn<ServerActor>(101);
@@ -91,9 +91,9 @@ namespace {
 }
 
 SCENARIO("OnActorRequest calc") {
-    ActorSystem::Instance().StartUp(1);
+    ActorSystem::Instance().StartUp(2);
 
-    auto requester = Spawn<ReqeustActor, true>(203);
+    auto requester = Spawn<RequestActor, true>(203);
     REQUIRE(requester);
 
     ExitReason reason{ExitReason::UNKNOWN};

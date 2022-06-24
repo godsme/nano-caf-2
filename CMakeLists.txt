@@ -49,6 +49,8 @@ add_library(nano_caf
         include/nano-caf/actor/Behavior.h
         include/nano-caf/actor/Actor.h
         include/nano-caf/actor/BehaviorBasedActor.h
+        include/nano-caf/actor/detail/ExpectMsgHandler.h
+        include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
         include/nano-caf/async/detail/InvokeResultType.h
@@ -72,6 +74,7 @@ add_library(nano_caf
         src/actor/MailBox.cpp
         src/actor/SchedActor.cpp
         src/actor/ActorHandle.cpp
+        src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/util/SharedPtrCtlBlock.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
@@ -89,6 +92,8 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestBehaviorBasedActor.cpp
         tests/ut/TestOnActorRequest.cpp
         tests/ut/TestEither.cpp
+        tests/ut/TestExpectOnceMsgHandlers.cpp
+        tests/ut/TestExpectMsg.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)

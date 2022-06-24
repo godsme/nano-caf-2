@@ -26,6 +26,26 @@ namespace nano_caf {
         explicit WeakPtr(SharedPtr<T> const& shared) noexcept : WeakPtr{shared.Get()} {}
         explicit WeakPtr(SharedPtr<T>&& shared) noexcept : WeakPtr{shared.Get()} {}
 
+        WeakPtr(WeakPtr const& another) : WeakPtr{another.m_ptr} {}
+        WeakPtr(WeakPtr&& another) : Parent{another.m_ptr} {
+            another.m_ptr = nullptr;
+        }
+
+        auto operator=(WeakPtr const& another) noexcept -> WeakPtr& {
+            Reset();
+            m_ptr = another.m_ptr;
+            if(m_ptr != nullptr) {
+                CtlBlock()->AddWeakRef();
+            }
+
+            return *this;
+        }
+
+        auto operator=(WeakPtr&& another) noexcept -> WeakPtr& {
+            std::swap(m_ptr, another.m_ptr);
+            return *this;
+        }
+
         auto Lock() const noexcept -> SharedPtr<T> {
             if(m_ptr == nullptr || !CtlBlock()->Lock()) {
                 return {};

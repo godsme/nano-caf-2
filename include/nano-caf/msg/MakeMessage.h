@@ -68,7 +68,7 @@ namespace nano_caf::detail {
         template<typename ... ARGS>
         RequestEntity(ActorPtr const& sender, HANDLER&& handler, ARGS&&...args)
                 : Parent{sender, std::forward<ARGS>(args)...}
-                , m_handler{std::move(handler)} {}
+                , m_handler{std::forward<HANDLER>(handler)} {}
 
         template<typename ... ARGS>
         RequestEntity(HANDLER&& handler, ARGS&&...args)

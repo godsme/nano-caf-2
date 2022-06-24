@@ -31,18 +31,18 @@ namespace nano_caf {
 
         auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
             if constexpr(std::is_void_v<T>) {
-                future.Then([this, to = to] () mutable {
-                    Reply(std::move(Void::Instance()), to);
+                future.Then([promise = *this, to = to] () mutable {
+                    promise.Reply(Void::Instance(), to);
                 });
             } else {
-                future.Then([this, to = to](T const& value) mutable {
-                    Reply(value, to);
+                future.Then([promise = *this, to = to](T const& value) mutable {
+                    promise.Reply(value, to);
                 });
             }
 
-            future.Fail([this, to = to](Status cause) mutable {
-                OnFail(cause, to);
-            });;
+            future.Fail([promise = *this, to = to](Status cause) mutable {
+                promise.OnFail(cause, to);
+            });
         }
 
         auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr& to) noexcept -> void override {
@@ -55,7 +55,7 @@ namespace nano_caf {
         auto Notify(ActorWeakPtr& to) noexcept -> void {
             auto actor = to.Lock();
             if(actor) {
-                ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(m_future);
+                ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(std::move(m_future));
             }
         }
     private:

@@ -6,6 +6,7 @@
 #define NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf::detail {
@@ -71,6 +72,10 @@ namespace nano_caf::detail {
             return sender ? ActorHandle{sender.Get()} : ActorHandle{};
         }
 
+        auto RegisterExpectOnceHandler(MsgTypeId msgId, detail::MsgHandler* handler) noexcept -> void override {
+            m_expectOnceMsgHandlers.AddHandler(msgId, handler);
+        }
+
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
             switch(msg.id) {
                 case FutureDoneNotify::ID: {
@@ -78,11 +83,17 @@ namespace nano_caf::detail {
                     notifier->Commit();
                     break;
                 }
-                default:
-                    T::HandleMessage(msg);
+                default: {
+                    if(!m_expectOnceMsgHandlers.HandleMsg(msg)) {
+                        T::HandleMessage(msg);
+                    }
                     break;
+                }
             }
         }
+
+    private:
+        ExpectOnceMsgHandlers m_expectOnceMsgHandlers;
     };
 }
 

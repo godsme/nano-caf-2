@@ -26,18 +26,18 @@ namespace nano_caf::detail {
             if(Ready()) {
                 NotifyObserver(observer);
             } else {
-                m_observers.emplace_back(std::move(observer));
+                m_observers.emplace_back(observer);
             }
         }
 
-        auto DeregisterObserver(FutureObserver<R>* observer) noexcept -> void {
-            auto result = std::find_if(m_observers.begin(), m_observers.end(), [observer](auto&& obj) {
-                return obj.get() == observer;
-            });
-            if(result != m_observers.end()) {
-                m_observers.erase(result);
-            }
-        }
+//        auto DeregisterObserver(FutureObserver<R>* observer) noexcept -> void {
+//            auto result = std::find_if(m_observers.begin(), m_observers.end(), [observer](auto&& obj) {
+//                return obj.get() == observer;
+//            });
+//            if(result != m_observers.end()) {
+//                m_observers.erase(result);
+//            }
+//        }
 
         auto SetFailHandler(FailHandler&& handler) noexcept -> void {
             if(!Ready()) {
@@ -97,6 +97,7 @@ namespace nano_caf::detail {
             for (auto&& observer: m_observers) {
                 NotifyObserver(observer);
             }
+
             m_observers.clear();
         }
 

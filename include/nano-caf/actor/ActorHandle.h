@@ -18,6 +18,7 @@ namespace nano_caf {
         using ActorPtr::operator bool;
 
         ActorHandle(ActorPtr&& rhs) : ActorPtr(std::move(rhs)) {}
+        ActorHandle(ActorPtr const& rhs) : ActorPtr(rhs) {}
 
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
@@ -47,6 +48,8 @@ namespace nano_caf {
         }
 
         auto Wait(ExitReason& reason) noexcept -> Status;
+
+        using ActorPtr::Release;
 
     private:
         friend struct Actor;

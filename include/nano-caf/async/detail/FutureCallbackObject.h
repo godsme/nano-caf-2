@@ -29,6 +29,8 @@ namespace nano_caf::detail {
             if constexpr(std::is_void_v<R>) {
                 if constexpr (std::is_void_v<A>) {
                     m_callback();;
+                } else if constexpr(std::is_reference_v<A>) {
+                    m_callback(*value);
                 } else {
                     m_callback(value);;
                 }
@@ -36,6 +38,8 @@ namespace nano_caf::detail {
             } else {
                 if constexpr (std::is_void_v<A>) {
                     return m_callback();;
+                } else if constexpr(std::is_reference_v<A>) {
+                   return  m_callback(*value);
                 } else {
                     return m_callback(value);
                 }

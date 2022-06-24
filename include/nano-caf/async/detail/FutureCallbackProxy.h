@@ -9,9 +9,11 @@
 #include <type_traits>
 #include <memory>
 
-namespace nano_caf::detail {
+namespace nano_caf {
     template<typename> struct Future;
+}
 
+namespace nano_caf::detail {
     template<typename R, typename A, typename F>
     struct FutureCallbackProxy : FutureObject<R>, FutureObserver<A> {
         using Callback = std::decay_t<F>;

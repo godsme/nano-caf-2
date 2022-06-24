@@ -24,6 +24,11 @@ namespace nano_caf {
     };
 
     template<typename T>
+    struct ValueTypeTrait<T&> {
+        using ValueType = T*;
+    };
+
+    template<typename T>
     using ValueTypeOf = typename ValueTypeTrait<T>::ValueType;
 }
 
