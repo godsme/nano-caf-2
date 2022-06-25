@@ -33,6 +33,7 @@ namespace nano_caf {
     private:
         auto ExitCheck() noexcept -> TaskResult;
         auto TrySync() noexcept -> void;
+        auto OnExit(ExitReason reason) noexcept -> void;
 
     private:
         auto AddRef() noexcept -> void override;

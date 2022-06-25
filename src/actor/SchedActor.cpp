@@ -12,9 +12,14 @@ namespace nano_caf {
         }
     }
 
+    auto SchedActor::OnExit(ExitReason reason) noexcept -> void {
+        ExitHandler(reason);
+        TrySync();
+    }
+
     SchedActor::~SchedActor() {
         if(m_exitReason.index() == 0) {
-            ExitHandler(ExitReason::UNKNOWN);
+            OnExit(ExitReason::UNKNOWN);
         }
     }
 
@@ -36,8 +41,7 @@ namespace nano_caf {
 
     auto SchedActor::ExitCheck() noexcept -> TaskResult {
         if(m_exitReason.index() == 1) {
-            ExitHandler(std::get<1>(m_exitReason));
-            TrySync();
+            OnExit(std::get<1>(m_exitReason));
             return TaskResult::DONE;
         }
         return TaskResult::SUSPENDED;
