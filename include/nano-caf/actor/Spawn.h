@@ -45,8 +45,6 @@ namespace nano_caf::detail {
             , T{std::forward<ARGS>(args)...}
         {}
 
-        virtual ~InternalActor() = default;
-
         auto Exit(ExitReason reason) noexcept -> void override {
             SchedActor::Exit_(reason);
         }
@@ -96,13 +94,24 @@ namespace nano_caf::detail {
         auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
             auto result = ActorSystem::Instance().StartTimer(Self(), spec, periodic, std::move(callback));
             if(result.Ok()) {
-                //
+                timerUsed = true;
             }
             return result;
         }
 
+        auto StopTimer(TimerId timerId) noexcept -> void override {
+            ActorSystem::Instance().StopTimer(Self(), timerId);
+        }
+
+        ~InternalActor() {
+            if(timerUsed) {
+                ActorSystem::Instance().ClearActorTimer(Self());
+            }
+        }
+
     private:
         ExpectOnceMsgHandlers m_expectOnceMsgHandlers;
+        bool timerUsed{false};
     };
 }
 
