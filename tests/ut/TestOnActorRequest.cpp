@@ -48,16 +48,14 @@ namespace {
         long base{0};
         ServerActor(long base) : base{base} {}
 
-        auto GetBehavior() noexcept -> Behavior {
-            return {
-                [this](Msg::Open, long value) -> long {
-                    return value + base;
-                },
-                [this](ExitMsg::Atom, ExitReason reason) {
-                    Exit(reason);
-                }
-            };
-        }
+        const Behavior INIT_Behavior {
+            [this](Msg::Open, long value) -> long {
+                return value + base;
+            },
+            [this](ExitMsg::Atom, ExitReason reason) {
+                Exit(reason);
+            }
+        };
     };
 
     long result = 0;
@@ -90,6 +88,8 @@ SCENARIO("OnActorRequest calc") {
 
     auto requester = Spawn<RequestActor, true>(203);
     REQUIRE(requester);
+
+    requester.Send<BootstrapMsg>();
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);

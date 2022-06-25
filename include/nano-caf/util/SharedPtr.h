@@ -63,9 +63,10 @@ namespace nano_caf {
 
     template <typename Tp, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto MakeShared(ARGS&& ... args) -> SharedPtr<Tp> {
-        auto* p = MEM_ALLOCATOR::Alloc(sizeof(SharedBlock<Tp, MEM_ALLOCATOR>{}));
+        using Block = SharedBlock<Tp, MEM_ALLOCATOR>;
+        auto* p = MEM_ALLOCATOR::Alloc(sizeof(Block));
         if(p == nullptr) return {};
-        auto* block = new (p) SharedBlock<Tp, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
+        auto* block = new (p) Block{std::forward<ARGS>(args)...};
         return SharedPtr<Tp>{block->Get(), false};
     }
 

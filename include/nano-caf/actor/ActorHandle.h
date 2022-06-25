@@ -18,7 +18,20 @@ namespace nano_caf {
         using ActorPtr::operator bool;
 
         ActorHandle(ActorPtr&& rhs) : ActorPtr(std::move(rhs)) {}
-        ActorHandle(ActorPtr const& rhs) : ActorPtr(rhs) {}
+        ActorHandle(ActorHandle const&& rhs) : ActorPtr(rhs) {}
+
+        ActorHandle(ActorHandle&& rhs) : ActorPtr(std::move(rhs)) {}
+        ActorHandle(ActorHandle const& rhs) : ActorPtr(rhs) {}
+
+        auto operator=(ActorHandle&& another) noexcept -> ActorHandle& {
+            ActorPtr::operator=(std::move(another));
+            return *this;
+        }
+
+        auto operator=(ActorHandle const& another) noexcept -> ActorHandle& {
+            ActorPtr::operator=(another);
+            return *this;
+        }
 
         auto ActorId() const noexcept -> intptr_t {
             return reinterpret_cast<intptr_t>(ActorPtr::m_ptr);

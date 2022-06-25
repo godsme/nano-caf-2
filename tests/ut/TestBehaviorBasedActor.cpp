@@ -17,16 +17,11 @@ namespace {
     struct PongActor : Actor {
         const Behavior INIT_Behavior = {
             [this](Ping::Atom, std::size_t num) {
-                if(Reply<Pong>(num) != Status::OK) {
-                    Exit(ExitReason::ABNORMAL);
-                }
+                Reply<Pong>(num);
             },
             [this](ExitMsg::Atom, ExitReason reason) {
-                if(Reply<Dead>(reason) != Status::OK) {
-                    Exit(ExitReason::ABNORMAL);
-                } else {
-                    Exit(reason);
-                }
+                Reply<Dead>(reason);
+                Exit(reason);
             }
         };
     };
@@ -39,23 +34,15 @@ namespace {
 
         auto OnInit() -> void {
             pongActor = Spawn<PongActor>();
-            if(!pongActor) {
-                Exit(ExitReason::ABNORMAL);
-            } else {
-                if(Send<Ping>(pongActor, std::size_t(0)) != Status::OK) {
-                    Exit(ExitReason::ABNORMAL);
-                }
-            }
+            Send<Ping>(pongActor, std::size_t(0));
         }
 
         const Behavior INIT_Behavior {
             [this](Pong::Atom, std::size_t num) {
-                if(num >= times) {
-                    if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
-                    }
-                } else if(Reply<Ping>(num + 1) != Status::OK) {
-                    Exit(ExitReason::ABNORMAL);
+                if(num < times) {
+                    Reply<Ping>(num + 1);
+                } else {
+                    Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN);
                 }
             },
             [this](Dead::Atom, ExitReason reason) {

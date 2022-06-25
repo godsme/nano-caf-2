@@ -7,6 +7,7 @@
 
 #include <nano-caf/util/CacheLineSize.h>
 #include <atomic>
+#include <new>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock {

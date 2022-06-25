@@ -11,7 +11,7 @@
 #include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/Status.h>
 #include <future>
-#include <variant>
+#include <optional>
 
 namespace nano_caf {
     struct SharedPtrCtlBlock;
@@ -22,13 +22,13 @@ namespace nano_caf {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();
 
-        auto Init() noexcept -> TaskResult;
         using MailBox::SendMsg;
 
         auto Wait(ExitReason& reason) noexcept -> Status;
 
     private:
         auto Resume() noexcept -> TaskResult override;
+        auto Init() noexcept -> TaskResult;
 
     private:
         auto ExitCheck() noexcept -> TaskResult;
@@ -51,11 +51,11 @@ namespace nano_caf {
         virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
 
     private:
-        std::variant<std::monostate, std::promise<ExitReason>> m_promise;
-        std::variant<std::monostate, ExitReason> m_exitReason;
-
+        std::optional<std::promise<ExitReason>> m_promise;
+        std::optional<ExitReason> m_exitReason;
     protected:
         Message* m_currentMsg{};
+        bool inited{false};
     };
 }
 
