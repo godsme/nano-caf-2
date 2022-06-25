@@ -38,8 +38,13 @@ namespace nano_caf {
         auto ReloadMany(Message*) noexcept -> void;
 
     private:
-        Queue<Message> m_normal{};
-        Queue<Message> m_urgent{};
+        struct MsgQueue : Queue<Message> {
+            auto Clear() noexcept -> void;
+            ~MsgQueue();
+        };
+
+        MsgQueue m_normal{};
+        MsgQueue m_urgent{};
     };
 }
 

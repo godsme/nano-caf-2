@@ -55,7 +55,7 @@ namespace nano_caf {
     }
 
     template <typename ELEM>
-    auto Queue<ELEM>::CleanUp(Cleaner& cleaner) noexcept -> void {
+    auto Queue<ELEM>::CleanUp(Cleaner cleaner) noexcept -> void {
         m_tail = nullptr;
         while(m_head != nullptr) {
             std::unique_ptr<ELEM> ptr{m_head};

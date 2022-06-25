@@ -15,7 +15,6 @@ namespace nano_caf {
     SchedActor::~SchedActor() {
         if(m_exitReason.index() == 0) {
             ExitHandler(ExitReason::UNKNOWN);
-            MailBox::Close();
         }
     }
 

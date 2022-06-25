@@ -27,7 +27,7 @@ namespace nano_caf {
         }
 
         auto CleanUp() noexcept -> void;
-        auto CleanUp(Cleaner&) noexcept -> void;
+        auto CleanUp(Cleaner) noexcept -> void;
 
         ~Queue() {
             CleanUp();

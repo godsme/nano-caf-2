@@ -93,10 +93,17 @@ namespace nano_caf {
         return TaskResult::DONE;
     }
 
+    auto MailBox::MsgQueue::Clear() noexcept -> void {
+        CleanUp([] (Message& msg) { msg.OnDiscard(); });
+    }
+
+    MailBox::MsgQueue::~MsgQueue() {
+        Clear();
+    }
+
     auto MailBox::Close() noexcept -> void {
         LifoQueue::Close();
-        auto cleaner = std::function([] (Message& msg) { msg.OnDiscard(); });
-        m_urgent.CleanUp(cleaner);
-        m_normal.CleanUp(cleaner);
+        m_urgent.Clear();
+        m_normal.CleanUp();
     }
 }
