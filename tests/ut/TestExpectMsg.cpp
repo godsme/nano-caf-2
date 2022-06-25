@@ -25,13 +25,17 @@ namespace {
 
 namespace {
     struct ServerActor : Actor {
-        ServerActor(long base) : base{base} {}
+        ServerActor(long base, bool waitNotify) : base{base}, waitNotify{waitNotify} {}
 
         const Behavior INIT_Behavior {
             [this](Msg::Open, long value) -> Future<long> {
-                return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
-                    return base + value + notify.num;
-                });
+                if(waitNotify) {
+                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
+                        return base + value + notify.num;
+                    });
+                } else {
+                    return base + value;
+                }
             },
             [this](ExitMsg::Atom, ExitReason reason) {
                 Exit(reason);
@@ -40,6 +44,7 @@ namespace {
 
     private:
         long base{0};
+        bool waitNotify{};
     };
 
     long result = 0;
@@ -70,7 +75,7 @@ SCENARIO("On Actor Expect Msg") {
 
     result = 0;
 
-    auto server = Spawn<ServerActor>(101);
+    auto server = Spawn<ServerActor>(101, true);
     REQUIRE(server);
 
     auto requester = Spawn<RequestActor, true>(203, server);
@@ -88,6 +93,29 @@ SCENARIO("On Actor Expect Msg") {
     REQUIRE(requester.Wait(reason) == Status::OK);
     REQUIRE(reason == ExitReason::NORMAL);
     REQUIRE(result == 203 + 101 + 20);
+
+    ActorSystem::Instance().Shutdown();
+}
+
+SCENARIO("On Actor No Wait") {
+    ActorSystem::Instance().StartUp(1);
+
+    result = 0;
+
+    auto server = Spawn<ServerActor>(101, false);
+    REQUIRE(server);
+
+    auto requester = Spawn<RequestActor, true>(203, server);
+    REQUIRE(requester);
+
+    server.Release();
+
+    requester.Send<BootstrapMsg>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(requester.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::NORMAL);
+    REQUIRE(result == 203 + 101);
 
     ActorSystem::Instance().Shutdown();
 }
