@@ -100,13 +100,13 @@ namespace nano_caf::detail {
             m_expectOnceMsgHandlers.AddHandler(msgId, handler);
         }
 
-        auto HandleUserDefinedMsg(Message& msg) noexcept -> bool {
-            if(m_expectOnceMsgHandlers.HandleMsg(msg)) return true;
+        auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
+            if(m_expectOnceMsgHandlers.HandleMsg(msg)) return;
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
-                if(m_behavior.HandleMsg(msg)) return true;
+                if(m_behavior.HandleMsg(msg)) return;
             }
 
-            return false;
+            msg.OnDiscard();
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
@@ -118,9 +118,7 @@ namespace nano_caf::detail {
                     break;
                 }
                 default: {
-                    if(!HandleUserDefinedMsg(msg)) {
-                        msg.OnDiscard();
-                    }
+                    HandleUserDefinedMsg(msg);
                     break;
                 }
             }
