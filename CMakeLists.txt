@@ -30,6 +30,8 @@ add_library(nano_caf
         include/nano-caf/util/TupleConcept.h
         include/nano-caf/util/AggregateFieldsType.h
         include/nano-caf/util/AggregateTrait.h
+        include/nano-caf/util/ShutdownNotifier.h
+        include/nano-caf/util/CvNotifier.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
@@ -66,6 +68,11 @@ add_library(nano_caf
         include/nano-caf/msg/MsgDef.h
         include/nano-caf/msg/RequestDef.h
         include/nano-caf/msg/RequestConcept.h
+        include/nano-caf/timer/Duration.h
+        include/nano-caf/timer/TimerId.h
+        include/nano-caf/timer/TimerSet.h
+        include/nano-caf/timer/TimeoutCallback.h
+        include/nano-caf/timer/ActorTimer.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
