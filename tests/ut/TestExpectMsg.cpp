@@ -28,8 +28,8 @@ namespace {
         long base{0};
         ServerActor(long base) : base{base} {}
 
-        auto GetBehavior() noexcept -> Behavior {
-            return {
+        auto GetBehavior() noexcept -> auto {
+            return Behavior {
                 [this](Msg::Open, long value) -> Future<long> {
                     return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
                         return base + value + notify.num;
