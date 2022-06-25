@@ -20,6 +20,14 @@ namespace nano_caf {
         ActorHandle(ActorPtr&& rhs) : ActorPtr(std::move(rhs)) {}
         ActorHandle(ActorPtr const& rhs) : ActorPtr(rhs) {}
 
+        auto ActorId() const noexcept -> intptr_t {
+            return reinterpret_cast<intptr_t>(ActorPtr::m_ptr);
+        }
+
+        auto ToWeakPtr() const noexcept -> ActorWeakPtr {
+            return ActorWeakPtr{*this};
+        }
+
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
             return Send(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));

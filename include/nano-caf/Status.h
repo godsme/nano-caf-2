@@ -15,7 +15,8 @@ namespace nano_caf {
         NULL_PTR,
         NULL_ACTOR,
         CLOSED,
-        DISCARDED
+        DISCARDED,
+        SHUTDOWN
     };
 }
 

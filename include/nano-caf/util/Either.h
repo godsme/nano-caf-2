@@ -45,6 +45,12 @@ namespace nano_caf {
         auto Index() const noexcept -> std::size_t {
             return Parent::index();
         }
+
+        template<typename F>
+        auto LeftMatch(F&& f) const noexcept -> decltype(auto) {
+            auto* left = Left();
+            return left ? f(*left) : *Right();
+        }
     };
 }
 

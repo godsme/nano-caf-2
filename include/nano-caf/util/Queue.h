@@ -17,6 +17,7 @@ namespace nano_caf {
         auto PushFront(ELEM* elem) noexcept -> void;
         auto Concat(Queue& another) noexcept -> void;
         auto Dequeue() noexcept -> ELEM*;
+        auto TakeAll() noexcept -> ELEM*;
 
         auto Empty() const noexcept -> bool {
             return m_head == nullptr;

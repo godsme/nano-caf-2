@@ -11,7 +11,7 @@
 namespace nano_caf {
     template <typename T>
     struct SharedPtr : SharedPtrDataHolder<T> {
-    private:
+    protected:
         using Parent = SharedPtrDataHolder<T>;
         using Parent::m_ptr;
         using Parent::CtlBlock;

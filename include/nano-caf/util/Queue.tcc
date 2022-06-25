@@ -53,4 +53,12 @@ namespace nano_caf {
             m_head = m_head->m_next;
         }
     }
+
+    template<typename ELEM>
+    auto Queue<ELEM>::TakeAll() noexcept -> ELEM * {
+        auto* result = m_head;
+        m_head = nullptr;
+        m_tail = nullptr;
+        return result;
+    }
 }

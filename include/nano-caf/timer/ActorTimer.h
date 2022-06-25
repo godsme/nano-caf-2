@@ -40,12 +40,12 @@ namespace nano_caf {
         std::thread m_thread;
         TimerSet m_timers{};
 
-        LifoQueue msg_queue_{};
-        CvNotifier cv_{};
+        LifoQueue m_queue{};
+        CvNotifier m_cv{};
 
-        ShutdownNotifier shutdown_{};
+        ShutdownNotifier m_shutdown{};
 
-        std::atomic<uint64_t> timer_id_{0};
+        std::atomic<uint64_t> m_timerId{0};
     };
 }
 

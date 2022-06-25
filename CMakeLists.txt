@@ -82,7 +82,9 @@ add_library(nano_caf
         src/actor/SchedActor.cpp
         src/actor/ActorHandle.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
-        src/util/SharedPtrCtlBlock.cpp)
+        src/util/SharedPtrCtlBlock.cpp
+        src/timer/TimerSet.cpp
+        src/timer/ActorTimer.cpp)
 
 add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestSharedPtr.cpp

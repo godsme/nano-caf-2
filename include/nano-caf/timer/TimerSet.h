@@ -31,7 +31,7 @@ namespace nano_caf {
             return m_timers.begin()->first;
         }
 
-        auto CheckTimerDue(ShutdownNotifier const&) -> Status;
+        auto CheckTimerDue(ShutdownNotifier const&) noexcept -> Status;
 
     private:
         auto AddTimer(std::unique_ptr<Message> msg) -> Status;
@@ -51,7 +51,7 @@ namespace nano_caf {
 
     private:
         Timers m_timers{};
-        std::multimap<intptr_t, Timers::iterator> actor_indexer_{};
+        std::multimap<intptr_t, Timers::iterator> m_actorIndexer{};
     };
 }
 
