@@ -36,6 +36,8 @@ namespace {
 
     using Actor = SharedBlock<MySchedActor, MemClaimer>;
 
+    std::vector<MsgTypeId> discardMessages;
+
     std::size_t allocatedBlocks = 0;
     struct MyMessage : Message {
         using Message::Message;
@@ -52,6 +54,10 @@ namespace {
 
         auto GetBody() const noexcept -> void const* override {
             return nullptr;
+        }
+
+        auto OnDiscard() noexcept -> void override {
+            discardMessages.push_back(Message::id);
         }
     };
 }
@@ -111,4 +117,29 @@ SCENARIO("SchedActor Resume") {
         REQUIRE_FALSE(claimed);
     }
     REQUIRE(claimed);
+}
+
+namespace {
+    struct MySchedActor2 : SchedActor {
+        auto ExitHandler(ExitReason reason) noexcept -> void override {
+            exitReason = reason;
+        }
+        ExitReason exitReason{ExitReason::NORMAL};
+    };
+
+    using Actor2 = SharedBlock<MySchedActor2, MemClaimer>;
+}
+
+SCENARIO("SchedActor Destroy") {
+    discardMessages.clear();
+    auto actor = SharedPtr<MySchedActor2>((new Actor2{})->Get(), false);
+
+    REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
+    REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
+    REQUIRE(allocatedBlocks == 2);
+    REQUIRE(discardMessages.size() == 0);
+    actor.Release();
+    REQUIRE(discardMessages.size() == 2);
+    REQUIRE(discardMessages[0] == 2);
+    REQUIRE(discardMessages[1] == 1);
 }
