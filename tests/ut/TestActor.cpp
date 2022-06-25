@@ -1,50 +1,29 @@
 //
-// Created by Darwin Yuan on 2022/6/21.
+// Created by Darwin Yuan on 2022/6/23.
 //
 #include <nano-caf/actor/Spawn.h>
-#include <nano-caf/actor/Actor.h>
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/actor/Actor.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
 
 namespace {
-    struct Ping {
-        constexpr static MsgTypeId ID = 11;
-        std::size_t num;
-    };
-
-    struct Pong {
-        constexpr static MsgTypeId ID = 12;
-        std::size_t num;
-    };
-
-    struct Dead {
-        constexpr static MsgTypeId ID = 13;
-        ExitReason reason;
-    };
+    CAF_def_message(Ping, (num, std::size_t));
+    CAF_def_message(Pong, (num, std::size_t));
+    CAF_def_message(Dead, (reason, ExitReason));
 
     struct PongActor : Actor {
-        auto HandleMessage(Message& msg) noexcept -> void {
-            switch (msg.id) {
-                case Ping::ID: {
-                    auto num = msg.Body<Ping>()->num;
-                    if(Reply<Pong>(num) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
-                    }
-                    break;
+        const Behavior INIT_Behavior = {
+                [this](Ping::Atom, std::size_t num) {
+                    Reply<Pong>(num);
+                },
+                [this](ExitMsg::Atom, ExitReason reason) {
+                    Reply<Dead>(reason);
+                    Exit(reason);
                 }
-                case ExitMsg::ID: {
-                    auto reason = msg.Body<ExitMsg>()->reason;
-                    if(Reply<Dead>(reason) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
-                    } else {
-                        Exit(reason);
-                    }
-                }
-            }
-        }
+        };
     };
 
     struct PingActor : Actor {
@@ -55,41 +34,28 @@ namespace {
 
         auto OnInit() -> void {
             pongActor = Spawn<PongActor>();
-            if(!pongActor) {
-                Exit(ExitReason::ABNORMAL);
-            } else {
-                if(Send<Ping>(pongActor, std::size_t(0)) != Status::OK) {
-                    Exit(ExitReason::ABNORMAL);
-                }
-            }
+            Send<Ping>(pongActor, std::size_t(0));
         }
 
-        auto HandleMessage(Message& msg) noexcept -> void {
-            switch (msg.id) {
-                case Pong::ID: {
-                    auto num = msg.Body<Pong>()->num;
-                    if(num >= times) {
-                        if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
-                            Exit(ExitReason::ABNORMAL);
-                        }
-                    } else if(Reply<Ping>(num + 1) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
+        const Behavior INIT_Behavior {
+                [this](Pong::Atom, std::size_t num) {
+                    if(num < times) {
+                        Reply<Ping>(num + 1);
+                    } else {
+                        Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN);
                     }
-                    break;
+                },
+                [this](Dead::Atom, ExitReason reason) {
+                    Exit(reason);
                 }
-                case Dead::ID: {
-                    Exit(msg.Body<Dead>()->reason);
-                    break;
-                }
-            }
-        }
+        };
     };
 }
 
-SCENARIO("Ping Pong Actor") {
+SCENARIO("Ping Pong BehaviorBasedActor") {
     ActorSystem::Instance().StartUp(1);
 
-    auto ping = Spawn<PingActor, true>(std::size_t(100));
+    auto ping = Spawn<PingActor, true>(std::size_t(10));
     REQUIRE(ping);
 
     ping.Send<BootstrapMsg>();
@@ -100,3 +66,4 @@ SCENARIO("Ping Pong Actor") {
 
     ActorSystem::Instance().Shutdown();
 }
+

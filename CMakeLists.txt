@@ -50,7 +50,6 @@ add_library(nano_caf
         include/nano-caf/actor/ActorHandle.h
         include/nano-caf/actor/Behavior.h
         include/nano-caf/actor/Actor.h
-        include/nano-caf/actor/BehaviorBasedActor.h
         include/nano-caf/actor/detail/ExpectMsgHandler.h
         include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
         include/nano-caf/async/FutureConcept.h
@@ -98,7 +97,6 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestFutureCallbackObject.cpp
         tests/ut/TestFuture.cpp
         tests/ut/TestBehaviorObject.cpp
-        tests/ut/TestBehaviorBasedActor.cpp
         tests/ut/TestOnActorRequest.cpp
         tests/ut/TestEither.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
