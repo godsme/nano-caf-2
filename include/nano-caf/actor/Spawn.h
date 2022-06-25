@@ -40,9 +40,18 @@ namespace nano_caf::detail {
     struct ActorHasGetBehavior<T, std::enable_if_t<std::is_same_v<Behavior, decltype(std::declval<T>().GetBehavior())>>>
             : std::true_type {};
 
+    template<typename T, typename = void>
+    struct ActorHasInitBehavior : std::false_type {};
+
+    template<typename T>
+    struct ActorHasInitBehavior<T, std::enable_if_t<std::is_same_v<Behavior, std::decay_t<decltype(T::INIT_Behavior)>>>>
+            : std::true_type {};
+
     template<typename T>
     struct InternalActor : SchedActor, T {
     private:
+        static_assert(!(ActorHasInitBehavior<T>::value && ActorHasGetBehavior<T>::value),
+                "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
         using SchedActor::m_currentMsg;
     public:
         template<typename ... ARGS>
@@ -52,6 +61,8 @@ namespace nano_caf::detail {
         {
             if constexpr(ActorHasGetBehavior<T>::value) {
                 m_behavior = T::GetBehavior();
+            } else if constexpr(ActorHasInitBehavior<T>::value) {
+                m_behavior = T::INIT_Behavior;
             }
         }
 
@@ -87,7 +98,7 @@ namespace nano_caf::detail {
 
         auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
             if(m_expectOnceMsgHandlers.HandleMsg(msg)) return;
-            if constexpr(ActorHasGetBehavior<T>::value) {
+            if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
                 if(m_behavior.HandleMsg(msg)) return;
             }
             if constexpr(ActorHasHandleMsg<T>::value) {

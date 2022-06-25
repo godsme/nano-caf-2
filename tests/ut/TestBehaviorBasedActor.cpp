@@ -15,22 +15,20 @@ namespace {
     CAF_def_message(Dead, (reason, ExitReason));
 
     struct PongActor : Actor {
-        auto GetBehavior() noexcept -> Behavior {
-            return {
-                [this](Ping::Atom, std::size_t num) {
-                    if(Reply<Pong>(num) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
-                    }
-                },
-                [this](ExitMsg::Atom, ExitReason reason) {
-                    if(Reply<Dead>(reason) != Status::OK) {
-                        Exit(ExitReason::ABNORMAL);
-                    } else {
-                        Exit(reason);
-                    }
+        const Behavior INIT_Behavior = {
+            [this](Ping::Atom, std::size_t num) {
+                if(Reply<Pong>(num) != Status::OK) {
+                    Exit(ExitReason::ABNORMAL);
                 }
-            };
-        }
+            },
+            [this](ExitMsg::Atom, ExitReason reason) {
+                if(Reply<Dead>(reason) != Status::OK) {
+                    Exit(ExitReason::ABNORMAL);
+                } else {
+                    Exit(reason);
+                }
+            }
+        };
     };
 
     struct PingActor : Actor {
@@ -50,22 +48,20 @@ namespace {
             }
         }
 
-        auto GetBehavior() noexcept -> Behavior {
-            return {
-                [this](Pong::Atom, std::size_t num) {
-                    if(num >= times) {
-                        if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
-                            Exit(ExitReason::ABNORMAL);
-                        }
-                    } else if(Reply<Ping>(num + 1) != Status::OK) {
+        const Behavior INIT_Behavior {
+            [this](Pong::Atom, std::size_t num) {
+                if(num >= times) {
+                    if(Send<ExitMsg>(pongActor, ExitReason::SHUTDOWN) != Status::OK) {
                         Exit(ExitReason::ABNORMAL);
                     }
-                },
-                [this](Dead::Atom, ExitReason reason) {
-                    Exit(reason);
+                } else if(Reply<Ping>(num + 1) != Status::OK) {
+                    Exit(ExitReason::ABNORMAL);
                 }
-            };
-        }
+            },
+            [this](Dead::Atom, ExitReason reason) {
+                Exit(reason);
+            }
+        };
     };
 }
 
