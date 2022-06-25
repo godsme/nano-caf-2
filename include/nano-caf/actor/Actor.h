@@ -54,6 +54,7 @@ namespace nano_caf {
     private:
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
         virtual auto RegisterExpectOnceHandler(MsgTypeId, detail::MsgHandler*) noexcept -> void = 0;
+        virtual auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> Result<TimerId> = 0;
     };
 }
 

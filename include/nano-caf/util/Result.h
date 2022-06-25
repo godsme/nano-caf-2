@@ -32,6 +32,9 @@ namespace nano_caf {
         Result(ResultTag::Cause, Status status)
             : Parent{EitherTag::RIGHT, status} {}
 
+        auto Ok() const noexcept -> bool {
+            return Parent::Index() == 0;
+        }
     };
 }
 

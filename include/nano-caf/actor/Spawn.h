@@ -8,6 +8,7 @@
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/scheduler/ActorSystem.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -90,6 +91,14 @@ namespace nano_caf::detail {
                     break;
                 }
             }
+        }
+
+        auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
+            auto result = ActorSystem::Instance().StartTimer(Self(), spec, periodic, std::move(callback));
+            if(result.Ok()) {
+                //
+            }
+            return result;
         }
 
     private:

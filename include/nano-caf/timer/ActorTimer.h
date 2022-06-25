@@ -18,6 +18,8 @@ namespace nano_caf {
     struct ActorHandle;
 
     struct ActorTimer {
+        ActorTimer() = default;
+
         auto Start() -> void;
         auto Stop() -> void;
 

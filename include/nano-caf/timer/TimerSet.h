@@ -15,7 +15,7 @@
 
 namespace nano_caf {
     struct TimerSet {
-        TimerSet();
+        TimerSet() = default;
 
     private:
         using TimePoint = std::chrono::steady_clock::time_point;

@@ -7,12 +7,19 @@
 
 #include <nano-caf/scheduler/Coordinator.h>
 #include <nano-caf/Status.h>
+#include <nano-caf/timer/ActorTimer.h>
 
 namespace nano_caf {
     struct Resumable;
 
-    struct ActorSystem : Coordinator {
+    struct ActorSystem : Coordinator, private ActorTimer {
         static auto Instance() noexcept -> ActorSystem&;
+
+        using ActorTimer::StartTimer;
+        using ActorTimer::StopTimer;
+        using ActorTimer::ClearActorTimer;
+
+        using Coordinator::Schedule;
 
     private:
         ActorSystem() = default;
