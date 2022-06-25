@@ -59,6 +59,10 @@ namespace nano_caf::detail {
             : SchedActor{sync}
             , T{std::forward<ARGS>(args)...}
         {
+            if constexpr(!ActorHasInit<T>::value) {
+                SchedActor::m_inited = true;
+            }
+
             if constexpr(ActorHasGetBehavior<T>::value) {
                 m_behavior = T::GetBehavior();
             } else if constexpr(ActorHasInitBehavior<T>::value) {

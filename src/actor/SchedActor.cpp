@@ -53,8 +53,8 @@ namespace nano_caf {
     }
 
     auto SchedActor::Resume() noexcept -> TaskResult {
-        if(!inited) {
-            inited = true;
+        if(!m_inited) {
+            m_inited = true;
             if(auto result = Init(); result != TaskResult::SUSPENDED) {
                 return result;
             }

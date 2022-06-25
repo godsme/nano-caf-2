@@ -56,7 +56,7 @@ namespace nano_caf {
 
     protected:
         Message* m_currentMsg{};
-        bool inited{false};
+        bool m_inited{false};
     };
 }
 

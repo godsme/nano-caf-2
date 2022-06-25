@@ -55,7 +55,7 @@ namespace {
 SCENARIO("Ping Pong BehaviorBasedActor") {
     ActorSystem::Instance().StartUp(1);
 
-    auto ping = Spawn<PingActor, true>(std::size_t(100));
+    auto ping = Spawn<PingActor, true>(std::size_t(10));
     REQUIRE(ping);
 
     ping.Send<BootstrapMsg>();
