@@ -55,8 +55,6 @@ namespace {
         auto GetBody() const noexcept -> void const* override {
             return nullptr;
         }
-
-
     };
 }
 

@@ -58,6 +58,8 @@ SCENARIO("Ping Pong BehaviorBasedActor") {
     auto ping = Spawn<PingActor, true>(std::size_t(100));
     REQUIRE(ping);
 
+    ping.Send<BootstrapMsg>();
+
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(ping.Wait(reason) == Status::OK);
     REQUIRE(reason == ExitReason::SHUTDOWN);

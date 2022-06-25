@@ -15,8 +15,8 @@ namespace {
     };
 
     __CAF_actor_interface(Msg, MSG_interface_id,
-                          (Open,(const long&) -> long),
-                          (Close,(const long&) -> void)
+                            (Open, (const long&) -> long),
+                            (Close,(const long&) -> void)
     );
 
     CAF_def_message(DoneNotify, (num, long));
@@ -25,21 +25,21 @@ namespace {
 
 namespace {
     struct ServerActor : Actor {
-        long base{0};
         ServerActor(long base) : base{base} {}
 
-        auto GetBehavior() noexcept -> auto {
-            return Behavior {
-                [this](Msg::Open, long value) -> Future<long> {
-                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
-                        return base + value + notify.num;
-                    });
-                },
-                [this](ExitMsg::Atom, ExitReason reason) {
-                    Exit(reason);
-                }
-            };
-        }
+        const Behavior INIT_Behavior {
+            [this](Msg::Open, long value) -> Future<long> {
+                return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
+                    return base + value + notify.num;
+                });
+            },
+            [this](ExitMsg::Atom, ExitReason reason) {
+                Exit(reason);
+            }
+        };
+
+    private:
+        long base{0};
     };
 
     long result = 0;
@@ -75,6 +75,8 @@ SCENARIO("On Actor Expect Msg") {
 
     auto requester = Spawn<RequestActor, true>(203, server);
     REQUIRE(requester);
+
+    requester.Send<BootstrapMsg>();
 
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(1000ms);

@@ -53,6 +53,7 @@ namespace nano_caf {
     private:
         std::optional<std::promise<ExitReason>> m_promise;
         std::optional<ExitReason> m_exitReason;
+
     protected:
         Message* m_currentMsg{};
         bool inited{false};
