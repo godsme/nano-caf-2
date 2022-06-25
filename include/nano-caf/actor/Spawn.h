@@ -9,6 +9,7 @@
 #include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 #include <nano-caf/scheduler/ActorSystem.h>
+#include <nano-caf/actor/Behavior.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -32,10 +33,15 @@ namespace nano_caf::detail {
     struct ActorHasHandleMsg<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().HandleMessage(std::declval<Message&>()))>>>
             : std::true_type {};
 
+    template<typename T, typename = void>
+    struct ActorHasGetBehavior : std::false_type {};
+
+    template<typename T>
+    struct ActorHasGetBehavior<T, std::enable_if_t<std::is_same_v<Behavior, decltype(std::declval<T>().GetBehavior())>>>
+            : std::true_type {};
+
     template<typename T>
     struct InternalActor : SchedActor, T {
-    private:
-        static_assert(ActorHasHandleMsg<T>::value, "missing `auto HandleMessage(Message&) noexcept -> void`");
     private:
         using SchedActor::m_currentMsg;
     public:
@@ -43,7 +49,11 @@ namespace nano_caf::detail {
         InternalActor(bool sync, ARGS&&...args)
             : SchedActor{sync}
             , T{std::forward<ARGS>(args)...}
-        {}
+        {
+            if constexpr(ActorHasGetBehavior<T>::value) {
+                m_behavior = T::GetBehavior();
+            }
+        }
 
         auto Exit(ExitReason reason) noexcept -> void override {
             SchedActor::Exit_(reason);
@@ -75,6 +85,16 @@ namespace nano_caf::detail {
             m_expectOnceMsgHandlers.AddHandler(msgId, handler);
         }
 
+        auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
+            if(m_expectOnceMsgHandlers.HandleMsg(msg)) return;
+            if constexpr(ActorHasGetBehavior<T>::value) {
+                if(m_behavior.HandleMsg(msg)) return;
+            }
+            if constexpr(ActorHasHandleMsg<T>::value) {
+                T::HandleMessage(msg);
+            }
+        }
+
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
             switch(msg.id) {
                 case FutureDoneNotify::ID: {
@@ -83,9 +103,7 @@ namespace nano_caf::detail {
                     break;
                 }
                 default: {
-                    if(!m_expectOnceMsgHandlers.HandleMsg(msg)) {
-                        T::HandleMessage(msg);
-                    }
+                    HandleUserDefinedMsg(msg);
                     break;
                 }
             }
@@ -103,6 +121,10 @@ namespace nano_caf::detail {
             ActorSystem::Instance().StopTimer(Self(), timerId);
         }
 
+        auto ChangeBehavior(Behavior const& to) noexcept -> void override {
+            m_behavior = to;
+        }
+
         ~InternalActor() {
             if(timerUsed) {
                 ActorSystem::Instance().ClearActorTimer(Self());
@@ -110,6 +132,7 @@ namespace nano_caf::detail {
         }
 
     private:
+        Behavior m_behavior;
         ExpectOnceMsgHandlers m_expectOnceMsgHandlers;
         bool timerUsed{false};
     };

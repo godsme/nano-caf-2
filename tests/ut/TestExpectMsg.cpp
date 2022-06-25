@@ -3,7 +3,6 @@
 //
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/actor/Actor.h>
-#include <nano-caf/actor/BehaviorBasedActor.h>
 #include <nano-caf/msg/RequestDef.h>
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <catch.hpp>
@@ -25,11 +24,11 @@ namespace {
 }
 
 namespace {
-    struct ServerActor : BehaviorBasedActor {
+    struct ServerActor : Actor {
         long base{0};
         ServerActor(long base) : base{base} {}
 
-        auto GetBehavior() noexcept -> Behavior override {
+        auto GetBehavior() noexcept -> Behavior {
             return {
                 [this](Msg::Open, long value) -> Future<long> {
                     return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> long {
@@ -44,7 +43,7 @@ namespace {
     };
 
     long result = 0;
-    struct RequestActor : BehaviorBasedActor {
+    struct RequestActor : Actor {
         ActorHandle server{};
         long value{};
 
@@ -60,13 +59,8 @@ namespace {
                     Exit(ExitReason::NORMAL);
                 })
                 .Fail([this](Status cause) {
-                    std::cout << (int)cause << std::endl;
                     Exit(ExitReason::ABNORMAL);
                 });
-        }
-
-        auto GetBehavior() noexcept -> Behavior override {
-            return {};
         }
     };
 }

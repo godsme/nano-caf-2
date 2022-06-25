@@ -2,9 +2,9 @@
 // Created by Darwin Yuan on 2022/6/23.
 //
 #include <nano-caf/actor/Spawn.h>
-#include <nano-caf/actor/BehaviorBasedActor.h>
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/actor/Actor.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -14,8 +14,8 @@ namespace {
     CAF_def_message(Pong, (num, std::size_t));
     CAF_def_message(Dead, (reason, ExitReason));
 
-    struct PongActor : BehaviorBasedActor {
-        auto GetBehavior() noexcept -> Behavior override {
+    struct PongActor : Actor {
+        auto GetBehavior() noexcept -> Behavior {
             return {
                 [this](Ping::Atom, std::size_t num) {
                     if(Reply<Pong>(num) != Status::OK) {
@@ -33,7 +33,7 @@ namespace {
         }
     };
 
-    struct PingActor : BehaviorBasedActor {
+    struct PingActor : Actor {
         std::size_t times{};
         ActorHandle pongActor{};
 
@@ -50,7 +50,7 @@ namespace {
             }
         }
 
-        auto GetBehavior() noexcept -> Behavior override {
+        auto GetBehavior() noexcept -> Behavior {
             return {
                 [this](Pong::Atom, std::size_t num) {
                     if(num >= times) {

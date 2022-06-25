@@ -56,6 +56,7 @@ namespace nano_caf {
         virtual auto RegisterExpectOnceHandler(MsgTypeId, detail::MsgHandler*) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> Result<TimerId> = 0;
         virtual auto StopTimer(TimerId timerId) noexcept -> void = 0;
+        virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
     };
 }
 
