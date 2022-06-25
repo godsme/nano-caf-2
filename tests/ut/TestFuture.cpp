@@ -70,3 +70,16 @@ SCENARIO("Future of Future") {
     REQUIRE(value1 == 101);
     REQUIRE(value2 == 202);
 }
+
+SCENARIO("Instant Future") {
+    Future<int> future{10};
+
+    int value = 0;
+    future.Then([](int a) -> int {
+        return a;
+    }).Then([&](int a) -> void {
+        value = a;
+    });
+
+    REQUIRE(value == 10);
+}

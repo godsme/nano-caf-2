@@ -19,7 +19,7 @@ namespace nano_caf {
         }
 
         auto GetFuture() noexcept -> Future<T> {
-            return {m_future};
+            return Future{m_future};
         }
 
     private:

@@ -17,9 +17,14 @@ namespace nano_caf {
         using ObjectType = std::shared_ptr<detail::FutureObject<T>>;
 
         Future() noexcept = default;
-        Future(ObjectType object) noexcept
+        explicit Future(ObjectType object) noexcept
             : m_object{std::move(object)}
         {}
+
+        template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, T> && !std::is_convertible_v<R, ObjectType>>>
+        Future(R&& value) noexcept
+            : m_object{std::make_shared<detail::FutureObject<T>>(std::forward<R>(value))}{
+        }
 
         explicit operator bool() const {
             return (bool)m_object;

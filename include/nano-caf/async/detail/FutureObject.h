@@ -22,6 +22,11 @@ namespace nano_caf::detail {
 
         FutureObject() = default;
 
+        template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
+        FutureObject(T&& value) noexcept {
+            SetValue(std::forward<T>(value));
+        }
+
         auto RegisterObserver(ObserverType observer) noexcept -> void {
             if(Ready()) {
                 NotifyObserver(observer);
