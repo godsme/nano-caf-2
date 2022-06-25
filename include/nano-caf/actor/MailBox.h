@@ -32,6 +32,7 @@ namespace nano_caf {
         auto Close() noexcept -> void;
 
     private:
+        auto Put(Message*) noexcept -> bool;
         auto Reload() noexcept -> bool;
         auto ReloadOne(Message* msg) noexcept -> void;
         auto ReloadMany(Message*) noexcept -> void;

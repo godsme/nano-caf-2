@@ -9,11 +9,9 @@
 #include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/msg/MsgTypeId.h>
 #include <nano-caf/msg/RequestConcept.h>
+#include <nano-caf/async/AbstractPromise.h>
 
 namespace nano_caf {
-    template<typename T>
-    struct AbstractPromise;
-
     struct Message : ListElem<Message>  {
         enum Category : uint64_t {
             NORMAL,
@@ -46,11 +44,14 @@ namespace nano_caf {
             return id == BODY::ID ? reinterpret_cast<AbstractPromise<typename BODY::ResultType>*>(GetPromise()) : nullptr;
         }
 
+        virtual auto OnDiscard() noexcept -> void {}
+
         virtual ~Message() = default;
 
     private:
         virtual auto GetBody() const noexcept -> void const* = 0;
         virtual auto GetPromise() const noexcept -> void* { return nullptr; }
+
     public:
         ActorWeakPtr sender;
         MsgTypeId id;

@@ -49,6 +49,7 @@ namespace nano_caf {
         auto CleanUp(Message* msg) -> void {
             while(msg != nullptr) {
                 std::unique_ptr<Message> m{msg};
+                msg->OnDiscard();
                 msg = msg->m_next;
             }
         }

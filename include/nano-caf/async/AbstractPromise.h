@@ -13,11 +13,14 @@ namespace nano_caf {
     template<typename T>
     struct Future;
 
+    struct FailNotifier {
+        virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void = 0;
+    };
+
     template<typename T>
-    struct AbstractPromise {
+    struct AbstractPromise : FailNotifier {
         virtual auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr&) noexcept -> void = 0;
         virtual auto Join(Future<T>&&, ActorWeakPtr&) noexcept -> void = 0;
-        virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void = 0;
     };
 }
 

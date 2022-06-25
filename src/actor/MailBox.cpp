@@ -35,8 +35,7 @@ namespace nano_caf {
         m_normal.Concat(normal);
     }
 
-    auto MailBox::Reload() noexcept -> bool {
-        auto* msg = LifoQueue::TakeAll();
+    auto MailBox::Put(Message* msg) noexcept -> bool {
         if(msg == nullptr) return !Empty();
         if(msg->m_next == nullptr) {
             // only 1 msg in the LIFO queue
@@ -44,8 +43,11 @@ namespace nano_caf {
         } else {
             ReloadMany(msg);
         }
-
         return true;
+    }
+
+    auto MailBox::Reload() noexcept -> bool {
+        return Put(LifoQueue::TakeAll());
     }
 
     namespace {
@@ -93,7 +95,8 @@ namespace nano_caf {
 
     auto MailBox::Close() noexcept -> void {
         LifoQueue::Close();
-        m_urgent.CleanUp();
-        m_normal.CleanUp();
+        auto cleaner = std::function([] (Message& msg) { msg.OnDiscard(); });
+        m_urgent.CleanUp(cleaner);
+        m_normal.CleanUp(cleaner);
     }
 }

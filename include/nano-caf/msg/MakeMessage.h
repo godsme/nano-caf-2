@@ -80,6 +80,11 @@ namespace nano_caf::detail {
             return reinterpret_cast<void*>(const_cast<Handler*>(&m_handler));
         }
 
+        virtual auto OnDiscard() noexcept -> void override {
+            auto&& notifier = reinterpret_cast<FailNotifier&>(m_handler);
+            notifier.OnFail(Status::DISCARDED, Parent::sender);
+        }
+
     private:
         static_assert(std::is_base_of_v<AbstractPromise<typename T::ResultType>, Handler>);
         Handler m_handler;

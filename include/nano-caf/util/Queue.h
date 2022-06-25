@@ -6,11 +6,14 @@
 #define NANO_CAF_2_7CD95F8AA9C54F5BA8D719F757302C47
 
 #include <memory>
+#include <functional>
 
 namespace nano_caf {
 
     template <typename ELEM>
     struct Queue {
+        using Cleaner = std::function<auto (ELEM&) -> void>;
+
         Queue() = default;
 
         auto Enqueue(ELEM* elem) noexcept -> void;
@@ -24,6 +27,7 @@ namespace nano_caf {
         }
 
         auto CleanUp() noexcept -> void;
+        auto CleanUp(Cleaner&) noexcept -> void;
 
         ~Queue() {
             CleanUp();
