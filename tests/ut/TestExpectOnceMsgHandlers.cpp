@@ -10,8 +10,9 @@ using namespace nano_caf;
 namespace {
     std::vector<std::size_t> vector;
 
-    struct Handler : detail::MsgHandler {
+    struct Handler : detail::CancellableMsgHandler {
         Handler(int id) : id{id} {}
+        auto Cancel() noexcept -> void override {}
         auto HandleMsg(Message&) noexcept -> bool override {
             vector.push_back(id);
             return true;
@@ -41,11 +42,11 @@ SCENARIO("ExpectOnceMsgHandlers") {
     detail::ExpectOnceMsgHandlers handlers;
     REQUIRE(handlers.Empty());
 
-    handlers.AddHandler(1, new Handler(1));
-    handlers.AddHandler(2, new Handler(3));
-    handlers.AddHandler(3, new Handler(5));
-    handlers.AddHandler(1, new Handler(2));
-    handlers.AddHandler(2, new Handler(4));
+    handlers.AddHandler(1, std::make_shared<Handler>(1));
+    handlers.AddHandler(2, std::make_shared<Handler>(3));
+    handlers.AddHandler(3, std::make_shared<Handler>(5));
+    handlers.AddHandler(1, std::make_shared<Handler>(2));
+    handlers.AddHandler(2, std::make_shared<Handler>(4));
 
     REQUIRE(!handlers.Empty());
 

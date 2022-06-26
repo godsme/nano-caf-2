@@ -41,6 +41,7 @@ add_library(nano_caf
         include/nano-caf/actor/detail/Behaviors.h
         include/nano-caf/actor/detail/MsgTypeTrait.h
         include/nano-caf/actor/detail/BehaviorObject.h
+        include/nano-caf/actor/detail/CancellableMsgHandler.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h

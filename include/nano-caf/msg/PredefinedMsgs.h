@@ -37,7 +37,7 @@ namespace nano_caf {
                     (actor, intptr_t));
 
     CAF_def_message(TimeoutMsg,
-                    (callback, TimeoutCallback));
+                    (callback, LocalTimeoutCallback));
 }
 
 #endif //NANO_CAF_2_DB8084C4795145969EBFCA42C42DF97B

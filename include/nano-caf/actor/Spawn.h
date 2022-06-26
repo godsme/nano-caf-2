@@ -96,8 +96,12 @@ namespace nano_caf::detail {
             return sender ? ActorHandle{sender.Get()} : ActorHandle{};
         }
 
-        auto RegisterExpectOnceHandler(MsgTypeId msgId, detail::MsgHandler* handler) noexcept -> void override {
+        auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> handler) noexcept -> void override {
             m_expectOnceMsgHandlers.AddHandler(msgId, handler);
+        }
+
+        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler>& handler) noexcept -> void override {
+            m_expectOnceMsgHandlers.RemoveHandler(handler);
         }
 
         auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
