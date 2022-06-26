@@ -133,7 +133,7 @@ namespace nano_caf::detail {
         }
 
         auto StopTimer(TimerId timerId) noexcept -> void override {
-            ActorSystem::Instance().StopTimer(Self(), timerId);
+            ActorSystem::Instance().StopTimer((intptr_t)this, timerId);
         }
 
         auto ChangeBehavior(Behavior const& to) noexcept -> void override {
@@ -142,7 +142,7 @@ namespace nano_caf::detail {
 
         ~InternalActor() {
             if(timerUsed) {
-                ActorSystem::Instance().ClearActorTimer(Self());
+                ActorSystem::Instance().ClearActorTimer((intptr_t)this);
             }
         }
 

@@ -59,6 +59,7 @@ add_library(nano_caf
         include/nano-caf/async/detail/FutureObserver.h
         include/nano-caf/async/detail/FutureCallbackObject.h
         include/nano-caf/async/detail/FutureCallbackProxy.h
+        include/nano-caf/async/detail/CancelTimerObserver.h
         include/nano-caf/async/Future.h
         include/nano-caf/async/Promise.h
         include/nano-caf/async/Requester.h
@@ -100,8 +101,6 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestOnActorRequest.cpp
         tests/ut/TestEither.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
-        tests/ut/TestExpectMsg.cpp
-        tests/ut/TestActorTimerSystem.cpp
-        )
+        tests/ut/TestExpectMsg.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)

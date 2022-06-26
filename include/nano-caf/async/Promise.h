@@ -13,20 +13,23 @@
 namespace nano_caf {
     template<typename T>
     struct Promise : AbstractPromise<T> {
+        using Object = std::shared_ptr<detail::FutureObject<T>>;
+
         Promise() : m_future{std::make_shared<detail::FutureObject<T>>()} {}
         explicit Promise(Status cause) : Promise() {
             m_future->OnFail(cause);
         }
 
-        auto GetFuture() noexcept -> Future<T> {
-            return Future{m_future};
+        auto GetFuture() noexcept -> Object {
+            return m_future;
         }
 
     private:
         auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
-            m_future->OnFail(cause);
-            Notify(to);
+            if(m_future->OnFail(cause)) {
+                Notify(to);
+            }
         }
 
         auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
@@ -47,8 +50,9 @@ namespace nano_caf {
 
         auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;
-            m_future->SetValue(value);
-            Notify(to);
+            if(m_future->SetValue(value)) {
+                Notify(to);
+            }
         }
 
     private:
@@ -59,7 +63,7 @@ namespace nano_caf {
             }
         }
     private:
-        std::shared_ptr<detail::FutureObject<T>> m_future;
+        Object m_future;
     };
 }
 

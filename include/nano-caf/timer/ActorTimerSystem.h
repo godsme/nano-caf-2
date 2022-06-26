@@ -28,8 +28,8 @@ namespace nano_caf {
                          bool periodic,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
-        auto StopTimer(ActorHandle const& self, TimerId) -> Status;
-        auto ClearActorTimer(ActorHandle const& self) -> Status;
+        auto StopTimer(intptr_t self, TimerId) -> Status;
+        auto ClearActorTimer(intptr_t self) -> Status;
 
     private:
         auto Schedule() -> void;

@@ -91,30 +91,28 @@ namespace nano_caf {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     auto ActorTimerSystem::StartTimer
             ( ActorHandle const& sender
-                    , TimerSpec const& spec
-                    , bool periodic
-                    , TimeoutCallback && callback) -> Result<TimerId> {
+            , TimerSpec const& spec
+            , bool periodic
+            , TimeoutCallback && callback) -> Result<TimerId> {
         if(!m_working) { return Status::CLOSED; }
         if(!sender) { return Status::NULL_ACTOR; }
 
         TimerId id{m_timerId.fetch_add(1, std::memory_order_relaxed)};
         auto status = SendMsg(MakeMessage<StartTimerMsg>(
-                id, std::move(sender.ToWeakPtr()), spec, std::chrono::steady_clock::now(), periodic, std::move(callback)));
+                id, sender.ToWeakPtr(), spec, std::chrono::steady_clock::now(), periodic, std::move(callback)));
         if(status != Status::OK) return status;
         return id;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimerSystem::StopTimer(ActorHandle const& self, TimerId id) -> Status {
+    auto ActorTimerSystem::StopTimer(intptr_t self, TimerId id) -> Status {
         if(!m_working) { return Status::CLOSED; }
-        if(!self) { return Status::NULL_ACTOR; }
-        return SendMsg(MakeMessage<StopTimerMsg>(self.ActorId(), id));
+        return SendMsg(MakeMessage<StopTimerMsg>(self, id));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimerSystem::ClearActorTimer(ActorHandle const& self) -> Status {
+    auto ActorTimerSystem::ClearActorTimer(intptr_t self) -> Status {
         if(!m_working) { return Status::CLOSED; }
-        if(!self) { return Status::NULL_ACTOR; }
-        return SendMsg(MakeMessage<ClearActorTimerMsg>(self.ActorId()));
+        return SendMsg(MakeMessage<ClearActorTimerMsg>(self));
     }
 }

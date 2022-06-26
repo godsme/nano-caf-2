@@ -5,11 +5,11 @@
 #ifndef NANO_CAF_2_99A9E6548D0F42F28097BD1F64AD24BC
 #define NANO_CAF_2_99A9E6548D0F42F28097BD1F64AD24BC
 
-#include <nano-caf/timer/TimerId.h>
+#include <nano-caf/Status.h>
 #include <functional>
 
 namespace nano_caf {
-    using TimeoutCallback = std::function<auto (TimerId) -> void>;
+    using TimeoutCallback = std::function<auto () -> void>;
 }
 
 #endif //NANO_CAF_2_99A9E6548D0F42F28097BD1F64AD24BC

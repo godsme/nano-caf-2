@@ -18,6 +18,13 @@
 namespace nano_caf::detail {
     template<typename R>
     struct FutureObject : PromiseDoneNotifier {
+    private:
+        enum : uint8_t {
+            READY = 0x01,
+            TIMEOUT = 0x02
+        };
+
+    public:
         using ObserverType = std::shared_ptr<FutureObserver<R>>;
 
         FutureObject() = default;
@@ -53,20 +60,29 @@ namespace nano_caf::detail {
         }
 
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
-        auto SetValue(T&& value) noexcept -> void {
+        auto SetValue(T&& value) noexcept -> bool {
+            if(Ready()) return false;
             m_value.template emplace<1>(std::forward<T>(value));
-            OnReady();
+            return OnReady();
         }
 
-        auto SetValue() noexcept -> void {
+        auto SetValue() noexcept -> bool {
             if constexpr(std::is_void_v<R>) {
-                SetValue(Void::Instance());
+                return SetValue(Void::Instance());
+            } else {
+                return false;
             }
         }
 
-        auto OnFail(Status cause) noexcept -> void {
+        auto OnFail(Status cause) noexcept -> bool {
+            if(Ready()) return false;
             m_value.template emplace<2>(cause);
-            OnReady();
+            return OnReady();
+        }
+
+        auto OnTimeout() noexcept -> bool {
+            auto ready = 0;
+            return m_ready.compare_exchange_strong(ready, TIMEOUT, std::memory_order_acq_rel);
         }
 
         auto Present() const noexcept -> bool {
@@ -78,6 +94,16 @@ namespace nano_caf::detail {
         }
 
         auto Commit() noexcept -> void override {
+            if(m_ready == TIMEOUT) {
+                if(m_onFail) m_onFail(Status::TIMEOUT);
+                NotifyTimeout();
+            } else if(m_ready == READY ){
+                Notify();
+            }
+        }
+
+    private:
+        auto Notify() noexcept -> void {
             switch (m_value.index()) {
                 case 2:
                     if(m_onFail) m_onFail(std::get<2>(m_value));
@@ -89,7 +115,6 @@ namespace nano_caf::detail {
             }
         }
 
-    private:
         auto NotifyObserver(ObserverType& observer) noexcept -> void {
             switch(m_value.index()) {
                 case 1: observer->OnFutureReady(std::get<1>(m_value)); break;
@@ -106,20 +131,29 @@ namespace nano_caf::detail {
             m_observers.clear();
         }
 
+        auto NotifyTimeout() noexcept -> void {
+            for (auto&& observer: m_observers) {
+                observer->OnFutureFail(Status::TIMEOUT);
+            }
+
+            m_observers.clear();
+        }
+
     private:
-        auto OnReady() noexcept -> void {
-            m_ready.store(true, std::memory_order_release);
+        auto OnReady() noexcept -> bool {
+            uint8_t ready = 0;
+            return m_ready.compare_exchange_strong(ready, READY, std::memory_order_acq_rel);
         }
 
         auto Ready() const noexcept -> bool {
-            return m_ready.load(std::memory_order_acquire);
+            return m_ready.load(std::memory_order_acquire) > 0;
         }
 
     protected:
         std::variant<std::monostate, ValueTypeOf<R>, Status> m_value{};
         std::deque<ObserverType> m_observers{};
         FailHandler m_onFail{};
-        std::atomic_bool m_ready{};
+        std::atomic<uint8_t> m_ready{};
     };
 }
 

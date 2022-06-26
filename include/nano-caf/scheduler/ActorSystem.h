@@ -7,6 +7,7 @@
 
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/timer/TimerSpec.h>
+#include <nano-caf/timer/TimerId.h>
 #include <nano-caf/timer/TimeoutCallback.h>
 #include <nano-caf/Status.h>
 
@@ -24,8 +25,8 @@ namespace nano_caf {
                          bool periodic,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
-        auto StopTimer(ActorHandle const& self, TimerId) -> Status;
-        auto ClearActorTimer(ActorHandle const& self) -> Status;
+        auto StopTimer(intptr_t actorId, TimerId) -> Status;
+        auto ClearActorTimer(intptr_t actorId) -> Status;
 
         auto Schedule(Resumable*) noexcept -> Status;
 

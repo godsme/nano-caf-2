@@ -7,6 +7,7 @@
 
 namespace nano_caf {
     namespace {
+
         inline auto SendTimeoutMsgToActor(StartTimerMsg* msg) -> Status {
             if(msg->is_periodic) {
                 return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, msg->callback);
@@ -44,8 +45,7 @@ namespace nano_caf {
         }
 
         auto iterator = m_timers.emplace(due, std::move(msg));
-        auto actorId = reinterpret_cast<intptr_t>(startMsg->actor.Get());
-        m_actorIndexer.emplace(actorId, iterator);
+        m_actorIndexer.emplace((intptr_t)startMsg->actor.Get(), iterator);
 
         return Status::OK;
     }

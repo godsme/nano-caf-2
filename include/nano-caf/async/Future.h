@@ -57,6 +57,11 @@ namespace nano_caf {
             return *this;
         }
 
+//        template<typename Rep, typename Period>
+//        auto Timeout(std::chrono::duration<Rep, Period> duration) -> Future<T> {
+//            std::make_shared<detail::CancelTimerObserver>();
+//        }
+
         auto Release() noexcept -> void {
             m_object.reset();
         }

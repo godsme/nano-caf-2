@@ -30,9 +30,31 @@ namespace nano_caf {
             Promise<R> promise;
             auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
             if(status != Status::OK) {
-                return Promise<R>{status}.GetFuture();
+                return Future<R>{Promise<R>{status}.GetFuture()};
             }
-            return promise.GetFuture();
+            return Future<R>{promise.GetFuture()};
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
+        inline auto Request(ActorHandle const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) const noexcept -> Future<R> {
+            Promise<R> promise;
+            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
+            if(status != Status::OK) {
+                return Future<R>{Promise<R>{status}.GetFuture()};
+            }
+
+            auto future = promise.GetFuture();
+            using WeakFuturePtr = typename Promise<R>::Object::weak_type;
+            WeakFuturePtr weakFuture = future;
+            StartTimer((uint64_t)std::chrono::microseconds(timeout).count(), false,
+                       [weakFuture = std::move(weakFuture)]() {
+//                           auto future = weakFuture.lock();
+//                           if(future) {
+//                               future->On
+//                           }
+            });
+
+            return Future<R>{future};
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>>
