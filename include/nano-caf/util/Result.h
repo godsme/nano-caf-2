@@ -35,6 +35,18 @@ namespace nano_caf {
         auto Ok() const noexcept -> bool {
             return Parent::Index() == 0;
         }
+
+        auto GetStatus() const noexcept -> Status {
+            return Parent::Index() == 1 ? *Parent::Right() : Status::OK;
+        }
+
+        auto operator*() const noexcept -> ValueTypeOf<T> const& {
+            return *Parent::Left();
+        }
+
+        auto GetValue() const noexcept -> ValueTypeOf<T> const& {
+            return *Parent::Left();
+        }
     };
 }
 

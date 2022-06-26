@@ -99,7 +99,7 @@ namespace nano_caf {
 
         TimerId id{m_timerId.fetch_add(1, std::memory_order_relaxed)};
         auto status = SendMsg(MakeMessage<StartTimerMsg>(
-                id, sender.ToWeakPtr(), spec, std::chrono::steady_clock::now(), periodic, std::move(callback)));
+                id, sender.ActorId(), spec, std::chrono::steady_clock::now(), periodic, std::move(callback)));
         if(status != Status::OK) return status;
         return id;
     }

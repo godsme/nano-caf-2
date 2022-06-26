@@ -8,13 +8,13 @@
 namespace nano_caf {
     namespace {
 
-        inline auto SendTimeoutMsgToActor(StartTimerMsg* msg) -> Status {
-            if(msg->is_periodic) {
-                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, msg->callback);
-            } else {
-                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, std::move(msg->callback));
-            }
-        }
+//        inline auto SendTimeoutMsgToActor(StartTimerMsg* msg) -> Status {
+//            if(msg->is_periodic) {
+//                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, msg->callback);
+//            } else {
+//                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, std::move(msg->callback));
+//            }
+//        }
 
         inline auto GetDue(StartTimerMsg const* msg) {
             return msg->spec.LeftMatch([&](auto const& duration) {
@@ -32,7 +32,7 @@ namespace nano_caf {
 
         auto due = GetDue(startMsg);
         while(due < std::chrono::steady_clock::now()) {
-            if(SendTimeoutMsgToActor(startMsg) != Status::OK) {
+            if(startMsg->callback() != Status::OK) {
                 return Status::OK;
             }
 
@@ -45,7 +45,7 @@ namespace nano_caf {
         }
 
         auto iterator = m_timers.emplace(due, std::move(msg));
-        m_actorIndexer.emplace((intptr_t)startMsg->actor.Get(), iterator);
+        m_actorIndexer.emplace(startMsg->actor_id, iterator);
 
         return Status::OK;
     }
@@ -160,8 +160,8 @@ namespace nano_caf {
 
             auto timerMsg = msg->Body<StartTimerMsg>();
 
-            if(SendTimeoutMsgToActor(timerMsg) != Status::OK || !timerMsg->is_periodic) {
-                RemoveIndex(reinterpret_cast<intptr_t>(timerMsg->actor.Get()), timer_iter);
+            if(timerMsg->callback() != Status::OK || !timerMsg->is_periodic) {
+                RemoveIndex(timerMsg->actor_id, timer_iter);
                 m_timers.erase(timer_iter);
             } else {
                 timerMsg->issue_time_point = due;
@@ -169,7 +169,7 @@ namespace nano_caf {
 
                 m_timers.erase(timer_iter);
                 auto iterator = m_timers.emplace(GetDue(timerMsg), std::move(sched_msg));
-                UpdateIndex(reinterpret_cast<intptr_t>(timerMsg->actor.Get()), timer_iter, iterator);
+                UpdateIndex(timerMsg->actor_id, timer_iter, iterator);
             }
         }
 

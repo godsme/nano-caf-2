@@ -8,6 +8,7 @@
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/actor/detail/ExpectMsgHandler.h>
+#include <nano-caf/async/detail/CancelTimerObserver.h>
 #include <nano-caf/async/Promise.h>
 
 namespace nano_caf {
@@ -27,34 +28,18 @@ namespace nano_caf {
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
         inline auto Request(ActorHandle const& to, ARGS&& ... args) const noexcept -> Future<R> {
-            Promise<R> promise;
-            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
-            if(status != Status::OK) {
-                return Future<R>{Promise<R>{status}.GetFuture()};
-            }
-            return Future<R>{promise.GetFuture()};
+            return DoRequest<ATOM, CATEGORY>(to,
+                             [](auto&& future) { return Future<R>{future}; },
+                             std::forward<ARGS>(args)...);
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
         inline auto Request(ActorHandle const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) const noexcept -> Future<R> {
-            Promise<R> promise;
-            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
-            if(status != Status::OK) {
-                return Future<R>{Promise<R>{status}.GetFuture()};
-            }
-
-            auto future = promise.GetFuture();
-            using WeakFuturePtr = typename Promise<R>::Object::weak_type;
-            WeakFuturePtr weakFuture = future;
-            StartTimer((uint64_t)std::chrono::microseconds(timeout).count(), false,
-                       [weakFuture = std::move(weakFuture)]() {
-//                           auto future = weakFuture.lock();
-//                           if(future) {
-//                               future->On
-//                           }
-            });
-
-            return Future<R>{future};
+            return DoRequest<ATOM, CATEGORY>(to,
+                             [&timeout, this](auto& future) {
+                                return StartFutureTimer((uint64_t)std::chrono::microseconds(timeout).count(), future);
+                             },
+                             std::forward<ARGS>(args)...);
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>>
@@ -67,6 +52,39 @@ namespace nano_caf {
             auto&& future = handler->GetFuture();
             RegisterExpectOnceHandler(MSG::ID, handler);
             return future.Then(std::forward<F>(f));
+        }
+
+    private:
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
+        inline auto DoRequest(ActorHandle const& to, F&& f, ARGS&& ... args) const noexcept -> Future<R> {
+            Promise<R> promise;
+            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
+            if(status != Status::OK) {
+                return Future<R>{Promise<R>{status}.GetFuture()};
+            }
+            return f(promise.GetFuture());
+        }
+
+        template<typename R>
+        auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& f) -> Future<R> {
+            using WeakFuturePtr = typename Promise<R>::Object::weak_type;
+            WeakFuturePtr weakFuture = f;
+            Result<TimerId> result = StartTimer(spec, false,
+                   [weakFuture = std::move(weakFuture), weakActor = std::move(Self().ToWeakPtr())]() {
+                       ActorPtr actor = weakActor.Lock();
+                       if(actor) return;
+                       auto&& future = weakFuture.lock();
+                       if(!future) return;
+                       if(!future->OnTimeout()) return;
+                       ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(std::move(future));
+                   });
+            if(!result.Ok()) {
+                return Future<R>{Promise<R>{result.GetStatus()}.GetFuture()};
+            }
+
+            f->RegisterObserver(std::make_shared<detail::CancelTimerObserver<R>>(Self().ToWeakPtr(), *result));
+
+            return Future<R>{f};
         }
 
     protected:
