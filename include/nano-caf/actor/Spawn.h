@@ -121,6 +121,11 @@ namespace nano_caf::detail {
                     notifier->Commit();
                     break;
                 }
+                case TimeoutMsg::ID: {
+                    auto timeout = msg.template Body<TimeoutMsg>();
+                    timeout->callback();
+                    break;
+                }
                 default: {
                     HandleUserDefinedMsg(msg);
                     break;

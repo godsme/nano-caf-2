@@ -81,7 +81,7 @@ namespace nano_caf::detail {
         }
 
         auto OnTimeout() noexcept -> bool {
-            auto ready = 0;
+            uint8_t ready = 0;
             return m_ready.compare_exchange_strong(ready, TIMEOUT, std::memory_order_acq_rel);
         }
 

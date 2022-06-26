@@ -7,15 +7,6 @@
 
 namespace nano_caf {
     namespace {
-
-//        inline auto SendTimeoutMsgToActor(StartTimerMsg* msg) -> Status {
-//            if(msg->is_periodic) {
-//                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, msg->callback);
-//            } else {
-//                return ActorHandle(msg->actor.Lock()).Send<TimeoutMsg>(msg->id, std::move(msg->callback));
-//            }
-//        }
-
         inline auto GetDue(StartTimerMsg const* msg) {
             return msg->spec.LeftMatch([&](auto const& duration) {
                 return msg->issue_time_point + std::chrono::microseconds(duration);

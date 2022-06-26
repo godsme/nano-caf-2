@@ -119,3 +119,74 @@ SCENARIO("On Actor No Wait") {
 
     ActorSystem::Instance().Shutdown();
 }
+
+using namespace std::chrono_literals;
+
+namespace {
+    struct ServerActor2 : Actor {
+        ServerActor2(long base) : base{base}{}
+
+        auto GetBehavior() -> Behavior {
+            return {
+                    [this](Msg::Open, long value) -> Future<long> {
+                        return ExpectMsg<DoneNotify>(1ms, [value, this](auto &&notify) -> long {
+                            return base + value + notify.num;
+                        });
+                    },
+                    [this](ExitMsg::Atom, ExitReason reason) {
+                        Exit(reason);
+                    }
+            };
+        }
+
+    private:
+        long base{0};
+    };
+
+    Status failedCause = Status::OK;
+    struct RequestActor2 : Actor {
+        ActorHandle server{};
+        long value{};
+
+        RequestActor2(long value, ActorHandle server)
+                : server{server}
+                , value{value}
+        {}
+
+        auto OnInit() -> void {
+            Request<Msg::Open>(server, value)
+                    .Then([this](long r) {
+                        result = r;
+                        Exit(ExitReason::NORMAL);
+                    })
+                    .Fail([this](Status cause) {
+                        failedCause = cause;
+                        Exit(ExitReason::ABNORMAL);
+                    });
+        }
+    };
+}
+
+SCENARIO("On Actor expect msg timeout ") {
+    ActorSystem::Instance().StartUp(1);
+
+    result = 0;
+
+    auto server = Spawn<ServerActor2>(101);
+    REQUIRE(server);
+
+    auto requester = Spawn<RequestActor2, true>(203, server);
+    REQUIRE(requester);
+
+    server.Release();
+
+    requester.Send<BootstrapMsg>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(requester.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::ABNORMAL);
+    REQUIRE(result == 0);
+    REQUIRE(failedCause == Status::TIMEOUT);
+
+    ActorSystem::Instance().Shutdown();
+}

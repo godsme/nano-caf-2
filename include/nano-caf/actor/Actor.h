@@ -50,7 +50,7 @@ namespace nano_caf {
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename Rep, typename Period>
         auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
-            return DoExpectMsg<MSG>(std::forward<F>(f), [&timeout, this](auto&& handler) {
+            return DoExpectMsg<MSG>(std::forward<F>(f), [this, &timeout](auto&& handler) {
                 StartExpectMsgTimer((uint64_t)std::chrono::microseconds(timeout).count(), handler);
                 return Status::OK;
             });
@@ -91,7 +91,7 @@ namespace nano_caf {
             Result<TimerId> result = StartTimer(spec, false,
                    [weakFuture = std::move(weakFuture), weakActor = std::move(Self().ToWeakPtr())]() {
                        ActorPtr actor = weakActor.Lock();
-                       if(actor) return Status::NULL_ACTOR;
+                       if(!actor) return Status::NULL_ACTOR;
                        auto&& future = weakFuture.lock();
                        if(!future) return Status::NULL_PTR;
                        if(!future->OnTimeout()) return;
@@ -109,19 +109,19 @@ namespace nano_caf {
         template<typename MSG>
         auto StartExpectMsgTimer(TimerSpec const& spec, std::shared_ptr<detail::ExpectMsgHandler<MSG>>& handler) -> Status {
             std::weak_ptr<detail::ExpectMsgHandler<MSG>> weakHandler = handler;
-            Result<TimerId> result = StartTimer(spec, false,
-                                                [weakHandler = std::move(weakHandler), weakActor = std::move(Self().ToWeakPtr())]() {
-                                                    ActorPtr actor = weakActor.Lock();
-                                                    if(actor) return Status::NULL_ACTOR;
-                                                    auto&& handler = weakHandler.lock();
-                                                    if(!handler) return Status::NULL_PTR;
-                                                    if(!handler->OnTimeout()) return Status::CLOSED;
-                                                    return ActorHandle{std::move(actor)}.Send<TimeoutMsg>([weakHandler = std::move(weakHandler)] {
-                                                        auto&& handler = weakHandler.lock();
-                                                        if(!handler) return;
-                                                        handler->Cancel();
-                                                    });
-                                                });
+            auto result = StartTimer(spec, false,
+                    [weakHandler = std::move(weakHandler), weakActor = std::move(Self().ToWeakPtr())]() -> Status {
+                        ActorPtr actor = weakActor.Lock();
+                        if(!actor) return Status::NULL_ACTOR;
+                        auto&& handler = weakHandler.lock();
+                        if(!handler) return Status::NULL_PTR;
+                        if(!handler->OnTimeout()) return Status::CLOSED;
+                        return ActorHandle{std::move(actor)}.Send<TimeoutMsg>([weakHandler = std::move(weakHandler)] {
+                            auto&& handler = weakHandler.lock();
+                            if(!handler) return;
+                            handler->Cancel();
+                        });
+                    });
             if(!result.Ok()) {
                 return result.GetStatus();
             }

@@ -35,7 +35,7 @@ namespace nano_caf::detail {
         auto CancelTimer() noexcept -> void {
             auto handle = m_actor.Lock();
             if(handle) {
-                ActorSystem::StopTimer((intptr_t)handle.Get(), m_timerId);
+                ActorSystem::Instance().StopTimer((intptr_t)handle.Get(), m_timerId);
             }
         }
     private:
