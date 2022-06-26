@@ -96,16 +96,19 @@ namespace nano_caf::detail {
             return sender ? ActorHandle{sender.Get()} : ActorHandle{};
         }
 
-        auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> handler) noexcept -> void override {
+        auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
             m_expectOnceMsgHandlers.AddHandler(msgId, handler);
         }
 
-        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler>& handler) noexcept -> void override {
+        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
             m_expectOnceMsgHandlers.RemoveHandler(handler);
         }
 
         auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
-            if(m_expectOnceMsgHandlers.HandleMsg(msg)) return;
+            if(m_expectOnceMsgHandlers.HandleMsg(msg)) {
+                //std::cout << "msg (" << msg.id << ") handled " << std::endl;
+                return;
+            }
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
                 if(m_behavior.HandleMsg(msg)) return;
             }
@@ -114,6 +117,7 @@ namespace nano_caf::detail {
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
+            //std::cout << "msg (" << msg.id << ") received " << TimeoutMsg::ID << std::endl;
             switch(msg.id) {
                 case BootstrapMsg::ID: break; // ignore
                 case FutureDoneNotify::ID: {

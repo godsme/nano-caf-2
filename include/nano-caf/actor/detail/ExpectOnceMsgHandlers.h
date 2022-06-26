@@ -12,7 +12,7 @@
 namespace nano_caf::detail {
     struct ExpectOnceMsgHandlers {
         auto AddHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Status;
-        auto RemoveHandler(std::shared_ptr<detail::CancellableMsgHandler>& handler) noexcept -> void;
+        auto RemoveHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void;
         auto HandleMsg(Message& msg) noexcept -> bool;
         auto Empty() const noexcept -> bool {
             return m_handlers.empty();

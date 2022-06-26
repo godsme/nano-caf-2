@@ -129,7 +129,7 @@ namespace {
         auto GetBehavior() -> Behavior {
             return {
                     [this](Msg::Open, long value) -> Future<long> {
-                        return ExpectMsg<DoneNotify>(1ms, [value, this](auto &&notify) -> long {
+                        return ExpectMsg<DoneNotify>(1000ms, [value, this](auto &&notify) -> long {
                             return base + value + notify.num;
                         });
                     },
@@ -168,6 +168,7 @@ namespace {
 }
 
 SCENARIO("On Actor expect msg timeout ") {
+    failedCause = Status::OK;
     ActorSystem::Instance().StartUp(1);
 
     result = 0;
@@ -187,6 +188,35 @@ SCENARIO("On Actor expect msg timeout ") {
     REQUIRE(reason == ExitReason::ABNORMAL);
     REQUIRE(result == 0);
     REQUIRE(failedCause == Status::TIMEOUT);
+
+    ActorSystem::Instance().Shutdown();
+}
+
+SCENARIO("On Actor expect msg without timeout ") {
+    failedCause = Status::OK;
+    ActorSystem::Instance().StartUp(1);
+
+    result = 0;
+
+    auto server = Spawn<ServerActor2>(101);
+    REQUIRE(server);
+
+    auto requester = Spawn<RequestActor2, true>(203, server);
+    REQUIRE(requester);
+
+    requester.Send<BootstrapMsg>();
+
+    std::this_thread::sleep_for(10ms);
+    server.Send<DoneNotify>(20);
+    server.Release();
+
+    requester.Send<BootstrapMsg>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(requester.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::NORMAL);
+    REQUIRE(result == 203 + 101 + 20);
+    REQUIRE(failedCause == Status::OK);
 
     ActorSystem::Instance().Shutdown();
 }

@@ -51,8 +51,7 @@ namespace nano_caf {
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename Rep, typename Period>
         auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [this, &timeout](auto&& handler) {
-                StartExpectMsgTimer((uint64_t)std::chrono::microseconds(timeout).count(), handler);
-                return Status::OK;
+                return StartExpectMsgTimer((uint64_t)std::chrono::microseconds(timeout).count(), handler);
             });
         }
 
@@ -110,16 +109,17 @@ namespace nano_caf {
         auto StartExpectMsgTimer(TimerSpec const& spec, std::shared_ptr<detail::ExpectMsgHandler<MSG>>& handler) -> Status {
             std::weak_ptr<detail::ExpectMsgHandler<MSG>> weakHandler = handler;
             auto result = StartTimer(spec, false,
-                    [weakHandler = std::move(weakHandler), weakActor = std::move(Self().ToWeakPtr())]() -> Status {
+                    [this, weakHandler = std::move(weakHandler), weakActor = std::move(Self().ToWeakPtr())]() -> Status {
                         ActorPtr actor = weakActor.Lock();
                         if(!actor) return Status::NULL_ACTOR;
                         auto&& handler = weakHandler.lock();
                         if(!handler) return Status::NULL_PTR;
                         if(!handler->OnTimeout()) return Status::CLOSED;
-                        return ActorHandle{std::move(actor)}.Send<TimeoutMsg>([weakHandler = std::move(weakHandler)] {
+                        return ActorHandle{std::move(actor)}.Send<TimeoutMsg>([this, weakHandler = std::move(weakHandler)] {
                             auto&& handler = weakHandler.lock();
                             if(!handler) return;
                             handler->Cancel();
+                            DeregisterExpectOnceHandler(handler);
                         });
                     });
             if(!result.Ok()) {
@@ -138,8 +138,8 @@ namespace nano_caf {
 
     private:
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
-        virtual auto RegisterExpectOnceHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler>) noexcept -> void = 0;
-        virtual auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler>&) noexcept -> void = 0;
+        virtual auto RegisterExpectOnceHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
+        virtual auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> Result<TimerId> = 0;
         virtual auto StopTimer(TimerId timerId) noexcept -> void = 0;
     };
