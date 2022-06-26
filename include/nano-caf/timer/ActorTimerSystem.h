@@ -2,8 +2,8 @@
 // Created by Darwin Yuan on 2022/6/25.
 //
 
-#ifndef NANO_CAF_2_CB3152A5CFC64E9EAEC4894C2E89EC49
-#define NANO_CAF_2_CB3152A5CFC64E9EAEC4894C2E89EC49
+#ifndef NANO_CAF_2_166EF8EB5ED44AD28868C99697524FFA
+#define NANO_CAF_2_166EF8EB5ED44AD28868C99697524FFA
 
 #include <nano-caf/actor/LifoQueue.h>
 #include <nano-caf/timer/TimerSet.h>
@@ -17,15 +17,15 @@
 namespace nano_caf {
     struct ActorHandle;
 
-    struct ActorTimer {
-        ActorTimer() = default;
+    struct ActorTimerSystem {
+        ActorTimerSystem() = default;
 
         auto Start() -> void;
         auto Stop() -> void;
 
         auto StartTimer( ActorHandle const& self,
-                          TimerSpec const& spec,
-                          bool periodic,
+                         TimerSpec const& spec,
+                         bool periodic,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
         auto StopTimer(ActorHandle const& self, TimerId) -> Status;
@@ -48,7 +48,8 @@ namespace nano_caf {
         ShutdownNotifier m_shutdown{};
 
         std::atomic<uint64_t> m_timerId{0};
+        bool m_working{false};
     };
 }
 
-#endif //NANO_CAF_2_CB3152A5CFC64E9EAEC4894C2E89EC49
+#endif //NANO_CAF_2_166EF8EB5ED44AD28868C99697524FFA

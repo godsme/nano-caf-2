@@ -13,57 +13,57 @@ namespace nano_caf {
     struct CvNotifier {
         template<typename F>
         auto Wait(F&& f) noexcept -> void {
-            std::unique_lock lock(mutex_);
-            sleeping_ = true;
-            cv_.wait(lock, std::forward<F>(f));
-            sleeping_ = false;
+            std::unique_lock lock(m_mutex);
+            m_sleeping = true;
+            m_cv.wait(lock, std::forward<F>(f));
+            m_sleeping = false;
         }
 
         auto Wait() noexcept -> void {
-            std::unique_lock lock(mutex_);
-            sleeping_ = true;
-            cv_.wait(lock);
-            sleeping_ = false;
+            std::unique_lock lock(m_mutex);
+            m_sleeping = true;
+            m_cv.wait(lock);
+            m_sleeping = false;
         }
 
         template<class Rep, class Period, typename F>
         auto WaitFor(std::chrono::duration<Rep, Period> const& duration, F&& f) noexcept -> bool {
-            std::unique_lock lock(mutex_);
-            sleeping_ = true;
-            auto result = cv_.wait_for(lock, duration, std::forward<F>(f));
-            sleeping_ = false;
+            std::unique_lock lock(m_mutex);
+            m_sleeping = true;
+            auto result = m_cv.wait_for(lock, duration, std::forward<F>(f));
+            m_sleeping = false;
             return result;
         }
 
         template<class Clock, class Duration, typename F>
         auto WaitUntil(std::chrono::time_point<Clock, Duration> const& point, F&& f) noexcept -> bool {
-            std::unique_lock lock(mutex_);
-            sleeping_ = true;
-            auto result = cv_.wait_until(lock, point, std::forward<F>(f));
-            sleeping_ = false;
+            std::unique_lock lock(m_mutex);
+            m_sleeping = true;
+            auto result = m_cv.wait_until(lock, point, std::forward<F>(f));
+            m_sleeping = false;
             return result;
         }
 
         template<class Clock, class Duration>
         auto WaitUntil(std::chrono::time_point<Clock, Duration> const& point) noexcept -> bool {
-            std::unique_lock lock(mutex_);
-            sleeping_ = true;
-            auto result = cv_.wait_until(lock, point);
-            sleeping_ = false;
+            std::unique_lock lock(m_mutex);
+            m_sleeping = true;
+            auto result = m_cv.wait_until(lock, point);
+            m_sleeping = false;
             return result;
         }
 
         auto WakeUp() -> void {
-            std::unique_lock lock(mutex_);
-            if(sleeping_) {
-                cv_.notify_one();
+            std::unique_lock lock(m_mutex);
+            if(m_sleeping) {
+                m_cv.notify_one();
             }
         }
 
     private:
-        std::mutex mutex_{};
-        std::condition_variable cv_{};
-        bool sleeping_{false};
+        std::mutex m_mutex{};
+        std::condition_variable m_cv{};
+        bool m_sleeping{false};
     };
 }
 

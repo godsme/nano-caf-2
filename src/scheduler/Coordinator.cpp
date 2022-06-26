@@ -6,7 +6,8 @@
 
 namespace nano_caf {
     auto Coordinator::StartUp(std::size_t numOfWorkers) noexcept -> void {
-        if(working || numOfWorkers == 0) return;
+        if(working) return;
+        if(numOfWorkers == 0) numOfWorkers = 1;
         m_pendingTasks = std::make_unique<WorkSharingQueue>();
         m_workers.reserve(numOfWorkers);
         for(std::size_t i=0; i<numOfWorkers; ++i) {
@@ -23,6 +24,7 @@ namespace nano_caf {
     }
 
     auto Coordinator::Shutdown() noexcept -> void {
+        if(!working) return;
         m_pendingTasks->Shutdown();
         for(auto&& worker : m_workers) {
             worker.WaitDone();

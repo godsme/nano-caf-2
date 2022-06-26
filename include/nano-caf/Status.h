@@ -12,6 +12,7 @@ namespace nano_caf {
         OK,
         FAILED,
         TIMEOUT,
+        OUT_OF_MEM,
         NULL_PTR,
         NULL_ACTOR,
         CLOSED,

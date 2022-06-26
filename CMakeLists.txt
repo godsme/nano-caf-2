@@ -71,7 +71,7 @@ add_library(nano_caf
         include/nano-caf/timer/TimerId.h
         include/nano-caf/timer/TimerSet.h
         include/nano-caf/timer/TimeoutCallback.h
-        include/nano-caf/timer/ActorTimer.h
+        include/nano-caf/timer/ActorTimerSystem.h
         src/scheduler/WorkSharingQueue.cpp
         src/scheduler/Worker.cpp
         src/scheduler/Coordinator.cpp
@@ -101,6 +101,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestEither.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
         tests/ut/TestExpectMsg.cpp
+        tests/ut/TestActorTimerSystem.cpp
         )
 
 target_link_libraries(nano_caf_ut nano_caf)

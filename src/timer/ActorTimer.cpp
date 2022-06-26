@@ -1,14 +1,14 @@
 //
 // Created by Darwin Yuan on 2022/6/25.
 //
-#include <nano-caf/timer/ActorTimer.h>
+#include <nano-caf/timer/ActorTimerSystem.h>
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/actor/ActorHandle.h>
 
 namespace nano_caf {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::GoSleep() -> Status {
+    auto ActorTimerSystem::GoSleep() -> Status {
         auto pred = [this] {
             return m_shutdown.ShutdownNotified() || !m_queue.IsBlocked();
         };
@@ -25,44 +25,57 @@ namespace nano_caf {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    inline auto ActorTimer::TryGoSleep() -> Status {
+    inline auto ActorTimerSystem::TryGoSleep() -> Status {
         if(m_queue.TryBlock()) return GoSleep();
         return Status::OK;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::Process(Message* msgs) -> Status {
-        Queue<Message> queue{};
-        while (msgs != nullptr) {
-            auto ptr = msgs;
-            msgs = msgs->m_next;
-            queue.PushFront(ptr);
+    namespace {
+        auto Reorder(Message* msgs) noexcept -> Message* {
+            Queue<Message> queue{};
+            while (msgs != nullptr) {
+                auto ptr = msgs;
+                msgs = msgs->m_next;
+                queue.PushFront(ptr);
+            }
+            return queue.TakeAll();
         }
-        msgs = queue.TakeAll();
-        return msgs == nullptr ? TryGoSleep() : m_timers.HandleMsgs(msgs, m_shutdown);
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    auto ActorTimerSystem::Process(Message* msgs) -> Status {
+        if(msgs == nullptr) return TryGoSleep();
+        if(msgs->m_next != nullptr) {
+            msgs = Reorder(msgs);
+        }
+
+        return m_timers.HandleMsgs(msgs, m_shutdown);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::Schedule() -> void {
+    auto ActorTimerSystem::Schedule() -> void {
         while(Process(m_queue.TakeAll()) != Status::SHUTDOWN);
         m_queue.Close();
         m_timers.Reset();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::Start() -> void {
+    auto ActorTimerSystem::Start() -> void {
+        if(m_working) return;
         m_thread = std::thread([this]{ Schedule(); });
+        m_working = true;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::Stop() -> void {
+    auto ActorTimerSystem::Stop() -> void {
+        if(!m_working) return;
         m_shutdown.NotifyShutdown();
         m_cv.WakeUp();
         m_thread.join();
+        m_working = false;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::SendMsg(Message* msg) -> Status {
+    auto ActorTimerSystem::SendMsg(Message* msg) -> Status {
         switch(m_queue.Enqueue(msg)) {
             case LifoQueue::Result::OK: return Status::OK;
             case LifoQueue::Result::BLOCKED: {
@@ -76,11 +89,12 @@ namespace nano_caf {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::StartTimer
+    auto ActorTimerSystem::StartTimer
             ( ActorHandle const& sender
                     , TimerSpec const& spec
                     , bool periodic
                     , TimeoutCallback && callback) -> Result<TimerId> {
+        if(!m_working) { return Status::CLOSED; }
         if(!sender) { return Status::NULL_ACTOR; }
 
         TimerId id{m_timerId.fetch_add(1, std::memory_order_relaxed)};
@@ -91,13 +105,15 @@ namespace nano_caf {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::StopTimer(ActorHandle const& self, TimerId id) -> Status {
+    auto ActorTimerSystem::StopTimer(ActorHandle const& self, TimerId id) -> Status {
+        if(!m_working) { return Status::CLOSED; }
         if(!self) { return Status::NULL_ACTOR; }
         return SendMsg(MakeMessage<StopTimerMsg>(self.ActorId(), id));
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimer::ClearActorTimer(ActorHandle const& self) -> Status {
+    auto ActorTimerSystem::ClearActorTimer(ActorHandle const& self) -> Status {
+        if(!m_working) { return Status::CLOSED; }
         if(!self) { return Status::NULL_ACTOR; }
         return SendMsg(MakeMessage<ClearActorTimerMsg>(self.ActorId()));
     }

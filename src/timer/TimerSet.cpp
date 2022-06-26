@@ -128,10 +128,9 @@ namespace nano_caf {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    auto TimerSet::HandleMsgs(Message *msgs, const ShutdownNotifier & shutdown) noexcept -> Status {
+    auto TimerSet::HandleMsgs(Message *msgs, ShutdownNotifier const& shutdown) noexcept -> Status {
         while(msgs != nullptr) {
-            auto status = CheckTimerDue(shutdown);
-            if(status == Status::SHUTDOWN) {
+            if(CheckTimerDue(shutdown) == Status::SHUTDOWN) {
                 CleanupMsgs(msgs);
                 return Status::SHUTDOWN;
             }

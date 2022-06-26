@@ -5,24 +5,36 @@
 #ifndef NANO_CAF_2_EFCBBF89BBB743A7AB631E7E4464AC6A
 #define NANO_CAF_2_EFCBBF89BBB743A7AB631E7E4464AC6A
 
-#include <nano-caf/scheduler/Coordinator.h>
+#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/timer/TimerSpec.h>
+#include <nano-caf/timer/TimeoutCallback.h>
 #include <nano-caf/Status.h>
-#include <nano-caf/timer/ActorTimer.h>
 
 namespace nano_caf {
     struct Resumable;
 
-    struct ActorSystem : Coordinator, private ActorTimer {
+    struct ActorSystem {
         static auto Instance() noexcept -> ActorSystem&;
 
-        using ActorTimer::StartTimer;
-        using ActorTimer::StopTimer;
-        using ActorTimer::ClearActorTimer;
+        auto StartUp(std::size_t numOfWorkers) noexcept -> Status;
+        auto Shutdown() noexcept -> void;
 
-        using Coordinator::Schedule;
+        auto StartTimer( ActorHandle const& self,
+                         TimerSpec const& spec,
+                         bool periodic,
+                         TimeoutCallback&& callback) -> Result<TimerId>;
+
+        auto StopTimer(ActorHandle const& self, TimerId) -> Status;
+        auto ClearActorTimer(ActorHandle const& self) -> Status;
+
+        auto Schedule(Resumable*) noexcept -> Status;
 
     private:
         ActorSystem() = default;
+
+    private:
+        struct ActorSystemImpl;
+        ActorSystemImpl *m_impl;
     };
 }
 
