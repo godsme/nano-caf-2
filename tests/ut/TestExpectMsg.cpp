@@ -24,6 +24,7 @@ namespace {
 }
 
 namespace {
+    long finalResult = 0;
     struct ServerActor : Actor {
         ServerActor(long base, bool waitNotify) : base{base}, waitNotify{waitNotify} {}
 
@@ -39,8 +40,11 @@ namespace {
             },
             [this](Msg::Close, long value) -> Future<void> {
                 if(waitNotify) {
-                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> void {});
+                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> void {
+                        finalResult = base + value + notify.num;
+                    });
                 } else {
+                    finalResult = base + value;
                     return Void;
                 }
             },
@@ -127,7 +131,77 @@ SCENARIO("On Actor No Wait") {
     ActorSystem::Instance().Shutdown();
 }
 
+namespace {
+    struct CloseRequestActor : Actor {
+        ActorHandle server{};
+        long value{};
+
+        CloseRequestActor(long value, ActorHandle server)
+                : server{server}
+                , value{value}
+        {}
+
+        auto OnInit() -> void {
+            Request<Msg::Close>(server, value)
+                    .Then([this]() {
+                        Exit(ExitReason::NORMAL);
+                    })
+                    .Fail([this](Status cause) {
+                        Exit(ExitReason::ABNORMAL);
+                    });
+        }
+    };
+}
+
 using namespace std::chrono_literals;
+
+SCENARIO("On Actor Wait void") {
+    ActorSystem::Instance().StartUp(1);
+
+    finalResult = 0;
+
+    auto server = Spawn<ServerActor>(101, true);
+    REQUIRE(server);
+
+    auto requester = Spawn<CloseRequestActor, true>(203, server);
+    REQUIRE(requester);
+
+    requester.Send<BootstrapMsg>();
+
+    std::this_thread::sleep_for(10ms);
+    server.Send<DoneNotify>(20);
+    server.Release();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(requester.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::NORMAL);
+    REQUIRE(finalResult == 203 + 101 + 20);
+
+    ActorSystem::Instance().Shutdown();
+}
+
+SCENARIO("On Actor no Wait void") {
+    ActorSystem::Instance().StartUp(1);
+
+    finalResult = 0;
+
+    auto server = Spawn<ServerActor>(101, false);
+    REQUIRE(server);
+
+    auto requester = Spawn<CloseRequestActor, true>(203, server);
+    REQUIRE(requester);
+
+    server.Release();
+
+    requester.Send<BootstrapMsg>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(requester.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::NORMAL);
+    REQUIRE(finalResult == 203 + 101);
+
+    ActorSystem::Instance().Shutdown();
+}
 
 namespace {
     struct ServerActor2 : Actor {
@@ -193,6 +267,7 @@ SCENARIO("On Actor expect msg timeout ") {
 
     requester.Send<BootstrapMsg>();
 
+
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);
     REQUIRE(reason == ExitReason::ABNORMAL);
@@ -219,8 +294,6 @@ SCENARIO("On Actor expect msg without timeout ") {
     std::this_thread::sleep_for(10ms);
     server.Send<DoneNotify>(20);
     server.Release();
-
-    requester.Send<BootstrapMsg>();
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);
