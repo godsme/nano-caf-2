@@ -37,6 +37,13 @@ namespace {
                     return base + value;
                 }
             },
+            [this](Msg::Close, long value) -> Future<void> {
+                if(waitNotify) {
+                    return ExpectMsg<DoneNotify>([this, value](auto&& notify) -> void {});
+                } else {
+                    return Void;
+                }
+            },
             [this](ExitMsg::Atom, ExitReason reason) {
                 Exit(reason);
             }
@@ -132,6 +139,9 @@ namespace {
                         return ExpectMsg<DoneNotify>(1000ms, [value, this](auto &&notify) -> long {
                             return base + value + notify.num;
                         });
+                    },
+                    [this](Msg::Close, long value) -> Future<void> {
+                        return ExpectMsg<DoneNotify>(1000ms, [value, this](auto &&notify) -> void {});
                     },
                     [this](ExitMsg::Atom, ExitReason reason) {
                         Exit(reason);

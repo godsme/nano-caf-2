@@ -9,11 +9,13 @@
 #include <nano-caf/async/detail/FutureCallbackObject.h>
 #include <nano-caf/async/detail/FutureCallbackProxy.h>
 #include <nano-caf/async/FutureConcept.h>
+#include <nano-caf/util/Void.h>
 #include <memory>
 
 namespace nano_caf {
     template<typename T>
     struct Future final {
+        using Object = ValueTypeOf<T>;
         using ObjectType = std::shared_ptr<detail::FutureObject<T>>;
 
         Future() noexcept = default;
@@ -21,7 +23,7 @@ namespace nano_caf {
             : m_object{std::move(object)}
         {}
 
-        template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, T> && !std::is_convertible_v<R, ObjectType>>>
+        template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, Object> && !std::is_convertible_v<R, ObjectType>>>
         Future(R&& value) noexcept
             : m_object{std::make_shared<detail::FutureObject<T>>(std::forward<R>(value))}{
         }
