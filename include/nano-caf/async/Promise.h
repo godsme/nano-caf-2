@@ -35,7 +35,7 @@ namespace nano_caf {
         auto Join(Future<T>&& future, ActorWeakPtr& to) noexcept -> void override {
             if constexpr(std::is_void_v<T>) {
                 future.Then([promise = *this, to = to] () mutable {
-                    promise.Reply(Void::Instance(), to);
+                    promise.Reply(Void, to);
                 });
             } else {
                 future.Then([promise = *this, to = to](T const& value) mutable {

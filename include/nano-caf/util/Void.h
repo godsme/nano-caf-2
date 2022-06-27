@@ -6,12 +6,9 @@
 #define NANO_CAF_2_68671F02BDB24C978CE625F91A0654CA
 
 namespace nano_caf {
-    struct Void {
-        static auto Instance() noexcept -> Void& {
-            static Void instance{};
-            return instance;
-        }
-    };
+    struct VoidType {};
+
+    inline constexpr VoidType Void{};
 
     template<typename T>
     struct ValueTypeTrait {
@@ -20,7 +17,7 @@ namespace nano_caf {
 
     template<>
     struct ValueTypeTrait<void> {
-        using ValueType = Void;
+        using ValueType = VoidType;
     };
 
     template<typename T>

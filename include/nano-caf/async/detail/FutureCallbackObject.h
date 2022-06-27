@@ -34,7 +34,7 @@ namespace nano_caf::detail {
                 } else {
                     m_callback(value);;
                 }
-                return Void::Instance();
+                return Void;
             } else {
                 if constexpr (std::is_void_v<A>) {
                     return m_callback();;

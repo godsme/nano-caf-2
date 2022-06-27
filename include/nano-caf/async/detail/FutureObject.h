@@ -68,7 +68,7 @@ namespace nano_caf::detail {
 
         auto SetValue() noexcept -> bool {
             if constexpr(std::is_void_v<R>) {
-                return SetValue(Void::Instance());
+                return SetValue(Void);
             } else {
                 return false;
             }

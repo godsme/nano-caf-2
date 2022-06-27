@@ -114,14 +114,14 @@ SCENARIO("int FutureObject") {
 
 namespace {
     struct VoidObserver : detail::FutureObserver<void> {
-        virtual auto OnFutureReady(Void const& value) noexcept -> void {
+        virtual auto OnFutureReady(VoidType const& value) noexcept -> void {
             result.emplace<1>(value);
         }
         virtual auto OnFutureFail(Status cause) noexcept -> void {
             result.emplace<2>(cause);
         }
 
-        std::variant<std::monostate, Void, Status> result;
+        std::variant<std::monostate, VoidType, Status> result;
     };
 }
 

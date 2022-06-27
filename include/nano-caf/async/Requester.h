@@ -44,7 +44,7 @@ namespace nano_caf {
 
             if constexpr(std::is_void_v<R>) {
                 future.Then([this]() {
-                    OnSuccess(Void::Instance());
+                    OnSuccess(Void);
                 });
             } else {
                 future.Then([this](auto&& value) {

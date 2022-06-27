@@ -35,7 +35,7 @@ namespace nano_caf::detail {
                     p->Join(handler(*body, f_), msg.sender);
                 } else if constexpr(std::is_void_v<ResultType>) {
                     handler(*body, f_);
-                    p->Reply(std::move(Void::Instance()), msg.sender);
+                    p->Reply(Void, msg.sender);
                 } else {
                     p->Reply(handler(*body, f_), msg.sender);
                 }
