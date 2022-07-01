@@ -10,6 +10,8 @@
 #include <nano-caf/msg/PredefinedMsgs.h>
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/actor/Behavior.h>
+#include <nano-caf/actor/BlockingActor.h>
+#include <nano-caf/actor/NonblockingActor.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -47,20 +49,21 @@ namespace nano_caf::detail {
     struct ActorHasInitBehavior<T, std::enable_if_t<std::is_same_v<Behavior, std::decay_t<decltype(T::INIT_Behavior)>>>>
             : std::true_type {};
 
-    template<typename T>
-    struct InternalActor : SchedActor, T {
+    template<typename T, typename ACTOR>
+    struct InternalActor : ACTOR, T {
     private:
         static_assert(!(ActorHasInitBehavior<T>::value && ActorHasGetBehavior<T>::value),
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
-        using SchedActor::m_currentMsg;
+        using ACTOR::m_currentMsg;
+
     public:
         template<typename ... ARGS>
         InternalActor(bool sync, ARGS&&...args)
-            : SchedActor{sync}
+            : ACTOR{sync}
             , T{std::forward<ARGS>(args)...}
         {
             if constexpr(!ActorHasInit<T>::value) {
-                SchedActor::m_inited = true;
+                ACTOR::m_inited = true;
             }
 
             if constexpr(ActorHasGetBehavior<T>::value) {
@@ -70,12 +73,12 @@ namespace nano_caf::detail {
             }
         }
 
-        auto Exit(ExitReason reason) noexcept -> void override {
-            SchedActor::Exit_(reason);
-        }
-
         auto Self() const noexcept -> ActorHandle override {
             return ActorHandle{const_cast<InternalActor*>(this), true};
+        }
+
+        auto Exit(ExitReason reason) noexcept -> void override {
+            SchedActor::Exit_(reason);
         }
 
         auto InitHandler() noexcept -> void override {
@@ -164,13 +167,39 @@ namespace nano_caf::detail {
         ExpectOnceMsgHandlers m_expectOnceMsgHandlers;
         bool timerUsed{false};
     };
+
+    template<typename T>
+    struct InternalSchedActor
+            : InternalActor<T, NonblockingActor> {
+        using Parent = InternalActor<T, NonblockingActor>;
+        template<typename ... ARGS>
+        InternalSchedActor(bool sync, ARGS&& ... args)
+            : Parent(sync, std::forward<ARGS>(args)...) {}
+    };
+
+
+    template<typename T>
+    struct InternalBlockingActor
+            : InternalActor<T, BlockingActor> {
+        using Parent = InternalActor<T, BlockingActor>;
+        template<typename ... ARGS>
+        InternalBlockingActor(ARGS&& ... args)
+                : Parent(true, std::forward<ARGS>(args)...) {}
+    };
 }
 
 namespace nano_caf {
     template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto Spawn(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::InternalActor<T>;
+        using ActorObject = detail::InternalSchedActor<T>;
         auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
+        return ActorHandle{ptr ? ptr.Get() : nullptr};
+    }
+
+    template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
+    auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
+        using ActorObject = detail::InternalBlockingActor<T>;
+        auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
         return ActorHandle{ptr ? ptr.Get() : nullptr};
     }
 }

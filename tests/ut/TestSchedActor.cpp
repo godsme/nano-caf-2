@@ -64,12 +64,12 @@ SCENARIO("SchedActor Resume") {
     {
         auto actor = SharedPtr<MySchedActor>(rawActor, false);
 
-        REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{1, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == Status::OK);
         REQUIRE(allocatedBlocks == 2);
 
-        auto *task = static_cast<Resumable *>(actor.Get());
-        REQUIRE(task->Resume() == TaskResult::DONE);
+        auto *task = static_cast<SchedActor *>(actor.Get());
+        REQUIRE(task->Resume(3) == TaskResult::DONE);
         REQUIRE(actor->numOfMsgs == 2);
         REQUIRE(actor->msgs[0] == 2);
         REQUIRE(actor->msgs[1] == 1);
@@ -77,13 +77,13 @@ SCENARIO("SchedActor Resume") {
 
         actor->numOfMsgs = 0;
 
-        REQUIRE(actor->SendMsg(new MyMessage{3, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{4, Message::Category::URGENT}) == MailBox::Result::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{5, Message::Category::NORMAL}) == MailBox::Result::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{6, Message::Category::URGENT}) == MailBox::Result::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{3, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{4, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{5, Message::Category::NORMAL}) == Status::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{6, Message::Category::URGENT}) == Status::OK);
         REQUIRE(allocatedBlocks == 4);
 
-        REQUIRE(task->Resume() == TaskResult::SUSPENDED);
+        REQUIRE(task->Resume(3) == TaskResult::SUSPENDED);
         REQUIRE(actor->numOfMsgs == 3);
         REQUIRE(actor->msgs[0] == 4);
         REQUIRE(actor->msgs[1] == 6);
@@ -91,24 +91,24 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(allocatedBlocks == 1);
 
         actor->numOfMsgs = 0;
-        REQUIRE(actor->SendMsg(new MyMessage{7, Message::Category::URGENT}) == MailBox::Result::OK);
-        REQUIRE(task->Resume() == TaskResult::DONE);
+        REQUIRE(actor->SendMsg(new MyMessage{7, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(task->Resume(3) == TaskResult::DONE);
         REQUIRE(actor->numOfMsgs == 2);
         REQUIRE(actor->msgs[0] == 7);
         REQUIRE(actor->msgs[1] == 5);
         REQUIRE(allocatedBlocks == 0);
 
         actor->numOfMsgs = 0;
-        REQUIRE(actor->SendMsg(new MyMessage{8, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{9, Message::Category::NORMAL}) == MailBox::Result::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{10, Message::Category::URGENT}) == MailBox::Result::OK);
-        REQUIRE(task->Resume() == TaskResult::DONE);
+        REQUIRE(actor->SendMsg(new MyMessage{8, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->SendMsg(new MyMessage{9, Message::Category::NORMAL}) == Status::OK);
+        REQUIRE(actor->SendMsg(new MyMessage{10, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(task->Resume(3) == TaskResult::DONE);
         REQUIRE(actor->numOfMsgs == 1);
         REQUIRE(actor->msgs[0] == 10);
         REQUIRE(allocatedBlocks == 0);
         REQUIRE(actor->exitReason == ExitReason::SHUTDOWN);
 
-        REQUIRE(actor->SendMsg(new MyMessage{11, Message::Category::NORMAL}) == MailBox::Result::CLOSED);
+        REQUIRE(actor->SendMsg(new MyMessage{11, Message::Category::NORMAL}) == Status::CLOSED);
 
         REQUIRE_FALSE(claimed);
     }
@@ -139,9 +139,9 @@ SCENARIO("SchedActor Destroy") {
     discardMessages.clear();
     auto actor = SharedPtr<MySchedActor2>((new Actor2{})->Get(), false);
 
-    REQUIRE(actor->SendMsg(new Msg2{1, Message::Category::NORMAL}) == MailBox::Result::BLOCKED);
-    REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == MailBox::Result::OK);
-    REQUIRE(actor->SendMsg(new Msg2{3, Message::Category::URGENT}) == MailBox::Result::OK);
+    REQUIRE(actor->SendMsg(new Msg2{1, Message::Category::NORMAL}) == Status::BLOCKED);
+    REQUIRE(actor->SendMsg(new MyMessage{2, Message::Category::URGENT}) == Status::OK);
+    REQUIRE(actor->SendMsg(new Msg2{3, Message::Category::URGENT}) == Status::OK);
     REQUIRE(allocatedBlocks == 3);
     REQUIRE(discardMessages.size() == 0);
     actor.Release();

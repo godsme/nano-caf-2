@@ -5,23 +5,17 @@
 #ifndef NANO_CAF_2_F33F3D00ABB14F28925898A8B4AD46E8
 #define NANO_CAF_2_F33F3D00ABB14F28925898A8B4AD46E8
 
+#include <nano-caf/Status.h>
 #include <atomic>
 
 namespace nano_caf {
     struct Message;
 
     struct LifoQueue {
-        enum class Result {
-            OK,
-            CLOSED,
-            BLOCKED,
-            NULL_MSG
-        };
-
         LifoQueue();
         ~LifoQueue();
 
-        auto Enqueue(Message*) noexcept -> Result;
+        auto Enqueue(Message*) noexcept -> Status;
         auto TakeAll() noexcept -> Message*;
         auto TryBlock() noexcept -> bool;
 

@@ -38,7 +38,7 @@ namespace {
 }
 
 SCENARIO("OnActorRequest") {
-    detail::InternalActor<MyActor> actor{false};
+    detail::InternalSchedActor<MyActor> actor{false};
     actor.Test();
     REQUIRE(actor.cause == Status::NULL_ACTOR);
 }

@@ -36,12 +36,15 @@ add_library(nano_caf
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
         include/nano-caf/scheduler/TaskResult.h
+        include/nano-caf/actor/AbstractActor.h
+        include/nano-caf/actor/NonblockingActor.h
         include/nano-caf/actor/detail/MsgHandler.h
         include/nano-caf/actor/detail/BehaviorBase.h
         include/nano-caf/actor/detail/Behaviors.h
         include/nano-caf/actor/detail/MsgTypeTrait.h
         include/nano-caf/actor/detail/BehaviorObject.h
         include/nano-caf/actor/detail/CancellableMsgHandler.h
+        include/nano-caf/actor/BlockingActor.h
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h
@@ -81,6 +84,8 @@ add_library(nano_caf
         src/actor/LifoQueue.cpp
         src/actor/MailBox.cpp
         src/actor/SchedActor.cpp
+        src/actor/BlockingActor.cpp
+        src/actor/NonblockingActor.cpp
         src/actor/ActorHandle.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/util/SharedPtrCtlBlock.cpp

@@ -10,16 +10,16 @@
 #include <nano-caf/scheduler/TaskResult.h>
 #include <functional>
 
+
 namespace nano_caf {
     struct Message;
 
     struct MailBox : private LifoQueue {
         using Consumer = std::function<auto (Message&) -> TaskResult>;
-        using Result = LifoQueue::Result;
 
         MailBox() = default;
 
-        auto SendMsg(Message* msg) noexcept -> LifoQueue::Result {
+        auto SendMsg(Message* msg) noexcept -> Status {
             return LifoQueue::Enqueue(msg);
         }
 

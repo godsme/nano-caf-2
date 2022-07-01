@@ -8,20 +8,20 @@
 namespace nano_caf {
     LifoQueue::LifoQueue() : m_stack{Blocked()} {}
 
-    auto LifoQueue::Enqueue(Message* msg) noexcept -> Result {
-        if(msg == nullptr) return Result::NULL_MSG;
+    auto LifoQueue::Enqueue(Message* msg) noexcept -> Status {
+        if(msg == nullptr) return Status::NULL_PTR;
         auto* head = m_stack.load();
         auto* closed = Eof();
 
         do {
             if(head == closed) {
                 delete msg;
-                return Result::CLOSED;
+                return Status::CLOSED;
             }
             msg->m_next = head == Blocked() ? nullptr : head;
         } while(!m_stack.compare_exchange_weak(head, msg));
 
-        return head == Blocked() ? Result::BLOCKED : Result::OK;
+        return head == Blocked() ? Status::BLOCKED : Status::OK;
     }
 
     auto LifoQueue::TakeAll() noexcept -> Message* {

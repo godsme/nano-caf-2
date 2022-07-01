@@ -31,8 +31,6 @@ namespace nano_caf {
         return Status::OK;
     }
 
-    inline constexpr std::size_t MAX_CONSUMED_MSGS_PER_ROUND = 3;
-
     auto SchedActor::TrySync() noexcept -> void {
         if(m_promise) {
             m_promise->set_value(*m_exitReason);
@@ -52,7 +50,7 @@ namespace nano_caf {
         return ExitCheck();
     }
 
-    auto SchedActor::Resume() noexcept -> TaskResult {
+    auto SchedActor::Resume(std::size_t maxSchedMsgs) noexcept -> TaskResult {
         if(!m_inited) {
             m_inited = true;
             if(auto result = Init(); result != TaskResult::SUSPENDED) {
@@ -60,7 +58,7 @@ namespace nano_caf {
             }
         }
 
-        return MailBox::Consume(MAX_CONSUMED_MSGS_PER_ROUND, [this](Message& msg) -> TaskResult {
+        return MailBox::Consume(maxSchedMsgs, [this](Message& msg) -> TaskResult {
             m_currentMsg = &msg;
             UserDefinedHandleMessage(msg);
             m_currentMsg = nullptr;
@@ -74,15 +72,15 @@ namespace nano_caf {
         }
     }
 
-    auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
-        return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
-    }
-
-    auto SchedActor::AddRef() noexcept -> void {
-        return CtlBlock()->AddRef();
-    }
-
-    auto SchedActor::Release() noexcept -> void {
-        return CtlBlock()->Release();
-    }
+//    auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
+//        return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
+//    }
+//
+//    auto SchedActor::AddRef() noexcept -> void {
+//        return CtlBlock()->AddRef();
+//    }
+//
+//    auto SchedActor::Release() noexcept -> void {
+//        return CtlBlock()->Release();
+//    }
 }

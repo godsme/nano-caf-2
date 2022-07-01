@@ -6,11 +6,11 @@
 #define NANO_CAF_2_6362C872E1C14D48AD7844DE2970D61E
 
 #include <nano-caf/util/WeakPtr.h>
-#include <nano-caf/actor/SchedActor.h>
+#include <nano-caf/actor/AbstractActor.h>
 
 namespace nano_caf {
-    using ActorPtr = SharedPtr<SchedActor>;
-    using ActorWeakPtr = WeakPtr<SchedActor>;
+    using ActorPtr = SharedPtr<AbstractActor>;
+    using ActorWeakPtr = WeakPtr<AbstractActor>;
 }
 
 #endif //NANO_CAF_2_6362C872E1C14D48AD7844DE2970D61E

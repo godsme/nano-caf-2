@@ -4,6 +4,7 @@
 #include <nano-caf/timer/ActorTimerSystem.h>
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/util/Queue.h>
 
 namespace nano_caf {
 
@@ -76,16 +77,12 @@ namespace nano_caf {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     auto ActorTimerSystem::SendMsg(Message* msg) -> Status {
-        switch(m_queue.Enqueue(msg)) {
-            case LifoQueue::Result::OK: return Status::OK;
-            case LifoQueue::Result::BLOCKED: {
-                m_cv.WakeUp();
-                return Status::OK;
-            }
-            case LifoQueue::Result::NULL_MSG: return Status::NULL_PTR;
-            case LifoQueue::Result::CLOSED:   return Status::CLOSED;
-            default: return Status::FAILED;
+        if(auto status = m_queue.Enqueue(msg); status != Status::BLOCKED) {
+            return status;
         }
+
+        m_cv.WakeUp();
+        return Status::OK;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

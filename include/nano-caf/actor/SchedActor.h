@@ -17,8 +17,7 @@ namespace nano_caf {
     struct SharedPtrCtlBlock;
 
     struct SchedActor
-            : protected MailBox
-            , Resumable {
+            : protected MailBox {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();
 
@@ -26,21 +25,15 @@ namespace nano_caf {
 
         auto Wait(ExitReason& reason) noexcept -> Status;
 
+        auto Resume(std::size_t maxSchedMsgs) noexcept -> TaskResult;
+
     private:
-        auto Resume() noexcept -> TaskResult override;
         auto Init() noexcept -> TaskResult;
 
     private:
         auto ExitCheck() noexcept -> TaskResult;
         auto TrySync() noexcept -> void;
         auto OnExit(ExitReason reason) noexcept -> void;
-
-    private:
-        auto AddRef() noexcept -> void override;
-        auto Release() noexcept -> void override;
-
-    private:
-        auto CtlBlock() noexcept -> SharedPtrCtlBlock*;
 
     protected:
         auto Exit_(ExitReason reason) -> void;

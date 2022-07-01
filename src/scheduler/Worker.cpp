@@ -6,6 +6,7 @@
 #include <nano-caf/scheduler/WorkSharingQueue.h>
 
 namespace nano_caf {
+
     auto Worker::ScheduleTask(Resumable* task) noexcept -> void {
         while(1) {
             if(task->Resume() == TaskResult::DONE) {
