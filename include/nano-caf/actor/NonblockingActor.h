@@ -12,6 +12,8 @@ namespace nano_caf {
     struct NonblockingActor : AbstractActor, protected SchedActor, private Resumable {
         using SchedActor::SchedActor;
 
+
+
     private:
         auto SendMsg(Message*) noexcept -> Status override;
         auto Wait(ExitReason& reason) noexcept -> Status override;

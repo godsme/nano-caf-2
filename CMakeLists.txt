@@ -105,6 +105,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestFuture.cpp
         tests/ut/TestBehaviorObject.cpp
         tests/ut/TestOnActorRequest.cpp
+        tests/ut/TestBlockingActor.cpp
         tests/ut/TestEither.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
         tests/ut/TestExpectMsg.cpp)

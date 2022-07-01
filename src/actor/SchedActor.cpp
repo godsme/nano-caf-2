@@ -4,6 +4,7 @@
 
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/util/SharedPtrCtlBlock.h>
+#include <nano-caf/msg/Message.h>
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired) {
@@ -58,12 +59,14 @@ namespace nano_caf {
             }
         }
 
-        return MailBox::Consume(maxSchedMsgs, [this](Message& msg) -> TaskResult {
+        auto result = MailBox::Consume(maxSchedMsgs, [this](Message& msg) -> TaskResult {
             m_currentMsg = &msg;
             UserDefinedHandleMessage(msg);
             m_currentMsg = nullptr;
             return ExitCheck();
         });
+
+        return result;
     }
 
     auto SchedActor::Exit_(ExitReason reason) -> void {
@@ -71,16 +74,4 @@ namespace nano_caf {
             m_exitReason.emplace(reason);
         }
     }
-
-//    auto SchedActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
-//        return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
-//    }
-//
-//    auto SchedActor::AddRef() noexcept -> void {
-//        return CtlBlock()->AddRef();
-//    }
-//
-//    auto SchedActor::Release() noexcept -> void {
-//        return CtlBlock()->Release();
-//    }
 }

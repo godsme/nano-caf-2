@@ -12,15 +12,17 @@
 namespace nano_caf {
     struct BlockingActor : AbstractActor, protected SchedActor {
         explicit BlockingActor(bool) : SchedActor(true) {}
+        ~BlockingActor();
 
         auto Run() noexcept -> void;
         auto SendMsg(Message*) noexcept -> Status override;
         auto Wait(ExitReason&) noexcept -> Status override;
 
     private:
-        std::thread m_thread;
-        std::mutex m_lock;
+        std::thread m_thread{};
+        std::mutex m_lock{};
         std::condition_variable m_cv{};
+        bool running{false};
     };
 }
 

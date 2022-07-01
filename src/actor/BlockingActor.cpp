@@ -6,16 +6,24 @@
 #include <numeric>
 
 namespace nano_caf {
+    BlockingActor::~BlockingActor() {
+        // TODO:
+    }
+
     auto BlockingActor::Run() noexcept -> void {
-        new (&m_thread) std::thread([this](){
+        if(running) return;
+        m_thread = std::thread([this](){
             while(1) {
                 {
                     std::unique_lock lock{m_lock};
-                    m_cv.wait(lock);
+                    m_cv.wait(lock, [this]() {
+                        return !SchedActor::IsBlocked();
+                    });
                 }
-                if(SchedActor::Resume(std::numeric_limits<std::size_t>::max()) != TaskResult::SUSPENDED) break;
+                if(SchedActor::Resume(std::numeric_limits<std::size_t>::max()) == TaskResult::DONE && SchedActor::IsClosed()) break;
             }
         });
+        running = true;
     }
 
     auto BlockingActor::SendMsg(Message* msg) noexcept -> Status {
@@ -28,6 +36,7 @@ namespace nano_caf {
 
     auto BlockingActor::Wait(ExitReason& reason) noexcept -> Status {
         m_thread.join();
-        return SchedActor::Wait(reason);
+        SchedActor::Wait(reason);
+        return Status::OK;
     }
 }

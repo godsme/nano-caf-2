@@ -36,7 +36,10 @@ namespace nano_caf {
     }
 
     auto MailBox::Put(Message* msg) noexcept -> bool {
-        if(msg == nullptr) return !Empty();
+        if(msg == nullptr) {
+            return !Empty();
+        }
+
         if(msg->m_next == nullptr) {
             // only 1 msg in the LIFO queue
             ReloadOne(msg);

@@ -14,7 +14,7 @@ namespace nano_caf {
     template<typename R>
     struct Requester : AbstractPromise<R> {
         using ResultType = ValueTypeOf<R>;
-        using ValueType = Result<ResultType>;
+        using ValueType = Result<R>;
 
         Requester() = default;
         Requester(Requester&& another)

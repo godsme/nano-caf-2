@@ -13,8 +13,8 @@ namespace nano_caf {
         struct Cause{};
         struct Value {};
 
-        constexpr static Value CAUSE;
-        constexpr static Cause VALUE;
+        constexpr static Cause CAUSE{};
+        constexpr static Value VALUE{};
     };
 
 
@@ -22,7 +22,7 @@ namespace nano_caf {
     struct Result : private Either<T, Status> {
         using Parent = Either<T, Status>;
 
-        template<typename R>
+        template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, ValueTypeOf<T>> || std::is_convertible_v<R, Status>>>
         Result(R&& value) : Parent{std::forward<R>(value)} {}
 
         template<typename ... ARGS>
@@ -31,6 +31,9 @@ namespace nano_caf {
 
         Result(ResultTag::Cause, Status status)
             : Parent{EitherTag::RIGHT, status} {}
+
+        Result(Result&& result) : Parent{static_cast<Parent&&>(result)} {}
+        Result(Result const& result) : Parent{static_cast<Parent const&>(result)} {}
 
         auto Ok() const noexcept -> bool {
             return Parent::Index() == 0;

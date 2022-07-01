@@ -2,7 +2,6 @@
 // Created by Darwin Yuan on 2022/6/23.
 //
 #include <nano-caf/actor/Spawn.h>
-#include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 #include <nano-caf/actor/Actor.h>
 #include <catch.hpp>

@@ -22,6 +22,8 @@ namespace nano_caf {
         ~SchedActor();
 
         using MailBox::SendMsg;
+        using MailBox::IsBlocked;
+        using MailBox::IsClosed;
 
         auto Wait(ExitReason& reason) noexcept -> Status;
 

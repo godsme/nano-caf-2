@@ -31,6 +31,9 @@ namespace nano_caf {
 
         auto Close() noexcept -> void;
 
+        using LifoQueue::IsBlocked;
+        using LifoQueue::IsClosed;
+
     private:
         auto Put(Message*) noexcept -> bool;
         auto Reload() noexcept -> bool;

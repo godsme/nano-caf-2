@@ -14,8 +14,8 @@ namespace nano_caf {
         struct Left {};
         struct Right {};
 
-        static constexpr Left LEFT;
-        static constexpr Right RIGHT;
+        static constexpr Left LEFT{};
+        static constexpr Right RIGHT{};
     };
 
     template<typename L, typename R>
@@ -26,13 +26,16 @@ namespace nano_caf {
         using LeftType = ValueTypeOf<L>;
         using RightType = ValueTypeOf<R>;
 
-        template<typename T>
+        template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<L>> || std::is_convertible_v<T, ValueTypeOf<R>>>>
         Either(T&& value) noexcept: Parent{std::forward<T>(value)} {}
 
         template<typename ... ARGS>
         Either(EitherTag::Left, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<0>{}, std::forward<ARGS>(args)...} {}
         template<typename ... ARGS>
         Either(EitherTag::Right, ARGS&& ... args) noexcept: Parent{std::in_place_index_t<1>{}, std::forward<ARGS>(args)...} {}
+
+        Either(Either&& result) : Parent{static_cast<Parent&&>(result)} {}
+        Either(Either const& result) : Parent{static_cast<Parent const&>(result)} {}
 
         auto Left() const noexcept -> LeftType const* {
             return std::get_if<0>(static_cast<Parent const*>(this));

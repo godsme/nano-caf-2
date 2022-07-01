@@ -53,7 +53,7 @@ namespace nano_caf {
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
         auto Request(ARGS&& ... args) -> Result<R> {
-            return DoRequest<ATOM, R, CATEGORY>([](auto&& future) {
+            return DoRequest<ATOM, R, CATEGORY>([](auto&& future) -> Result<R> {
                 return future.get();
             }, std::forward<ARGS>(args)...);
         }
