@@ -8,17 +8,17 @@
 #include <nano-caf/actor/AbstractActor.h>
 #include <nano-caf/actor/SchedActor.h>
 #include <thread>
-#include <atomic>
 
 namespace nano_caf {
     struct BlockingActor : AbstractActor, protected SchedActor {
-        explicit BlockingActor(bool) : SchedActor(true) {}
+        explicit BlockingActor(bool);
         ~BlockingActor();
 
-        auto Run() noexcept -> void;
+    private:
         auto SendMsg(Message*) noexcept -> Status override;
         auto Wait(ExitReason&) noexcept -> Status override;
 
+        auto Run() noexcept -> void;
     private:
         auto Sleep() noexcept -> void;
 
@@ -26,7 +26,6 @@ namespace nano_caf {
         std::thread m_thread{};
         std::mutex m_lock{};
         std::condition_variable m_cv{};
-        std::atomic_bool running{false};
     };
 }
 

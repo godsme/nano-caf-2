@@ -6,10 +6,11 @@
 #include <numeric>
 
 namespace nano_caf {
+    BlockingActor::BlockingActor(bool) : SchedActor(true) {
+        Run();
+    }
     BlockingActor::~BlockingActor() {
-        if(running) {
-            // TODO:
-        }
+        // TODO:
     }
 
     auto BlockingActor::Sleep() noexcept -> void {
@@ -23,15 +24,12 @@ namespace nano_caf {
         constexpr std::size_t NO_LIMITS = std::numeric_limits<std::size_t>::max();
     }
     auto BlockingActor::Run() noexcept -> void {
-        if(running) return;
-        running = true;
         m_thread = std::thread([this](){
             while(1) {
                 Sleep();
                 SchedActor::Resume(NO_LIMITS);
                 if(SchedActor::IsClosed()) break;
             }
-            running = false;
         });
     }
 

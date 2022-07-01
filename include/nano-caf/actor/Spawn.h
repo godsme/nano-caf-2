@@ -200,11 +200,7 @@ namespace nano_caf {
     auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
         using ActorObject = detail::InternalBlockingActor<T>;
         auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
-        if(!ptr) {
-            return ActorHandle{nullptr};
-        }
-        ptr->Run();
-        return ActorHandle{ptr.Get()};
+        return ActorHandle{ptr ? ptr.Get() : nullptr};
     }
 }
 
