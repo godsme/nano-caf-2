@@ -20,6 +20,9 @@ namespace nano_caf {
         auto Wait(ExitReason&) noexcept -> Status override;
 
     private:
+        auto Sleep() noexcept -> void;
+
+    private:
         std::thread m_thread{};
         std::mutex m_lock{};
         std::condition_variable m_cv{};

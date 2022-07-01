@@ -12,18 +12,24 @@ namespace nano_caf {
         }
     }
 
+    auto BlockingActor::Sleep() noexcept -> void {
+        std::unique_lock lock{m_lock};
+        m_cv.wait(lock, [this]() {
+            return !SchedActor::IsBlocked();
+        });
+    }
+
+    namespace {
+        constexpr std::size_t NO_LIMITS = std::numeric_limits<std::size_t>::max();
+    }
     auto BlockingActor::Run() noexcept -> void {
         if(running) return;
         running = true;
         m_thread = std::thread([this](){
             while(1) {
-                {
-                    std::unique_lock lock{m_lock};
-                    m_cv.wait(lock, [this]() {
-                        return !SchedActor::IsBlocked();
-                    });
-                }
-                if(SchedActor::Resume(std::numeric_limits<std::size_t>::max()) == TaskResult::DONE && SchedActor::IsClosed()) break;
+                Sleep();
+                SchedActor::Resume(NO_LIMITS);
+                if(SchedActor::IsClosed()) break;
             }
             running = false;
         });
