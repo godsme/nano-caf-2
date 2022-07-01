@@ -8,6 +8,7 @@
 #include <nano-caf/actor/AbstractActor.h>
 #include <nano-caf/actor/SchedActor.h>
 #include <thread>
+#include <atomic>
 
 namespace nano_caf {
     struct BlockingActor : AbstractActor, protected SchedActor {
@@ -22,7 +23,7 @@ namespace nano_caf {
         std::thread m_thread{};
         std::mutex m_lock{};
         std::condition_variable m_cv{};
-        bool running{false};
+        std::atomic_bool running{false};
     };
 }
 

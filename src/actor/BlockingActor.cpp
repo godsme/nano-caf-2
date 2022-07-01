@@ -7,11 +7,14 @@
 
 namespace nano_caf {
     BlockingActor::~BlockingActor() {
-        // TODO:
+        if(running) {
+            // TODO:
+        }
     }
 
     auto BlockingActor::Run() noexcept -> void {
         if(running) return;
+        running = true;
         m_thread = std::thread([this](){
             while(1) {
                 {
@@ -22,8 +25,8 @@ namespace nano_caf {
                 }
                 if(SchedActor::Resume(std::numeric_limits<std::size_t>::max()) == TaskResult::DONE && SchedActor::IsClosed()) break;
             }
+            running = false;
         });
-        running = true;
     }
 
     auto BlockingActor::SendMsg(Message* msg) noexcept -> Status {
