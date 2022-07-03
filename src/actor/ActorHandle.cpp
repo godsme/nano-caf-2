@@ -3,7 +3,7 @@
 //
 
 #include <nano-caf/actor/ActorHandle.h>
-#include <nano-caf/scheduler/ActorSystem.h>
+#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf {
     auto ActorHandle::Wait(ExitReason& reason) noexcept -> Status {
@@ -18,5 +18,13 @@ namespace nano_caf {
         auto actor = ActorPtr::Get();
         if(actor == nullptr) return Status::NULL_ACTOR;
         return actor->SendMsg(msg);
+    }
+
+    auto ActorHandle::Exit(ExitReason reason) noexcept -> Status {
+        auto actor = ActorPtr::Get();
+        if(actor == nullptr) return Status::NULL_ACTOR;
+        Send<ExitMsg, Message::URGENT>(reason);
+        Release();
+        return Status::OK;
     }
 }

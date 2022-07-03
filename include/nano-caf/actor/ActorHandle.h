@@ -70,6 +70,8 @@ namespace nano_caf {
 
         auto Wait(ExitReason& reason) noexcept -> Status;
 
+        auto Exit(ExitReason reason) noexcept -> Status;
+
         using ActorPtr::Release;
 
     private:

@@ -23,7 +23,7 @@ namespace {
     struct MyActor : Actor {
         auto GetBehavior() noexcept -> Behavior {
             return {
-                [this](Msg::Open, long value) -> long {
+                [](Msg::Open, long value) -> long {
                     return 10 + value;
                 },
                 [this](Msg::Close) -> void {

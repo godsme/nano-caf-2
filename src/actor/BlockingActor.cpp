@@ -31,6 +31,7 @@ namespace nano_caf {
                 if(SchedActor::IsClosed()) break;
             }
         });
+        m_thread.detach();
     }
 
     auto BlockingActor::SendMsg(Message* msg) noexcept -> Status {
@@ -42,7 +43,6 @@ namespace nano_caf {
     }
 
     auto BlockingActor::Wait(ExitReason& reason) noexcept -> Status {
-        m_thread.join();
         SchedActor::Wait(reason);
         return Status::OK;
     }
