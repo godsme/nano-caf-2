@@ -88,9 +88,8 @@ namespace nano_caf {
         template<typename R>
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& f) -> Future<R> {
             using WeakFuturePtr = typename Promise<R>::Object::weak_type;
-            WeakFuturePtr weakFuture = f;
             Result<TimerId> result = StartTimer(spec, false,
-                   [weakFuture = std::move(weakFuture), weakActor = std::move(Self().ToWeakPtr())]() {
+                   [weakFuture = WeakFuturePtr{f}, weakActor = Self().ToWeakPtr()]() mutable {
                        ActorPtr actor = weakActor.Lock();
                        if(!actor) return Status::NULL_ACTOR;
                        auto&& future = weakFuture.lock();
@@ -109,9 +108,9 @@ namespace nano_caf {
 
         template<typename MSG>
         auto StartExpectMsgTimer(TimerSpec const& spec, std::shared_ptr<detail::ExpectMsgHandler<MSG>>& handler) -> Status {
-            std::weak_ptr<detail::ExpectMsgHandler<MSG>> weakHandler = handler;
+            using WeakType = std::weak_ptr<detail::ExpectMsgHandler<MSG>>;
             auto result = StartTimer(spec, false,
-                    [this, weakHandler = std::move(weakHandler), weakActor = std::move(Self().ToWeakPtr())]() -> Status {
+                    [this, weakHandler = WeakType{handler}, weakActor = Self().ToWeakPtr()]() mutable -> Status {
                         ActorPtr actor = weakActor.Lock();
                         if(!actor) return Status::NULL_ACTOR;
                         auto&& handler = weakHandler.lock();
