@@ -57,3 +57,51 @@ SCENARIO("Actor Timer") {
 
     ActorSystem::Instance().Shutdown();
 }
+
+namespace {
+    struct MyActor2 : Actor {
+        TimerId timerId_1{};
+        TimerId timerId_2{};
+
+        auto OnInit() -> void {
+            auto timer_1 = Repeat(1ms, []{
+                g_times++;
+                spdlog::info("timeout {}", g_times);
+            });
+            REQUIRE(timer_1.Ok());
+
+            timerId_1 = timer_1;
+
+            auto timer_2 = After(3ms, [this] {
+                timerId_1.Cancel();
+            });
+
+            REQUIRE(timer_2.Ok());
+
+            timerId_2 = timer_2;
+
+            After(5ms, [this] {
+                Exit(ExitReason::ABNORMAL);
+            });
+        }
+    };
+}
+
+SCENARIO("Actor Timer Cancel") {
+    spdlog::set_level(spdlog::level::info);
+    g_times = 0;
+    ActorSystem::Instance().StartUp(1);
+
+    auto actor = Spawn<MyActor2, true>();
+    REQUIRE(actor);
+
+    actor.Send<BootstrapMsg>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(actor.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::ABNORMAL);
+
+    REQUIRE(g_times == 3);
+
+    ActorSystem::Instance().Shutdown();
+}
