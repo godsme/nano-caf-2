@@ -140,8 +140,8 @@ namespace nano_caf::detail {
             }
         }
 
-        auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
-            auto result = ActorSystem::Instance().StartTimer(Self(), spec, periodic, std::move(callback));
+        auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
+            auto result = ActorSystem::Instance().StartTimer(Self(), spec, repeatTimes, std::move(callback));
             if(result.Ok()) {
                 timerUsed = true;
             }

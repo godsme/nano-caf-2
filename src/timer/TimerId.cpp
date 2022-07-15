@@ -18,11 +18,11 @@ namespace nano_caf {
         Descriptor(ActorHandle const& subscriber,
                    TimerSpec const& spec,
                    std::chrono::steady_clock::time_point const& issueTime,
-                   bool periodic)
+                   std::size_t repeatTimes)
                 : m_sender{subscriber.ToWeakPtr()}
                 , m_spec{spec}
                 , m_issueTime{issueTime}
-                , m_periodic{periodic}
+                , m_repeatTimes{repeatTimes}
         {}
 
         auto AddRef() noexcept -> void {
@@ -44,8 +44,11 @@ namespace nano_caf {
         }
 
         auto OnExpire() -> bool {
-            State active = State::ACTIVE;
-            return m_active.compare_exchange_strong(active, State::EXPIRED);
+            if(++m_expireTimes == m_repeatTimes) {
+                State active = State::ACTIVE;
+                return m_active.compare_exchange_strong(active, State::EXPIRED);
+            }
+            return true;
         }
 
         auto IsActive() const -> bool {
@@ -60,6 +63,10 @@ namespace nano_caf {
             return reinterpret_cast<intptr_t>(m_sender.Get());
         }
 
+        auto ShouldRepeat() const -> bool {
+            return m_active == State::ACTIVE && m_expireTimes < m_repeatTimes;
+        }
+
     private:
         std::atomic<std::size_t> m_refs{1};
 
@@ -68,11 +75,12 @@ namespace nano_caf {
         ActorWeakPtr m_sender;
         TimerSpec m_spec;
         std::chrono::steady_clock::time_point m_issueTime;
-        bool m_periodic;
+        std::size_t m_repeatTimes;
+        std::size_t m_expireTimes{0};
     };
 
-    TimerId::TimerId(ActorHandle const& subscriber, TimerSpec const& spec, std::chrono::steady_clock::time_point const& issueTime, bool periodic)
-        : m_desc{new Descriptor{subscriber, spec, issueTime, periodic}}
+    TimerId::TimerId(ActorHandle const& subscriber, TimerSpec const& spec, std::chrono::steady_clock::time_point const& issueTime, std::size_t repeatTimes)
+        : m_desc{new Descriptor{subscriber, spec, issueTime, repeatTimes}}
     {}
 
     TimerId::~TimerId() {
@@ -87,10 +95,6 @@ namespace nano_caf {
 
     auto TimerId::IsCancelled() const -> bool {
         return m_desc->IsCancelled();
-    }
-
-    auto TimerId::IsPeriodic() const -> bool {
-        return m_desc->m_periodic;
     }
 
     auto TimerId::GetActorId() const -> intptr_t {
@@ -159,5 +163,9 @@ namespace nano_caf {
 
     auto TimerId::GetSubscriber() const -> ActorHandle {
         return m_desc->m_sender.Lock();
+    }
+
+    auto TimerId::ShouldRepeat() const -> bool {
+        return m_desc && m_desc->ShouldRepeat();
     }
 }

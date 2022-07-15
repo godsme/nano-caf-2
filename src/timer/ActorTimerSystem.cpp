@@ -89,12 +89,12 @@ namespace nano_caf {
     auto ActorTimerSystem::StartTimer
             ( ActorHandle const& sender
             , TimerSpec const& spec
-            , bool periodic
+            , std::size_t repeatTimes
             , TimeoutCallback && callback) -> Result<TimerId> {
         if(!m_working) { return Status::CLOSED; }
         if(!sender) { return Status::NULL_ACTOR; }
 
-        TimerId id{sender, spec, std::chrono::steady_clock::now(), periodic};
+        TimerId id{sender, spec, std::chrono::steady_clock::now(), repeatTimes};
         auto status = SendMsg(MakeMessage<StartTimerMsg>(id, std::move(callback)));
         if(status != Status::OK) {
             return status;

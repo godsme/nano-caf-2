@@ -57,7 +57,47 @@ namespace nano_caf {
             });
         }
 
+        template<typename F>
+        auto After(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+            return StartTimerWithUserCallback(spec, 1, std::forward<F>(f));
+        }
+
+        template<typename F, typename Rep, typename Period>
+        auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
+            return After((uint64_t)std::chrono::microseconds(timeout).count(), std::forward<F>(f));
+        }
+
+        template<typename F>
+        auto Repeat(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+            return StartTimerWithUserCallback(spec, repeatTimes, std::forward<F>(f));
+        }
+
+        template<typename F>
+        auto Repeat(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+            return StartTimerWithUserCallback(spec, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
+        }
+
+        template<typename F, typename Rep, typename Period>
+        auto Repeat(std::chrono::duration<Rep, Period> duration, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+            return Repeat((uint64_t)std::chrono::microseconds(duration).count(), repeatTimes, std::forward<F>(f));
+        }
+
+        template<typename F, typename Rep, typename Period>
+        auto Repeat(std::chrono::duration<Rep, Period> duration, F&& f) noexcept ->  Result<TimerId> {
+            return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
+        }
+
     private:
+        template<typename F>
+        auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
+            return StartTimer(spec, repeatTimes,
+                              [this, cb = std::forward<F>(f)](TimerId const& timerId) mutable -> Status {
+                                  ActorHandle actor = timerId.GetSubscriber();
+                                  if(!actor) return Status::NULL_ACTOR;
+                                  return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));
+                              });
+        }
+
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
         inline auto DoRequest(ActorHandle const& to, F&& f, ARGS&& ... args) const noexcept -> Future<R> {
             Promise<R> promise;
@@ -141,7 +181,7 @@ namespace nano_caf {
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
         virtual auto RegisterExpectOnceHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
-        virtual auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> Result<TimerId> = 0;
+        virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> Result<TimerId> = 0;
         virtual auto StopTimer(TimerId& timerId) noexcept -> void = 0;
     };
 }

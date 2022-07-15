@@ -25,7 +25,7 @@ namespace nano_caf {
 
         auto StartTimer( ActorHandle const& self,
                          TimerSpec const& spec,
-                         bool periodic,
+                         std::size_t repeatTimes,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
         auto StopTimer(intptr_t self, TimerId const&) -> Status;

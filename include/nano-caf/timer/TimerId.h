@@ -12,7 +12,7 @@
 namespace nano_caf {
     struct TimerId {
         TimerId() = default;
-        TimerId(ActorHandle const&, TimerSpec const&, std::chrono::steady_clock::time_point const&, bool periodic = false);
+        TimerId(ActorHandle const&, TimerSpec const&, std::chrono::steady_clock::time_point const&, std::size_t repeatTimes);
         TimerId(TimerId const&);
         TimerId(TimerId&&);
         ~TimerId();
@@ -29,8 +29,8 @@ namespace nano_caf {
 
         auto IsActive() const -> bool;
         auto IsCancelled() const -> bool;
+        auto ShouldRepeat() const -> bool;
 
-        auto IsPeriodic() const -> bool;
         auto GetActorId() const -> intptr_t;
         auto GetIssueTime() const -> std::chrono::steady_clock::time_point;
         auto GetTimeSpec() const -> TimerSpec const&;

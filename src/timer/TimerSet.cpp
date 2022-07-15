@@ -140,7 +140,7 @@ namespace nano_caf {
             return true;
         }
 
-        if(!timerId.IsPeriodic() && !timerId.OnExpire()) {
+        if(!timerId.OnExpire()) {
             return true;
         }
 
@@ -148,7 +148,7 @@ namespace nano_caf {
             return true;
         }
 
-        return !timerId.IsPeriodic();
+        return !timerId.ShouldRepeat();
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
