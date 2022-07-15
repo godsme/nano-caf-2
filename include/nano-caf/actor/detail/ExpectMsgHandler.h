@@ -17,7 +17,7 @@ namespace nano_caf::detail {
         using Object = std::shared_ptr<detail::FutureObject<MSG&>>;
         ExpectMsgHandler() : m_future{std::make_shared<detail::FutureObject<MSG&>>()} {}
 
-        auto OnTimeout() noexcept -> bool {
+        auto OnTimeout() noexcept -> bool override {
             return m_future->OnTimeout();
         }
 

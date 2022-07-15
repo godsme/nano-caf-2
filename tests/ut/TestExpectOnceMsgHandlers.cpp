@@ -13,6 +13,7 @@ namespace {
     struct Handler : detail::CancellableMsgHandler {
         Handler(int id) : id{id} {}
         auto Cancel() noexcept -> void override {}
+        auto OnTimeout() noexcept -> bool override { return true; }
         auto HandleMsg(Message&) noexcept -> bool override {
             vector.push_back(id);
             return true;

@@ -10,6 +10,7 @@
 namespace nano_caf::detail {
     struct CancellableMsgHandler : MsgHandler {
         virtual auto Cancel() noexcept -> void = 0;
+        virtual auto OnTimeout() noexcept -> bool = 0;
     };
 }
 
