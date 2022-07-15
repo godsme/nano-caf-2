@@ -43,12 +43,47 @@ namespace nano_caf {
             return Parent::Index() == 1 ? *Parent::Right() : Status::OK;
         }
 
+        operator ValueTypeOf<T> () const {
+            return *Parent::Left();
+        }
+
         auto operator*() const noexcept -> ValueTypeOf<T> const& {
             return *Parent::Left();
         }
 
         auto GetValue() const noexcept -> ValueTypeOf<T> const& {
             return *Parent::Left();
+        }
+
+        auto OrElse(ValueTypeOf<T>&& defaultValue) -> ValueTypeOf<T> {
+            return Parent::Index() == 1 ? defaultValue : *Parent::Left();
+        }
+
+        friend inline auto operator==(Result const& lhs, Result const& rhs) -> bool {
+            return Parent::operator==(lhs, rhs);
+        }
+
+        friend inline auto operator!=(Result const& lhs, Result const& rhs) -> bool {
+            return Parent::operator!=(lhs, rhs);
+        }
+
+        friend inline auto operator==(Result const& lhs, ValueTypeOf<T> const& rhs) -> bool {
+            switch(lhs.Index()) {
+                case 0: return *lhs == rhs;
+                default: return false;
+            }
+        }
+
+        friend inline auto operator!=(Result const& lhs, ValueTypeOf<T> const& rhs) -> bool {
+            return !operator==(lhs, rhs);
+        }
+
+        friend inline auto operator==(ValueTypeOf<T> const& lhs, Result const& rhs) -> bool {
+            return operator==(rhs, lhs);
+        }
+
+        friend inline auto operator!=(ValueTypeOf<T> const& lhs, Result const& rhs) -> bool {
+            return operator!=(rhs, lhs);
         }
     };
 }

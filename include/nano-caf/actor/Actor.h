@@ -91,7 +91,7 @@ namespace nano_caf {
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [this, cb = std::forward<F>(f)](TimerId const& timerId) mutable -> Status {
+                              [cb = std::forward<F>(f)](TimerId const& timerId) mutable -> Status {
                                   ActorHandle actor = timerId.GetSubscriber();
                                   if(!actor) return Status::NULL_ACTOR;
                                   return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));

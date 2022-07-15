@@ -109,6 +109,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestBlockingActor.cpp
         tests/ut/TestEither.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
-        tests/ut/TestExpectMsg.cpp)
+        tests/ut/TestExpectMsg.cpp
+        tests/ut/TestActorTimer.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)
