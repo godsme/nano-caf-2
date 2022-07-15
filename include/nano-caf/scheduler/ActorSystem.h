@@ -25,7 +25,7 @@ namespace nano_caf {
                          bool periodic,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
-        auto StopTimer(intptr_t actorId, TimerId) -> Status;
+        auto StopTimer(intptr_t actorId, TimerId const&) -> Status;
         auto ClearActorTimer(intptr_t actorId) -> Status;
 
         auto Schedule(Resumable*) noexcept -> Status;

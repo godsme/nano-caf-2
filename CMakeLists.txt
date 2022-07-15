@@ -89,6 +89,7 @@ add_library(nano_caf
         src/actor/ActorHandle.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/util/SharedPtrCtlBlock.cpp
+        src/timer/TimerId.cpp
         src/timer/TimerSet.cpp
         src/timer/ActorTimerSystem.cpp)
 

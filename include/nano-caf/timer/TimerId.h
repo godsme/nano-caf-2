@@ -6,21 +6,52 @@
 #define NANO_CAF_2_180785809842472AB4533845B39E05D2
 
 #include <cstdint>
-
+#include <nano-caf/timer/TimerSpec.h>
+#include <nano-caf/actor/ActorHandle.h>
 
 namespace nano_caf {
     struct TimerId {
-        explicit TimerId(uint64_t id) : id_{id} {}
+        TimerId() = default;
+        TimerId(ActorHandle const&, TimerSpec const&, std::chrono::steady_clock::time_point const&, bool periodic = false);
+        TimerId(TimerId const&);
+        TimerId(TimerId&&);
+        ~TimerId();
 
-        auto operator==(TimerId& rhs) const { return id_ == rhs.id_; }
-        auto operator!=(TimerId& rhs) const { return id_ != rhs.id_; }
-        auto operator<(TimerId& rhs) const  { return id_ < rhs.id_; }
+        auto operator=(TimerId const&) -> TimerId&;
+        auto operator=(TimerId&&) -> TimerId&;
+
+        explicit operator bool() const {
+            return m_desc != nullptr;
+        }
+
+        auto Cancel() -> void;
+        auto OnExpire() -> bool;
+
+        auto IsActive() const -> bool;
+        auto IsCancelled() const -> bool;
+
+        auto IsPeriodic() const -> bool;
+        auto GetActorId() const -> intptr_t;
+        auto GetIssueTime() const -> std::chrono::steady_clock::time_point;
+        auto GetTimeSpec() const -> TimerSpec const&;
+        auto SetIssueTime(std::chrono::steady_clock::time_point) -> void;
+        auto GetSubscriber() const -> ActorHandle;
+
+        friend auto operator==(TimerId const& lhs, TimerId const& rhs) -> bool {
+            return lhs.m_desc == rhs.m_desc;
+        }
+
+        friend auto operator!=(TimerId const& lhs, TimerId const& rhs) -> bool {
+            return !operator==(lhs, rhs);
+        }
 
     private:
-        uint64_t id_;
+        struct Descriptor;
+        TimerId(Descriptor* desc);
+
+    private:
+        Descriptor* m_desc{};
     };
 }
-
-
 
 #endif //NANO_CAF_2_180785809842472AB4533845B39E05D2

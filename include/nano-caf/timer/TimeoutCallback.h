@@ -9,7 +9,7 @@
 #include <functional>
 
 namespace nano_caf {
-    using TimeoutCallback = std::function<auto () -> Status>;
+    using TimeoutCallback = std::function<auto (TimerId const&) -> Status>;
     using LocalTimeoutCallback = std::function<auto () -> void>;
 }
 

@@ -94,15 +94,16 @@ namespace nano_caf {
         if(!m_working) { return Status::CLOSED; }
         if(!sender) { return Status::NULL_ACTOR; }
 
-        TimerId id{m_timerId.fetch_add(1, std::memory_order_relaxed)};
-        auto status = SendMsg(MakeMessage<StartTimerMsg>(
-                id, sender.ActorId(), spec, std::chrono::steady_clock::now(), periodic, std::move(callback)));
-        if(status != Status::OK) return status;
+        TimerId id{sender, spec, std::chrono::steady_clock::now(), periodic};
+        auto status = SendMsg(MakeMessage<StartTimerMsg>(id, std::move(callback)));
+        if(status != Status::OK) {
+            return status;
+        }
         return id;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    auto ActorTimerSystem::StopTimer(intptr_t self, TimerId id) -> Status {
+    auto ActorTimerSystem::StopTimer(intptr_t self, TimerId const& id) -> Status {
         if(!m_working) { return Status::CLOSED; }
         return SendMsg(MakeMessage<StopTimerMsg>(self, id));
     }

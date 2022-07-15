@@ -89,13 +89,13 @@ namespace nano_caf {
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& f) -> Future<R> {
             using WeakFuturePtr = typename Promise<R>::Object::weak_type;
             Result<TimerId> result = StartTimer(spec, false,
-                   [weakFuture = WeakFuturePtr{f}, weakActor = Self().ToWeakPtr()]() mutable {
-                       ActorPtr actor = weakActor.Lock();
+                   [weakFuture = WeakFuturePtr{f}](TimerId const& timerId) mutable {
+                       auto actor = timerId.GetSubscriber();
                        if(!actor) return Status::NULL_ACTOR;
                        auto&& future = weakFuture.lock();
                        if(!future) return Status::NULL_PTR;
                        if(!future->OnTimeout()) return;
-                       return ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(std::move(future));
+                       return actor.Send<FutureDoneNotify>(std::move(future));
                    });
             if(!result.Ok()) {
                 return Future<R>{Promise<R>{result.GetStatus()}.GetFuture()};
@@ -110,13 +110,13 @@ namespace nano_caf {
         auto StartExpectMsgTimer(TimerSpec const& spec, std::shared_ptr<detail::ExpectMsgHandler<MSG>>& handler) -> Status {
             using WeakType = std::weak_ptr<detail::ExpectMsgHandler<MSG>>;
             auto result = StartTimer(spec, false,
-                    [this, weakHandler = WeakType{handler}, weakActor = Self().ToWeakPtr()]() mutable -> Status {
-                        ActorPtr actor = weakActor.Lock();
+                    [this, weakHandler = WeakType{handler}](TimerId const& timerId) mutable -> Status {
+                        ActorHandle actor = timerId.GetSubscriber();
                         if(!actor) return Status::NULL_ACTOR;
                         auto&& handler = weakHandler.lock();
                         if(!handler) return Status::NULL_PTR;
                         if(!handler->OnTimeout()) return Status::CLOSED;
-                        return ActorHandle{std::move(actor)}.Send<TimeoutMsg>([this, weakHandler = std::move(weakHandler)] {
+                        return actor.Send<TimeoutMsg>(timerId, [this, weakHandler = std::move(weakHandler)] {
                             auto&& handler = weakHandler.lock();
                             if(!handler) return;
                             handler->Cancel();
@@ -142,7 +142,7 @@ namespace nano_caf {
         virtual auto RegisterExpectOnceHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, bool periodic, TimeoutCallback&& callback) -> Result<TimerId> = 0;
-        virtual auto StopTimer(TimerId timerId) noexcept -> void = 0;
+        virtual auto StopTimer(TimerId& timerId) noexcept -> void = 0;
     };
 }
 

@@ -7,9 +7,9 @@
 
 namespace nano_caf {
     namespace {
-        inline auto GetDue(StartTimerMsg const* msg) {
-            return msg->spec.LeftMatch([&](auto const& duration) {
-                return msg->issue_time_point + std::chrono::microseconds(duration);
+        inline auto GetDue(TimerId const& timerId) {
+            return timerId.GetTimeSpec().LeftMatch([&](auto const& duration) {
+                return timerId.GetIssueTime() + std::chrono::microseconds(duration);
             });
         }
     }
@@ -21,22 +21,21 @@ namespace nano_caf {
         auto startMsg = msg->Body<StartTimerMsg>();
         if(startMsg == nullptr) return Status::NULL_PTR;
 
-        auto due = GetDue(startMsg);
-        while(due < std::chrono::steady_clock::now()) {
-            if(startMsg->callback() != Status::OK) {
-                return Status::OK;
-            }
+        auto&& timerId = startMsg->id;
 
-            if(!startMsg->is_periodic) {
+        auto due = GetDue(timerId);
+        while(due < std::chrono::steady_clock::now()) {
+            if(ProcessExpiredTimer(startMsg)) {
                 return Status::OK;
-            } else {
-                startMsg->issue_time_point = due;
-                due = GetDue(startMsg);
             }
+            timerId.SetIssueTime(due);
+            due = GetDue(timerId);
         }
 
-        auto iterator = m_timers.emplace(due, std::move(msg));
-        m_actorIndexer.emplace(startMsg->actor_id, iterator);
+        if(timerId.IsActive()) {
+            auto iterator = m_timers.emplace(due, std::move(msg));
+            m_actorIndexer.emplace(startMsg->id.GetActorId(), iterator);
+        }
 
         return Status::OK;
     }
@@ -52,16 +51,16 @@ namespace nano_caf {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    auto TimerSet::RemoveTimer(intptr_t actor_id, TimerId timer_id) -> void {
-            TimerFindAndModify(0, actor_id,
-                              [&](auto const& item) {
-                                  auto&& [_, msg] = *item.second;
-                                  return msg->template Body<StartTimerMsg>()->id == timer_id;
-                              },
-                              [&](auto const& result) {
-                                  m_timers.erase(result->second);
-                                  m_actorIndexer.erase(result);
-                              });
+    auto TimerSet::RemoveTimer(intptr_t actor_id, TimerId const& timer_id) -> void {
+        TimerFindAndModify(0, actor_id,
+              [&](auto const& item) {
+                  auto&& [_, msg] = *item.second;
+                  return msg->template Body<StartTimerMsg>()->id == timer_id;
+              },
+              [&](auto const& result) {
+                  m_timers.erase(result->second);
+                  m_actorIndexer.erase(result);
+              });
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,6 +134,23 @@ namespace nano_caf {
         return Status::OK;
     }
 
+    auto TimerSet::ProcessExpiredTimer(StartTimerMsg* timerMsg) -> bool {
+        auto&& timerId = timerMsg->id;
+        if(timerId.IsCancelled()) {
+            return true;
+        }
+
+        if(!timerId.IsPeriodic() && !timerId.OnExpire()) {
+            return true;
+        }
+
+        if(timerMsg->callback(timerId) != Status::OK ) {
+            return true;
+        }
+
+        return !timerId.IsPeriodic();
+    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////
     auto TimerSet::CheckTimerDue(ShutdownNotifier const& shutdown) noexcept -> Status {
         while(!m_timers.empty()) {
@@ -150,17 +166,18 @@ namespace nano_caf {
             }
 
             auto timerMsg = msg->Body<StartTimerMsg>();
+            auto&& timerId = timerMsg->id;
 
-            if(timerMsg->callback() != Status::OK || !timerMsg->is_periodic) {
-                RemoveIndex(timerMsg->actor_id, timer_iter);
+            if(ProcessExpiredTimer(timerMsg)) {
+                RemoveIndex(timerId.GetActorId(), timer_iter);
                 m_timers.erase(timer_iter);
             } else {
-                timerMsg->issue_time_point = due;
+                timerId.SetIssueTime(due);
                 auto sched_msg = std::move(timer_iter->second);
 
                 m_timers.erase(timer_iter);
-                auto iterator = m_timers.emplace(GetDue(timerMsg), std::move(sched_msg));
-                UpdateIndex(timerMsg->actor_id, timer_iter, iterator);
+                auto iterator = m_timers.emplace(GetDue(timerId), std::move(sched_msg));
+                UpdateIndex(timerId.GetActorId(), timer_iter, iterator);
             }
         }
 

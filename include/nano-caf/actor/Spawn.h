@@ -109,7 +109,6 @@ namespace nano_caf::detail {
 
         auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
             if(m_expectOnceMsgHandlers.HandleMsg(msg)) {
-                //std::cout << "msg (" << msg.id << ") handled " << std::endl;
                 return;
             }
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
@@ -120,7 +119,6 @@ namespace nano_caf::detail {
         }
 
         auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
-            //std::cout << "msg (" << msg.id << ") received " << TimeoutMsg::ID << std::endl;
             switch(msg.id) {
                 case BootstrapMsg::ID: break; // ignore
                 case FutureDoneNotify::ID: {
@@ -130,7 +128,9 @@ namespace nano_caf::detail {
                 }
                 case TimeoutMsg::ID: {
                     auto timeout = msg.template Body<TimeoutMsg>();
-                    timeout->callback();
+                    if(!timeout->id.IsCancelled()) {
+                        timeout->callback();
+                    }
                     break;
                 }
                 default: {
@@ -148,8 +148,8 @@ namespace nano_caf::detail {
             return result;
         }
 
-        auto StopTimer(TimerId timerId) noexcept -> void override {
-            ActorSystem::Instance().StopTimer((intptr_t)this, timerId);
+        auto StopTimer(TimerId& timerId) noexcept -> void override {
+            timerId.Cancel();
         }
 
         auto ChangeBehavior(Behavior const& to) noexcept -> void override {

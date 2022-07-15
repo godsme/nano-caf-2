@@ -42,18 +42,17 @@ namespace nano_caf::detail {
             }
         }
 
-//        auto DeregisterObserver(FutureObserver<R>* observer) noexcept -> void {
-//            auto result = std::find_if(m_observers.begin(), m_observers.end(), [observer](auto&& obj) {
-//                return obj.get() == observer;
-//            });
-//            if(result != m_observers.end()) {
-//                m_observers.erase(result);
-//            }
-//        }
-
         auto SetFailHandler(FailHandler&& handler) noexcept -> void {
             if(!Ready()) {
                 m_onFail = std::move(handler);
+            } else if(m_value.index() == 2) {
+                handler(std::get<2>(m_value));
+            }
+        }
+
+        auto SetFailHandler(FailHandler const& handler) noexcept -> void {
+            if(!Ready()) {
+                m_onFail = handler;
             } else if(m_value.index() == 2) {
                 handler(std::get<2>(m_value));
             }
@@ -94,11 +93,18 @@ namespace nano_caf::detail {
         }
 
         auto Commit() noexcept -> void override {
-            if(m_ready == TIMEOUT) {
-                if(m_onFail) m_onFail(Status::TIMEOUT);
-                NotifyTimeout();
-            } else if(m_ready == READY ){
-                Notify();
+            switch(m_ready) {
+                case TIMEOUT: {
+                    NotifyError(Status::TIMEOUT);
+                    NotifyTimeout();
+                    break;
+                }
+                case READY: {
+                    Notify();
+                    break;
+                }
+                default:
+                    break;
             }
         }
 
@@ -106,7 +112,7 @@ namespace nano_caf::detail {
         auto Notify() noexcept -> void {
             switch (m_value.index()) {
                 case 2:
-                    if(m_onFail) m_onFail(std::get<2>(m_value));
+                    NotifyError(std::get<2>(m_value));
                     [[fallthrough]];
                 case 1:
                     NotifyObservers();
@@ -127,7 +133,6 @@ namespace nano_caf::detail {
             for (auto&& observer: m_observers) {
                 NotifyObserver(observer);
             }
-
             m_observers.clear();
         }
 
@@ -147,6 +152,13 @@ namespace nano_caf::detail {
 
         auto Ready() const noexcept -> bool {
             return m_ready.load(std::memory_order_acquire) > 0;
+        }
+
+        auto NotifyError(Status status) -> void {
+            if(m_onFail) {
+                m_onFail(status);
+                m_onFail = FailHandler{};
+            }
         }
 
     protected:

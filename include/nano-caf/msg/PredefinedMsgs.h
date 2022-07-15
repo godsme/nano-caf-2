@@ -22,11 +22,6 @@ namespace nano_caf {
 
     CAF_def_message(StartTimerMsg,
                     (id, TimerId),
-                    (actor_id, intptr_t),
-                    //(actor, ActorWeakPtr),
-                    (spec, TimerSpec),
-                    (issue_time_point, std::chrono::steady_clock::time_point),
-                    (is_periodic, bool),
                     (callback, TimeoutCallback));
 
     CAF_def_message(StopTimerMsg,
@@ -37,6 +32,7 @@ namespace nano_caf {
                     (actor, intptr_t));
 
     CAF_def_message(TimeoutMsg,
+                    (id, TimerId),
                     (callback, LocalTimeoutCallback));
 }
 
