@@ -4,7 +4,6 @@
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/actor/Actor.h>
 #include <catch.hpp>
-#include <spdlog/spdlog.h>
 
 using namespace nano_caf;
 using namespace std::chrono_literals;
@@ -21,7 +20,6 @@ namespace {
         auto OnInit() -> void {
             auto timer_1 = Repeat(1ms, repeatTimes, []{
                 g_times++;
-                spdlog::info("timeout {}", g_times);
             });
             REQUIRE(timer_1.Ok());
 
@@ -29,7 +27,6 @@ namespace {
 
             auto timer_2 = After(10ms, [this] {
                 Exit(ExitReason::ABNORMAL);
-                spdlog::info("die");
             });
 
             REQUIRE(timer_2.Ok());
@@ -40,7 +37,6 @@ namespace {
 }
 
 SCENARIO("Actor Timer") {
-    spdlog::set_level(spdlog::level::info);
     g_times = 0;
     ActorSystem::Instance().StartUp(1);
 
@@ -66,7 +62,6 @@ namespace {
         auto OnInit() -> void {
             auto timer_1 = Repeat(1ms, []{
                 g_times++;
-                spdlog::info("timeout {}", g_times);
             });
             REQUIRE(timer_1.Ok());
 
@@ -88,7 +83,6 @@ namespace {
 }
 
 SCENARIO("Actor Timer Cancel") {
-    spdlog::set_level(spdlog::level::info);
     g_times = 0;
     ActorSystem::Instance().StartUp(1);
 

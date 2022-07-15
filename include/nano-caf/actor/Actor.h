@@ -18,7 +18,7 @@ namespace nano_caf {
     struct Actor {
         virtual ~Actor() = default;
 
-    protected:
+    public:
         template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         inline auto Send(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
             return to.Send<T, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::forward<ARGS>(args)...);
@@ -58,32 +58,32 @@ namespace nano_caf {
         }
 
         template<typename F>
-        auto After(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+        inline auto After(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, 1, std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
+        inline auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
             return After((uint64_t)std::chrono::microseconds(timeout).count(), std::forward<F>(f));
         }
 
         template<typename F>
-        auto Repeat(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+        inline auto Repeat(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, repeatTimes, std::forward<F>(f));
         }
 
         template<typename F>
-        auto Repeat(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+        inline auto Repeat(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        auto Repeat(std::chrono::duration<Rep, Period> duration, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+        inline auto Repeat(std::chrono::duration<Rep, Period> duration, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
             return Repeat((uint64_t)std::chrono::microseconds(duration).count(), repeatTimes, std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        auto Repeat(std::chrono::duration<Rep, Period> duration, F&& f) noexcept ->  Result<TimerId> {
+        inline auto Repeat(std::chrono::duration<Rep, Period> duration, F&& f) noexcept ->  Result<TimerId> {
             return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
