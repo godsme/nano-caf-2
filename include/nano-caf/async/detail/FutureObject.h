@@ -6,6 +6,7 @@
 #define NANO_CAF_2_FAF61F286041433CA454B541C8DC233B
 
 #include <nano-caf/async/detail/FutureObserver.h>
+#include <nano-caf/async/detail/CancelTimerObserver.h>
 #include <nano-caf/async/PromiseDoneNotifier.h>
 #include <nano-caf/async/FailHandler.h>
 #include <nano-caf/util/Void.h>
@@ -40,6 +41,17 @@ namespace nano_caf::detail {
             } else {
                 m_observers.emplace_back(observer);
             }
+        }
+
+        auto RegisterTimerObserver(TimerId const& timerId) noexcept -> Status {
+            auto observer = std::make_shared<detail::CancelTimerObserver<R>>(timerId);
+            if(observer == nullptr) {
+                return Status::OUT_OF_MEM;
+            }
+
+            RegisterObserver(observer);
+
+            return Status::OK;
         }
 
         auto SetFailHandler(FailHandler&& handler) noexcept -> void {

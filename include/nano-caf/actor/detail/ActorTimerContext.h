@@ -13,7 +13,7 @@ namespace nano_caf::detail {
     struct ActorTimerContext : private ExpectOnceMsgHandlers {
         auto StartTimer(ActorHandle&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId>;
         auto StartExpectMsgTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId>;
-        auto StartFutureTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId>;
+        auto StartFutureTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) noexcept -> Result<TimerId>;
         auto ClearAllTimers(intptr_t self) -> void;
 
         using ExpectOnceMsgHandlers::AddHandler;

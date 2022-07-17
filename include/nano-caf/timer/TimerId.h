@@ -5,9 +5,9 @@
 #ifndef NANO_CAF_2_180785809842472AB4533845B39E05D2
 #define NANO_CAF_2_180785809842472AB4533845B39E05D2
 
-#include <cstdint>
 #include <nano-caf/timer/TimerSpec.h>
-#include <nano-caf/actor/ActorHandle.h>
+#include <chrono>
+#include <cstdint>
 
 namespace nano_caf {
     struct TimerId {

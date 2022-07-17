@@ -101,7 +101,7 @@ namespace nano_caf::detail {
             return m_currentMsg->sender.Lock().Get();
         }
 
-        auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
+        auto RegisterMsgHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
             detail::ActorTimerContext::AddHandler(msgId, handler);
         }
 
@@ -124,7 +124,7 @@ namespace nano_caf::detail {
             return detail::ActorTimerContext::StartExpectMsgTimer(Self_(), spec, handler);
         }
 
-        auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId> override {
+        auto StartTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) noexcept -> Result<TimerId> override {
             return detail::ActorTimerContext::StartFutureTimer(Self_(), spec, notifier);
         }
 

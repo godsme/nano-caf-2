@@ -69,7 +69,8 @@ namespace {
         {}
 
         auto OnInit() -> void {
-            Request<Msg::Open>(server, value)
+            using namespace std::chrono_literals;
+            Request<Msg::Open>(server, 2000ms, value)
                 .Then([this](long r) {
                     result = r;
                     Exit(ExitReason::NORMAL);

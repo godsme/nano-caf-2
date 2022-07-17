@@ -31,7 +31,7 @@ namespace nano_caf::detail {
                 });
         }
 
-    auto ActorTimerContext::StartFutureTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId> {
+    auto ActorTimerContext::StartFutureTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) noexcept -> Result<TimerId> {
         return StartTimer(std::move(self), spec, 1,
                     [weakNotifier = std::weak_ptr<PromiseDoneNotifier>{notifier}](ActorHandle& actor, TimerId const&) mutable -> Status {
                         auto&& future = weakNotifier.lock();

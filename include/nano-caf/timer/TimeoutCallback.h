@@ -9,6 +9,9 @@
 #include <functional>
 
 namespace nano_caf {
+    struct ActorHandle;
+    struct TimerId;
+    
     using TimeoutCallback = std::function<auto (ActorHandle&, TimerId const&) -> Status>;
     using LocalTimeoutCallback = std::function<auto () -> void>;
 }

@@ -7,8 +7,6 @@
 
 #include <nano-caf/async/detail/FutureObserver.h>
 #include <nano-caf/timer/TimerId.h>
-#include <nano-caf/actor/ActorPtr.h>
-#include <nano-caf/scheduler/ActorSystem.h>
 
 namespace nano_caf::detail {
 

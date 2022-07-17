@@ -9,6 +9,7 @@
 #include <nano-caf/timer/TimerSpec.h>
 #include <nano-caf/timer/TimerId.h>
 #include <nano-caf/timer/TimeoutCallback.h>
+#include <nano-caf/util/Result.h>
 #include <nano-caf/Status.h>
 
 namespace nano_caf {
