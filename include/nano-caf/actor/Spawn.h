@@ -103,7 +103,7 @@ namespace nano_caf::detail {
             m_expectOnceMsgHandlers.AddHandler(msgId, handler);
         }
 
-        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
+        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void {
             m_expectOnceMsgHandlers.RemoveHandler(handler);
         }
 
@@ -153,16 +153,25 @@ namespace nano_caf::detail {
             return StartTimer(spec, 1,
                  [this, weakHandler = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {
                      auto &&handler = weakHandler.lock();
-                     if (!handler) return Status::NULL_PTR;
-                     if (!handler->OnTimeout()) return Status::CLOSED;
+                     if (!handler || !handler->OnTimeout()) return Status::FAILED;
                      return actor.Send<TimeoutMsg>(timerId,
-                                                   [this, weakHandler = std::move(weakHandler)] {
-                                                       auto &&handler = weakHandler.lock();
-                                                       if (!handler) return;
-                                                       handler->Cancel();
-                                                       DeregisterExpectOnceHandler(handler);
-                                                   });
+                                   [this, weakHandler = std::move(weakHandler)] {
+                                       auto &&handler = weakHandler.lock();
+                                       if (handler){
+                                           handler->Cancel();
+                                           DeregisterExpectOnceHandler(handler);
+                                       }
+                                   });
                  });
+        }
+
+        auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId> override {
+            return StartTimer(spec, 1,
+                       [weakNotifier = std::weak_ptr<PromiseDoneNotifier>{notifier}](ActorHandle& actor, TimerId const&) mutable -> Status {
+                           auto&& future = weakNotifier.lock();
+                           if(!future || !future->OnTimeout()) return Status::FAILED;
+                           return actor.Send<FutureDoneNotify>(std::move(future));
+                       });
         }
 
         auto StopTimer(TimerId& timerId) noexcept -> void override {

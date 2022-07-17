@@ -8,6 +8,7 @@
 namespace nano_caf {
     struct PromiseDoneNotifier {
         virtual auto Commit() noexcept -> void = 0;
+        virtual auto OnTimeout() noexcept -> bool = 0;
         virtual ~PromiseDoneNotifier() = default;
     };
 }

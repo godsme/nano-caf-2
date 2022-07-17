@@ -24,6 +24,10 @@ namespace nano_caf {
             return m_future;
         }
 
+        static auto GetFailedFuture(Status status) -> Object {
+            return Promise{status}.m_future;
+        }
+
     private:
         auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {
             if(!m_future) return;

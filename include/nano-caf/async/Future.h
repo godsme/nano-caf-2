@@ -19,7 +19,7 @@ namespace nano_caf {
         using ObjectType = std::shared_ptr<detail::FutureObject<T>>;
 
         Future() noexcept = default;
-        explicit Future(ObjectType object) noexcept
+        Future(ObjectType object) noexcept
             : m_object{std::move(object)}
         {}
 

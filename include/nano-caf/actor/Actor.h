@@ -91,7 +91,7 @@ namespace nano_caf {
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [cb = std::forward<F>(f)](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
+                              [cb = f](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
                                   return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));
                               });
         }
@@ -101,7 +101,7 @@ namespace nano_caf {
             Promise<R> promise;
             auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
             if(status != Status::OK) {
-                return Future<R>{Promise<R>{status}.GetFuture()};
+                return Promise<R>::GetFailedFuture(status);
             }
             return f(promise.GetFuture());
         }
@@ -123,23 +123,32 @@ namespace nano_caf {
             return Future<MSG&>{future}.Then(std::forward<F>(f));
         }
 
-        template<typename R>
-        auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& f) -> Future<R> {
-            using WeakFuturePtr = typename Promise<R>::Object::weak_type;
-            Result<TimerId> result = StartTimer(spec, 1,
-                   [weakFuture = WeakFuturePtr{f}](ActorHandle& actor, TimerId const& timerId) mutable {
-                       auto&& future = weakFuture.lock();
-                       if(!future) return Status::NULL_PTR;
-                       if(!future->OnTimeout()) return;
-                       return actor.Send<FutureDoneNotify>(std::move(future));
-                   });
-            if(!result.Ok()) {
-                return Future<R>{Promise<R>{result.GetStatus()}.GetFuture()};
+        template <typename R>
+        static auto RegisterObserver(detail::FutureObject<R>& future, TimerId const& timerId) -> Status {
+            auto observer = std::make_shared<detail::CancelTimerObserver<R>>(timerId);
+            if(observer == nullptr) {
+                return Status::OUT_OF_MEM;
             }
 
-            f->RegisterObserver(std::make_shared<detail::CancelTimerObserver<R>>(Self().ToWeakPtr(), *result));
+            future.RegisterObserver(observer);
 
-            return Future<R>{f};
+            return Status::OK;
+        }
+
+
+        template<typename R>
+        auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& future) -> Future<R> {
+            Result<TimerId> result = StartFutureTimer(spec, 1, future);
+            if(!result.Ok()) {
+                return Promise<R>::GetFailedFuture(result.GetStatus());
+            }
+
+            auto status = RegisterObserver(*future, result);
+            if(status != Status::OK) {
+                return Promise<R>::GetFailedFuture(status);
+            }
+
+            return Future<R>{future};
         }
 
         template<typename MSG>
@@ -149,10 +158,7 @@ namespace nano_caf {
             if(!result.Ok()) {
                 return result.GetStatus();
             }
-
-            handler->GetFuture()->RegisterObserver(std::make_shared<detail::CancelTimerObserver<MSG&>>(Self().ToWeakPtr(), *result));
-
-            return Status::OK;
+            return RegisterObserver(*handler->GetFuture(), result);
         }
 
     protected:
@@ -163,9 +169,9 @@ namespace nano_caf {
     private:
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
         virtual auto RegisterExpectOnceHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
-        virtual auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> Result<TimerId> = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> = 0;
+        virtual auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId> = 0;
         virtual auto StopTimer(TimerId&) noexcept -> void = 0;
     };
 }
