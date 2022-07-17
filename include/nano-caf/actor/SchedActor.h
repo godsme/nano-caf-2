@@ -35,7 +35,8 @@ namespace nano_caf {
     private:
         auto ExitCheck() noexcept -> TaskResult;
         auto TrySync() noexcept -> void;
-        auto OnExit(ExitReason reason) noexcept -> void;
+        auto OnExit(ExitReason) noexcept -> void;
+        auto HandleMsg(Message&) noexcept -> void;
 
     protected:
         auto Exit_(ExitReason reason) -> void;
@@ -43,7 +44,7 @@ namespace nano_caf {
     private:
         virtual auto InitHandler() noexcept -> void {}
         virtual auto ExitHandler(ExitReason) noexcept -> void {}
-        virtual auto UserDefinedHandleMessage(Message&) noexcept -> void {}
+        virtual auto HandleUserDefinedMsg(Message&) noexcept -> void {};
 
     private:
         std::optional<std::promise<ExitReason>> m_promise;

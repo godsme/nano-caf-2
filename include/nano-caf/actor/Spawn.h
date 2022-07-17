@@ -6,12 +6,11 @@
 #define NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 
 #include <nano-caf/actor/ActorHandle.h>
-#include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
-#include <nano-caf/msg/PredefinedMsgs.h>
-#include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/actor/Behavior.h>
 #include <nano-caf/actor/BlockingActor.h>
 #include <nano-caf/actor/NonblockingActor.h>
+#include <nano-caf/actor/detail/ActorTimerContext.h>
+#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -50,7 +49,7 @@ namespace nano_caf::detail {
             : std::true_type {};
 
     template<typename T, typename ACTOR>
-    struct InternalActor : ACTOR, T {
+    struct InternalActor : ACTOR, T, private detail::ActorTimerContext {
     private:
         static_assert(!(ActorHasInitBehavior<T>::value && ActorHasGetBehavior<T>::value),
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
@@ -73,8 +72,12 @@ namespace nano_caf::detail {
             }
         }
 
-        auto Self() const noexcept -> ActorHandle override {
+        auto Self_() const noexcept -> ActorHandle {
             return ActorHandle{const_cast<InternalActor*>(this), true};
+        }
+
+        auto Self() const noexcept -> ActorHandle override {
+            return Self_();
         }
 
         auto Exit(ExitReason reason) noexcept -> void override {
@@ -100,15 +103,11 @@ namespace nano_caf::detail {
         }
 
         auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {
-            m_expectOnceMsgHandlers.AddHandler(msgId, handler);
+            detail::ActorTimerContext::AddHandler(msgId, handler);
         }
 
-        auto DeregisterExpectOnceHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void {
-            m_expectOnceMsgHandlers.RemoveHandler(handler);
-        }
-
-        auto HandleUserDefinedMsg(Message& msg) noexcept -> void {
-            if(m_expectOnceMsgHandlers.HandleMsg(msg)) {
+        auto HandleUserDefinedMsg(Message& msg) noexcept -> void override {
+            if(detail::ActorTimerContext::HandleMsg(msg)) {
                 return;
             }
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
@@ -118,60 +117,16 @@ namespace nano_caf::detail {
             msg.OnDiscard();
         }
 
-        auto UserDefinedHandleMessage(Message& msg) noexcept -> void override {
-            switch(msg.id) {
-                case BootstrapMsg::ID: break; // ignore
-                case FutureDoneNotify::ID: {
-                    auto notifier = msg.Body<FutureDoneNotify>()->notifier;
-                    notifier->Commit();
-                    break;
-                }
-                case TimeoutMsg::ID: {
-                    auto timeout = msg.template Body<TimeoutMsg>();
-                    if(!timeout->id.IsCancelled()) {
-                        timeout->callback();
-                    }
-                    break;
-                }
-                default: {
-                    HandleUserDefinedMsg(msg);
-                    break;
-                }
-            }
-        }
-
         auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
-            auto result = ActorSystem::Instance().StartTimer(Self(), spec, repeatTimes, std::move(callback));
-            if(result.Ok()) {
-                timerUsed = true;
-            }
-            return result;
+            return detail::ActorTimerContext::StartTimer(Self_(), spec, repeatTimes, std::move(callback));
         }
 
         auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> override {
-            using WeakType = std::weak_ptr<detail::CancellableMsgHandler>;
-            return StartTimer(spec, 1,
-                 [this, weakHandler = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {
-                     auto &&handler = weakHandler.lock();
-                     if (!handler || !handler->OnTimeout()) return Status::FAILED;
-                     return actor.Send<TimeoutMsg>(timerId,
-                                   [this, weakHandler = std::move(weakHandler)] {
-                                       auto &&handler = weakHandler.lock();
-                                       if (handler){
-                                           handler->Cancel();
-                                           DeregisterExpectOnceHandler(handler);
-                                       }
-                                   });
-                 });
+            return detail::ActorTimerContext::StartExpectMsgTimer(Self_(), spec, handler);
         }
 
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier>& notifier) noexcept -> Result<TimerId> override {
-            return StartTimer(spec, 1,
-                       [weakNotifier = std::weak_ptr<PromiseDoneNotifier>{notifier}](ActorHandle& actor, TimerId const&) mutable -> Status {
-                           auto&& future = weakNotifier.lock();
-                           if(!future || !future->OnTimeout()) return Status::FAILED;
-                           return actor.Send<FutureDoneNotify>(std::move(future));
-                       });
+            return detail::ActorTimerContext::StartFutureTimer(Self_(), spec, notifier);
         }
 
         auto StopTimer(TimerId& timerId) noexcept -> void override {
@@ -183,15 +138,11 @@ namespace nano_caf::detail {
         }
 
         ~InternalActor() {
-            if(timerUsed) {
-                ActorSystem::Instance().ClearActorTimer((intptr_t)this);
-            }
+            detail::ActorTimerContext::ClearAllTimers((intptr_t)this);
         }
 
     private:
         Behavior m_behavior;
-        ExpectOnceMsgHandlers m_expectOnceMsgHandlers;
-        bool timerUsed{false};
     };
 
     template<typename T>

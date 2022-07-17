@@ -5,6 +5,7 @@
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 #include <nano-caf/msg/Message.h>
+#include "nano-caf/msg/PredefinedMsgs.h"
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired) {
@@ -61,7 +62,7 @@ namespace nano_caf {
 
         auto result = MailBox::Consume(maxSchedMsgs, [this](Message& msg) -> TaskResult {
             m_currentMsg = &msg;
-            UserDefinedHandleMessage(msg);
+            HandleMsg(msg);
             m_currentMsg = nullptr;
             return ExitCheck();
         });
@@ -72,6 +73,28 @@ namespace nano_caf {
     auto SchedActor::Exit_(ExitReason reason) -> void {
         if(!m_exitReason) {
             m_exitReason.emplace(reason);
+        }
+    }
+
+    auto SchedActor::HandleMsg(Message& msg) noexcept -> void {
+        switch(msg.id) {
+            case BootstrapMsg::ID: break; // ignore
+            case FutureDoneNotify::ID: {
+                auto notifier = msg.Body<FutureDoneNotify>()->notifier;
+                notifier->Commit();
+                break;
+            }
+            case TimeoutMsg::ID: {
+                auto timeout = msg.template Body<TimeoutMsg>();
+                if(!timeout->id.IsCancelled()) {
+                    timeout->callback();
+                }
+                break;
+            }
+            default: {
+                HandleUserDefinedMsg(msg);
+                break;
+            }
         }
     }
 }
