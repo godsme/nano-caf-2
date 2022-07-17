@@ -10,7 +10,6 @@
 #include <nano-caf/actor/BlockingActor.h>
 #include <nano-caf/actor/NonblockingActor.h>
 #include <nano-caf/actor/detail/ActorTimerContext.h>
-#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -112,7 +111,6 @@ namespace nano_caf::detail {
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
                 if(m_behavior.HandleMsg(msg)) return;
             }
-
             msg.OnDiscard();
         }
 
@@ -145,11 +143,11 @@ namespace nano_caf::detail {
     };
 
     template<typename T>
-    struct InternalSchedActor
+    struct InternalNonblockingActor
             : InternalActor<T, NonblockingActor> {
         using Parent = InternalActor<T, NonblockingActor>;
         template<typename ... ARGS>
-        InternalSchedActor(bool sync, ARGS&& ... args)
+        InternalNonblockingActor(bool sync, ARGS&& ... args)
             : Parent(sync, std::forward<ARGS>(args)...) {}
     };
 
@@ -167,16 +165,16 @@ namespace nano_caf::detail {
 namespace nano_caf {
     template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto Spawn(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::InternalSchedActor<T>;
+        using ActorObject = detail::InternalNonblockingActor<T>;
         auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
-        return ActorHandle{ptr ? ptr.Get() : nullptr};
+        return ptr ? ptr.Get() : nullptr;
     }
 
     template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
         using ActorObject = detail::InternalBlockingActor<T>;
         auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
-        return ActorHandle{ptr ? ptr.Get() : nullptr};
+        return ptr ? ptr.Get() : nullptr;
     }
 }
 
