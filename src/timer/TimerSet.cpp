@@ -7,7 +7,7 @@
 
 namespace nano_caf {
     namespace {
-        inline auto GetDue(TimerId const& timerId) {
+        inline auto GetDue(detail::TimerIdExt const& timerId) {
             return timerId.GetTimeSpec().LeftMatch([&](auto const& duration) {
                 return timerId.GetIssueTime() + std::chrono::microseconds(duration);
             });
@@ -51,11 +51,11 @@ namespace nano_caf {
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-    auto TimerSet::RemoveTimer(intptr_t actor_id, TimerId const& timer_id) -> void {
-        TimerFindAndModify(0, actor_id,
+    auto TimerSet::RemoveTimer(TimerId const& timerId) -> void {
+        TimerFindAndModify(0, timerId.GetActorId(),
               [&](auto const& item) {
                   auto&& [_, msg] = *item.second;
-                  return msg->template Body<StartTimerMsg>()->id == timer_id;
+                  return msg->template Body<StartTimerMsg>()->id == timerId;
               },
               [&](auto const& result) {
                   m_timers.erase(result->second);
@@ -95,7 +95,7 @@ namespace nano_caf {
             }
             case StopTimerMsg::ID: {
                 auto stop_msg = msg->Body<StopTimerMsg>();
-                RemoveTimer(stop_msg->actor, stop_msg->id);
+                RemoveTimer(stop_msg->id);
                 break;
             }
             case ClearActorTimerMsg::ID: {

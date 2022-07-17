@@ -19,7 +19,7 @@ SCENARIO("TimerId, 0 repeat times should create an empty timer id") {
 
 SCENARIO("TimerId Expire") {
     TimerSpec spec = (uint64_t)10000;
-    TimerId timerId{0x12345678, spec, 1};
+    detail::TimerIdExt timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
     REQUIRE(timerId.IsActive());
@@ -30,7 +30,7 @@ SCENARIO("TimerId Expire") {
 
 SCENARIO("Cancel TimerId") {
     TimerSpec spec = (uint64_t)10000;
-    TimerId timerId{0x12345678, spec, 1};
+    detail::TimerIdExt timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
     REQUIRE(timerId.IsActive());

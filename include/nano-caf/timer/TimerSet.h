@@ -35,7 +35,7 @@ namespace nano_caf {
 
     private:
         auto AddTimer(std::unique_ptr<Message> msg) -> Status;
-        auto RemoveTimer(intptr_t, TimerId const&) -> void;
+        auto RemoveTimer(TimerId const&) -> void;
         auto ClearActorTimers(intptr_t) -> void;
         auto ProcessExpiredTimer(StartTimerMsg* timerMsg) -> bool;
 

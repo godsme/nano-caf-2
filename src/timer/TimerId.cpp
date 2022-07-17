@@ -15,13 +15,10 @@ namespace nano_caf {
         };
 
         Descriptor(intptr_t subscriber,
-                   TimerSpec const& spec,
+                   TimerSpec const &spec,
                    std::size_t repeatTimes)
-                : m_subscriber{subscriber}
-                , m_spec{spec}
-                , m_issueTime{std::chrono::steady_clock::now()}
-                , m_repeatTimes{repeatTimes}
-        {}
+                : m_subscriber{subscriber}, m_spec{spec}, m_issueTime{std::chrono::steady_clock::now()},
+                  m_repeatTimes{repeatTimes} {}
 
         auto AddRef() noexcept -> void {
             m_refs.fetch_add(1, std::memory_order_relaxed);
@@ -35,15 +32,15 @@ namespace nano_caf {
 
         auto OnCancel(bool sendCancelMsg) -> Status {
             State active = m_active;
-            while(!m_active.compare_exchange_weak(active, State::CANCELLED));
-            if(sendCancelMsg && active == State::ACTIVE) {
-                return ActorSystem::Instance().StopTimer(m_subscriber, this);
+            while (!m_active.compare_exchange_weak(active, State::CANCELLED));
+            if (sendCancelMsg && active == State::ACTIVE) {
+                return ActorSystem::Instance().StopTimer(this);
             }
             return Status::OK;
         }
 
         auto OnExpire() -> Status {
-            if(++m_expireTimes < m_repeatTimes) return Status::OK;
+            if (++m_expireTimes < m_repeatTimes) return Status::OK;
             State active = State::ACTIVE;
             return m_active.compare_exchange_strong(active, State::EXPIRED) ? Status::OK : Status::CLOSED;
         }
@@ -72,12 +69,11 @@ namespace nano_caf {
         std::size_t m_expireTimes{0};
     };
 
-    TimerId::TimerId(intptr_t subscriber, TimerSpec const& spec, std::size_t repeatTimes)
-        : m_desc{repeatTimes > 0 ? new Descriptor{subscriber, spec, repeatTimes} : nullptr}
-    {}
+    TimerId::TimerId(intptr_t subscriber, TimerSpec const &spec, std::size_t repeatTimes)
+            : m_desc{repeatTimes > 0 ? new Descriptor{subscriber, spec, repeatTimes} : nullptr} {}
 
     TimerId::~TimerId() {
-        if(m_desc) {
+        if (m_desc) {
             m_desc->Release();
         }
     }
@@ -88,22 +84,6 @@ namespace nano_caf {
 
     auto TimerId::IsCancelled() const -> bool {
         return m_desc->IsCancelled();
-    }
-
-    auto TimerId::GetActorId() const -> intptr_t {
-        return m_desc->m_subscriber;
-    }
-
-    auto TimerId::GetIssueTime() const -> std::chrono::steady_clock::time_point {
-        return m_desc->m_issueTime;
-    }
-
-    auto TimerId::SetIssueTime(std::chrono::steady_clock::time_point time) -> void {
-        m_desc->m_issueTime = time;
-    }
-
-    auto TimerId::GetTimeSpec() const -> TimerSpec const& {
-        return m_desc->m_spec;
     }
 
     TimerId::TimerId(Descriptor* desc) : m_desc{desc} {
@@ -148,14 +128,34 @@ namespace nano_caf {
         return Status::NULL_PTR;
     }
 
-    auto TimerId::OnExpire() -> Status {
+    auto TimerId::GetActorId() const -> intptr_t {
+        return m_desc ? m_desc->m_subscriber : 0;
+    }
+}
+
+namespace nano_caf::detail {
+
+
+    auto TimerIdExt::GetIssueTime() const -> std::chrono::steady_clock::time_point {
+        return m_desc->m_issueTime;
+    }
+
+    auto TimerIdExt::SetIssueTime(std::chrono::steady_clock::time_point time) -> void {
+        m_desc->m_issueTime = time;
+    }
+
+    auto TimerIdExt::GetTimeSpec() const -> TimerSpec const& {
+        return m_desc->m_spec;
+    }
+
+    auto TimerIdExt::OnExpire() -> Status {
         if(m_desc) {
             return m_desc->OnExpire();
         }
         return Status::NULL_PTR;
     }
 
-    auto TimerId::ShouldRepeat() const -> bool {
+    auto TimerIdExt::ShouldRepeat() const -> bool {
         return m_desc && m_desc->ShouldRepeat();
     }
 }

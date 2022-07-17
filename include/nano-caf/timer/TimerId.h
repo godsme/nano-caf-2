@@ -13,44 +13,59 @@
 namespace nano_caf {
     struct TimerId {
         TimerId() = default;
-        TimerId(intptr_t, TimerSpec const&, std::size_t repeatTimes);
-        TimerId(TimerId const&);
-        TimerId(TimerId&&);
+
+        TimerId(intptr_t, TimerSpec const &, std::size_t repeatTimes);
+
+        TimerId(TimerId const &);
+
+        TimerId(TimerId &&);
+
         ~TimerId();
 
-        auto operator=(TimerId const&) -> TimerId&;
-        auto operator=(TimerId&&) -> TimerId&;
+        auto operator=(TimerId const &) -> TimerId &;
+
+        auto operator=(TimerId &&) -> TimerId &;
 
         explicit operator bool() const {
             return m_desc != nullptr;
         }
 
         auto Cancel(bool sendCancelMsg = true) -> Status;
-        auto OnExpire() -> Status;
 
         auto IsActive() const -> bool;
         auto IsCancelled() const -> bool;
-        auto ShouldRepeat() const -> bool;
 
         auto GetActorId() const -> intptr_t;
-        auto GetIssueTime() const -> std::chrono::steady_clock::time_point;
-        auto GetTimeSpec() const -> TimerSpec const&;
-        auto SetIssueTime(std::chrono::steady_clock::time_point) -> void;
 
-        friend auto operator==(TimerId const& lhs, TimerId const& rhs) -> bool {
+        friend auto operator==(TimerId const &lhs, TimerId const &rhs) -> bool {
             return lhs.m_desc == rhs.m_desc;
         }
 
-        friend auto operator!=(TimerId const& lhs, TimerId const& rhs) -> bool {
+        friend auto operator!=(TimerId const &lhs, TimerId const &rhs) -> bool {
             return !operator==(lhs, rhs);
         }
 
     private:
         struct Descriptor;
-        TimerId(Descriptor* desc);
 
-    private:
-        Descriptor* m_desc{};
+        TimerId(Descriptor *desc);
+
+    protected:
+        Descriptor *m_desc{};
+    };
+}
+
+namespace nano_caf::detail {
+    struct TimerIdExt : TimerId {
+        using TimerId::TimerId;
+
+        auto OnExpire() -> Status;
+
+        auto ShouldRepeat() const -> bool;
+
+        auto GetIssueTime() const -> std::chrono::steady_clock::time_point;
+        auto GetTimeSpec() const -> TimerSpec const&;
+        auto SetIssueTime(std::chrono::steady_clock::time_point) -> void;
     };
 }
 

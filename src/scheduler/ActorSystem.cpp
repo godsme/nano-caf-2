@@ -58,9 +58,9 @@ namespace nano_caf {
         return m_impl->StartTimer(self, spec, repeatTimes, std::move(callback));
     }
 
-    auto ActorSystem::StopTimer(intptr_t actorId, TimerId const& timerId) -> Status {
+    auto ActorSystem::StopTimer(TimerId const& timerId) -> Status {
         if(m_impl == nullptr) return Status::NULL_PTR;
-        return m_impl->StopTimer(actorId, timerId);
+        return m_impl->StopTimer(timerId);
     }
 
     auto ActorSystem::ClearActorTimer(intptr_t actorId) -> Status {

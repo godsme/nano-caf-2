@@ -21,12 +21,11 @@ namespace nano_caf {
     CAF_def_message(FutureDoneNotify, (notifier, std::shared_ptr<PromiseDoneNotifier>));
 
     CAF_def_message(StartTimerMsg,
-                    (id, TimerId),
+                    (id, detail::TimerIdExt),
                     (subscriber, ActorWeakPtr),
                     (callback, TimeoutCallback));
 
     CAF_def_message(StopTimerMsg,
-                    (actor, intptr_t),
                     (id, TimerId));
 
     CAF_def_message(ClearActorTimerMsg,

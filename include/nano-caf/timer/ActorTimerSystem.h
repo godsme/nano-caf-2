@@ -28,7 +28,7 @@ namespace nano_caf {
                          std::size_t repeatTimes,
                          TimeoutCallback&& callback) -> Result<TimerId>;
 
-        auto StopTimer(intptr_t self, TimerId const&) -> Status;
+        auto StopTimer(TimerId const&) -> Status;
         auto ClearActorTimer(intptr_t self) -> Status;
 
     private:
