@@ -48,7 +48,7 @@ namespace nano_caf::detail {
             : std::true_type {};
 
     template<typename T, typename ACTOR>
-    struct InternalActor : ACTOR, T, private detail::ActorTimerContext {
+    struct ActorObject final : ACTOR, T, private detail::ActorTimerContext {
     private:
         static_assert(!(ActorHasInitBehavior<T>::value && ActorHasGetBehavior<T>::value),
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
@@ -56,7 +56,7 @@ namespace nano_caf::detail {
 
     public:
         template<typename ... ARGS>
-        InternalActor(bool sync, ARGS&&...args)
+        ActorObject(bool sync, ARGS&&...args)
             : ACTOR{sync}
             , T{std::forward<ARGS>(args)...}
         {
@@ -72,7 +72,7 @@ namespace nano_caf::detail {
         }
 
         auto Self_() const noexcept -> ActorHandle {
-            return ActorHandle{const_cast<InternalActor*>(this), true};
+            return ActorHandle{const_cast<ActorObject*>(this), true};
         }
 
         auto Self() const noexcept -> ActorHandle override {
@@ -134,46 +134,27 @@ namespace nano_caf::detail {
             m_behavior = to;
         }
 
-        ~InternalActor() {
+        ~ActorObject() {
             detail::ActorTimerContext::ClearAllTimers((intptr_t)this);
         }
 
     private:
         Behavior m_behavior;
     };
-
-    template<typename T>
-    struct InternalNonblockingActor
-            : InternalActor<T, NonblockingActor> {
-        using Parent = InternalActor<T, NonblockingActor>;
-        template<typename ... ARGS>
-        InternalNonblockingActor(bool sync, ARGS&& ... args)
-            : Parent(sync, std::forward<ARGS>(args)...) {}
-    };
-
-
-    template<typename T>
-    struct InternalBlockingActor
-            : InternalActor<T, BlockingActor> {
-        using Parent = InternalActor<T, BlockingActor>;
-        template<typename ... ARGS>
-        InternalBlockingActor(ARGS&& ... args)
-                : Parent(true, std::forward<ARGS>(args)...) {}
-    };
 }
 
 namespace nano_caf {
     template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto Spawn(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::InternalNonblockingActor<T>;
+        using ActorObject = detail::ActorObject<T, NonblockingActor>;
         auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
         return ptr ? ptr.Get() : nullptr;
     }
 
     template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::InternalBlockingActor<T>;
-        auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
+        using ActorObject = detail::ActorObject<T, BlockingActor>;
+        auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(true, std::forward<ARGS>(args)...);
         return ptr ? ptr.Get() : nullptr;
     }
 }

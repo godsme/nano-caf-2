@@ -38,7 +38,7 @@ namespace {
 }
 
 SCENARIO("OnActorRequest") {
-    detail::InternalNonblockingActor<MyActor> actor{false};
+    detail::ActorObject<MyActor, NonblockingActor> actor{false};
     actor.Test();
     REQUIRE(actor.cause == Status::NULL_ACTOR);
 }
