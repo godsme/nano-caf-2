@@ -23,6 +23,7 @@ namespace nano_caf {
         static inline auto InMs(std::chrono::duration<Rep, Period> timeout) -> Duration {
             return std::chrono::microseconds(timeout).count();
         }
+
     public:
         virtual auto Self() const noexcept -> ActorHandle = 0;
         virtual auto Exit(ExitReason) noexcept -> void = 0;
@@ -55,12 +56,12 @@ namespace nano_caf {
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>>
-        auto ExpectMsg(F&& f) noexcept -> Future<R> {
+        inline auto ExpectMsg(F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [](auto&&) { return Status::OK; });
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename Rep, typename Period>
-        auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
+        inline auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [this, &timeout](auto&& handler) {
                 return this->StartExpectMsgTimer(InMs(timeout), handler);
             });
@@ -106,7 +107,7 @@ namespace nano_caf {
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
-        inline auto DoRequest(ActorHandle const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
+        auto DoRequest(ActorHandle const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
             Promise<R> promise;
             auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
             if(status != Status::OK) {
