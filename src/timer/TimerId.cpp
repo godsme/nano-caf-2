@@ -105,14 +105,13 @@ namespace nano_caf {
     }
 
     auto TimerId::operator=(TimerId const& another) -> TimerId& {
-        if(m_desc == nullptr) {
+        if(m_desc != nullptr) {
             m_desc->Release();
         }
         m_desc = another.m_desc;
         if(m_desc != nullptr) {
             m_desc->AddRef();
         }
-
         return *this;
     }
 

@@ -13,17 +13,12 @@
 namespace nano_caf {
     struct TimerId {
         TimerId() = default;
-
         TimerId(intptr_t, TimerSpec const &, std::size_t repeatTimes);
-
         TimerId(TimerId const &);
-
         TimerId(TimerId &&);
-
         ~TimerId();
 
         auto operator=(TimerId const &) -> TimerId &;
-
         auto operator=(TimerId &&) -> TimerId &;
 
         explicit operator bool() const {
@@ -47,7 +42,6 @@ namespace nano_caf {
 
     private:
         struct Descriptor;
-
         TimerId(Descriptor *desc);
 
     protected:

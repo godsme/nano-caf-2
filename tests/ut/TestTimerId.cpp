@@ -39,3 +39,47 @@ SCENARIO("Cancel TimerId") {
     REQUIRE(timerId.OnExpire() == Status::CLOSED);
 }
 
+SCENARIO("copy cons TimerId") {
+    TimerSpec spec = (uint64_t)10000;
+    TimerId timerId{0x12345678, spec, 1};
+    REQUIRE(timerId);
+
+    TimerId timerId2 = timerId;
+    REQUIRE(timerId2);
+    REQUIRE(timerId);
+}
+
+SCENARIO("copy assign TimerId") {
+    TimerSpec spec = (uint64_t)10000;
+    TimerId timerId{0x12345678, spec, 1};
+    REQUIRE(timerId);
+
+    TimerId timerId2;
+    REQUIRE_FALSE(timerId2);
+    timerId2 = timerId;
+    REQUIRE(timerId2);
+    REQUIRE(timerId);
+}
+
+SCENARIO("move cons TimerId") {
+    TimerSpec spec = (uint64_t)10000;
+    TimerId timerId{0x12345678, spec, 1};
+    REQUIRE(timerId);
+
+    TimerId timerId2 = std::move(timerId);
+    REQUIRE(timerId2);
+    REQUIRE_FALSE(timerId);
+}
+
+SCENARIO("move assign TimerId") {
+    TimerSpec spec = (uint64_t)10000;
+    TimerId timerId{0x12345678, spec, 1};
+    REQUIRE(timerId);
+
+    TimerId timerId2;
+    REQUIRE_FALSE(timerId2);
+    timerId2 = std::move(timerId);
+    REQUIRE(timerId2);
+    REQUIRE_FALSE(timerId);
+}
+
