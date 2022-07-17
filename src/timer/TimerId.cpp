@@ -54,7 +54,7 @@ namespace nano_caf {
         }
 
         auto ShouldRepeat() const -> bool {
-            return m_active == State::ACTIVE && m_expireTimes < m_repeatTimes;
+            return m_expireTimes < m_repeatTimes && m_active == State::ACTIVE;
         }
 
     private:
