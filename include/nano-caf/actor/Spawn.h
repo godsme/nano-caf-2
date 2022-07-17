@@ -98,8 +98,7 @@ namespace nano_caf::detail {
 
         auto CurrentSender() const noexcept -> ActorHandle override {
             if(m_currentMsg == nullptr) return {};
-            auto sender = m_currentMsg->sender.Lock();
-            return sender ? ActorHandle{sender.Get()} : ActorHandle{};
+            return m_currentMsg->sender.Lock().Get();
         }
 
         auto RegisterExpectOnceHandler(MsgTypeId msgId, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void override {

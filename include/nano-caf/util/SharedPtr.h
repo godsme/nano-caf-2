@@ -18,7 +18,7 @@ namespace nano_caf {
 
     public:
         SharedPtr() noexcept = default;
-        explicit SharedPtr(T* ptr, bool addRef = true) noexcept : Parent{ptr} {
+        SharedPtr(T* ptr, bool addRef = true) noexcept : Parent{ptr} {
             if(ptr != nullptr && addRef) {
                 CtlBlock()->AddRef();
             }
