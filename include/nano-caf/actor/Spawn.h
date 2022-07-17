@@ -54,6 +54,10 @@ namespace nano_caf::detail {
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
         using ACTOR::m_currentMsg;
 
+        auto Self_() const noexcept -> ActorHandle {
+            return ActorHandle{const_cast<ActorObject*>(this), true};
+        }
+
     public:
         template<typename ... ARGS>
         ActorObject(bool sync, ARGS&&...args)
@@ -71,9 +75,6 @@ namespace nano_caf::detail {
             }
         }
 
-        auto Self_() const noexcept -> ActorHandle {
-            return ActorHandle{const_cast<ActorObject*>(this), true};
-        }
 
         auto Self() const noexcept -> ActorHandle override {
             return Self_();
