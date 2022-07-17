@@ -3,9 +3,8 @@
 //
 
 #include <nano-caf/actor/SchedActor.h>
-#include <nano-caf/util/SharedPtrCtlBlock.h>
 #include <nano-caf/msg/Message.h>
-#include "nano-caf/msg/PredefinedMsgs.h"
+#include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired) {
