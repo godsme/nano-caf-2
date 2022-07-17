@@ -3,9 +3,8 @@
 //
 
 #include <nano-caf/timer/TimerId.h>
-#include <atomic>
-#include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/scheduler/ActorSystem.h>
+#include <atomic>
 
 namespace nano_caf {
     struct TimerId::Descriptor {

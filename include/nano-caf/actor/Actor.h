@@ -161,9 +161,9 @@ namespace nano_caf {
         // DON'T OVERRIDE THOSE METHODS IN YOUR ACTOR!!!
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
         virtual auto RegisterMsgHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
-        virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> Result<TimerId> = 0;
-        virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> = 0;
-        virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) noexcept -> Result<TimerId> = 0;
+        virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> Result<TimerId> = 0;
+        virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Result<TimerId> = 0;
+        virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const&) noexcept -> Result<TimerId> = 0;
         virtual auto StopTimer(TimerId&) noexcept -> void = 0;
     };
 }

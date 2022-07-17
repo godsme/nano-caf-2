@@ -6,7 +6,7 @@
 #include <nano-caf/msg/PredefinedMsgs.h>
 
 namespace nano_caf::detail {
-    auto ActorTimerContext::StartTimer(ActorHandle&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> {
+    auto ActorTimerContext::StartTimer(ActorHandle&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> Result<TimerId> {
         auto result = ActorSystem::Instance().StartTimer(self, spec, repeatTimes, std::move(callback));
         if(result.Ok()) {
             timerUsed = true;
@@ -14,7 +14,7 @@ namespace nano_caf::detail {
         return result;
     }
 
-    auto ActorTimerContext::StartExpectMsgTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> {
+    auto ActorTimerContext::StartExpectMsgTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Result<TimerId> {
         using WeakType = std::weak_ptr<detail::CancellableMsgHandler>;
         return StartTimer(std::move(self), spec, 1,
                 [this, weakHandler = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {

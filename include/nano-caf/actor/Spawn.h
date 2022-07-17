@@ -112,15 +112,14 @@ namespace nano_caf::detail {
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
                 if(m_behavior.HandleMsg(msg)) return true;
             }
-
             return false;
         }
 
-        auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
+        auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> nano_caf::Result<TimerId> override {
             return detail::ActorTimerContext::StartTimer(Self_(), spec, repeatTimes, std::move(callback));
         }
 
-        auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> override {
+        auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Result<TimerId> override {
             return detail::ActorTimerContext::StartExpectMsgTimer(Self_(), spec, handler);
         }
 
