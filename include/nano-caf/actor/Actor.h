@@ -5,13 +5,11 @@
 #ifndef NANO_CAF_2_404238781FDD4EA28C56C2A4FC1E624B
 #define NANO_CAF_2_404238781FDD4EA28C56C2A4FC1E624B
 
-#include <nano-caf/msg/Message.h>
-#include <nano-caf/actor/ActorHandle.h>
-#include <nano-caf/actor/Behavior.h>
 #include <nano-caf/actor/detail/ExpectMsgHandler.h>
 #include <nano-caf/async/detail/CancelTimerObserver.h>
+#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/Behavior.h>
 #include <nano-caf/async/Promise.h>
-#include <nano-caf/async/Future.h>
 #include <nano-caf/Status.h>
 
 namespace nano_caf {
