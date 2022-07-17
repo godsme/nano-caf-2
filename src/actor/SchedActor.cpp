@@ -92,7 +92,11 @@ namespace nano_caf {
                 break;
             }
             default: {
-                HandleUserDefinedMsg(msg);
+                if(!HandleUserDefinedMsg(msg)) {
+                    // This message didn't get processed.
+                    msg.OnDiscard();
+                }
+
                 break;
             }
         }

@@ -13,9 +13,10 @@ using namespace std::chrono_literals;
 
 namespace {
     struct MySchedActor : SchedActor {
-        virtual auto HandleUserDefinedMsg(Message& msg) noexcept -> void override {
+        virtual auto HandleUserDefinedMsg(Message& msg) noexcept -> bool override {
             msgs[numOfMsgs++] = msg.id;
             if(msg.id == 1000) SchedActor::Exit_(ExitReason::SHUTDOWN);
+            return true;
         }
 
         auto ExitHandler(ExitReason reason) noexcept -> void override {

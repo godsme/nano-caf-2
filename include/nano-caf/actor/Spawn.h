@@ -104,14 +104,15 @@ namespace nano_caf::detail {
             detail::ActorTimerContext::AddHandler(msgId, handler);
         }
 
-        auto HandleUserDefinedMsg(Message& msg) noexcept -> void override {
+        auto HandleUserDefinedMsg(Message& msg) noexcept -> bool override {
             if(detail::ActorTimerContext::HandleMsg(msg)) {
-                return;
+                return true;
             }
             if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
-                if(m_behavior.HandleMsg(msg)) return;
+                if(m_behavior.HandleMsg(msg)) return true;
             }
-            msg.OnDiscard();
+
+            return false;
         }
 
         auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> nano_caf::Result<TimerId> override {
