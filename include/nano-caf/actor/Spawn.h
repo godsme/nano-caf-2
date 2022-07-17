@@ -75,7 +75,6 @@ namespace nano_caf::detail {
             }
         }
 
-
         auto Self() const noexcept -> ActorHandle override {
             return Self_();
         }

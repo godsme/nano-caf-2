@@ -16,11 +16,10 @@ namespace nano_caf {
 
         Descriptor(intptr_t subscriber,
                    TimerSpec const& spec,
-                   std::chrono::steady_clock::time_point const& issueTime,
                    std::size_t repeatTimes)
                 : m_subscriber{subscriber}
                 , m_spec{spec}
-                , m_issueTime{issueTime}
+                , m_issueTime{std::chrono::steady_clock::now()}
                 , m_repeatTimes{repeatTimes}
         {}
 
@@ -34,20 +33,19 @@ namespace nano_caf {
             }
         }
 
-        auto OnCancel() -> void {
+        auto OnCancel(bool sendCancelMsg) -> Status {
             State active = m_active;
             while(!m_active.compare_exchange_weak(active, State::CANCELLED));
-            if(active == State::ACTIVE) {
-                ActorSystem::Instance().StopTimer(m_subscriber, this);
+            if(sendCancelMsg && active == State::ACTIVE) {
+                return ActorSystem::Instance().StopTimer(m_subscriber, this);
             }
+            return Status::OK;
         }
 
-        auto OnExpire() -> bool {
-            if(++m_expireTimes == m_repeatTimes) {
-                State active = State::ACTIVE;
-                return m_active.compare_exchange_strong(active, State::EXPIRED);
-            }
-            return true;
+        auto OnExpire() -> Status {
+            if(++m_expireTimes < m_repeatTimes) return Status::OK;
+            State active = State::ACTIVE;
+            return m_active.compare_exchange_strong(active, State::EXPIRED) ? Status::OK : Status::CLOSED;
         }
 
         auto IsActive() const -> bool {
@@ -74,8 +72,8 @@ namespace nano_caf {
         std::size_t m_expireTimes{0};
     };
 
-    TimerId::TimerId(intptr_t subscriber, TimerSpec const& spec, std::chrono::steady_clock::time_point const& issueTime, std::size_t repeatTimes)
-        : m_desc{new Descriptor{subscriber, spec, issueTime, repeatTimes}}
+    TimerId::TimerId(intptr_t subscriber, TimerSpec const& spec, std::size_t repeatTimes)
+        : m_desc{repeatTimes > 0 ? new Descriptor{subscriber, spec, repeatTimes} : nullptr}
     {}
 
     TimerId::~TimerId() {
@@ -143,17 +141,18 @@ namespace nano_caf {
         return *this;
     }
 
-    auto TimerId::Cancel() -> void {
+    auto TimerId::Cancel(bool sendCancelMsg) -> Status {
         if(m_desc) {
-            m_desc->OnCancel();
+            return m_desc->OnCancel(sendCancelMsg);
         }
+        return Status::NULL_PTR;
     }
 
-    auto TimerId::OnExpire() -> bool {
+    auto TimerId::OnExpire() -> Status {
         if(m_desc) {
             return m_desc->OnExpire();
         }
-        return false;
+        return Status::NULL_PTR;
     }
 
     auto TimerId::ShouldRepeat() const -> bool {

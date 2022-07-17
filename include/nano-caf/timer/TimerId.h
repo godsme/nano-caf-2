@@ -5,6 +5,7 @@
 #ifndef NANO_CAF_2_180785809842472AB4533845B39E05D2
 #define NANO_CAF_2_180785809842472AB4533845B39E05D2
 
+#include <nano-caf/Status.h>
 #include <nano-caf/timer/TimerSpec.h>
 #include <chrono>
 #include <cstdint>
@@ -12,7 +13,7 @@
 namespace nano_caf {
     struct TimerId {
         TimerId() = default;
-        TimerId(intptr_t, TimerSpec const&, std::chrono::steady_clock::time_point const&, std::size_t repeatTimes);
+        TimerId(intptr_t, TimerSpec const&, std::size_t repeatTimes);
         TimerId(TimerId const&);
         TimerId(TimerId&&);
         ~TimerId();
@@ -24,8 +25,8 @@ namespace nano_caf {
             return m_desc != nullptr;
         }
 
-        auto Cancel() -> void;
-        auto OnExpire() -> bool;
+        auto Cancel(bool sendCancelMsg = true) -> Status;
+        auto OnExpire() -> Status;
 
         auto IsActive() const -> bool;
         auto IsCancelled() const -> bool;

@@ -67,8 +67,7 @@ namespace nano_caf {
     auto TimerSet::RemoveIndex(intptr_t actor_id, Timers ::iterator const& iterator) -> void {
         TimerFindAndModify(1, actor_id,
                           [&](auto const& item)      { return item.second == iterator; },
-                          [this](auto const& result) { m_actorIndexer.erase(result);
-                          });
+                          [this](auto const& result) { m_actorIndexer.erase(result);   });
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,9 +89,10 @@ namespace nano_caf {
     /////////////////////////////////////////////////////////////////////////////////////////////
     auto TimerSet::HandleMsg(std::unique_ptr<Message> msg) -> void {
         switch(msg->id) {
-            case StartTimerMsg::ID:
+            case StartTimerMsg::ID: {
                 AddTimer(std::move(msg));
                 break;
+            }
             case StopTimerMsg::ID: {
                 auto stop_msg = msg->Body<StopTimerMsg>();
                 RemoveTimer(stop_msg->actor, stop_msg->id);
@@ -134,13 +134,10 @@ namespace nano_caf {
         return Status::OK;
     }
 
+    // returns true: this time is DONE, doesn't need to be processed any longer
     auto TimerSet::ProcessExpiredTimer(StartTimerMsg* timerMsg) -> bool {
         auto&& timerId = timerMsg->id;
-        if(timerId.IsCancelled()) {
-            return true;
-        }
-
-        if(!timerId.OnExpire()) {
+        if(timerId.OnExpire() != Status::OK) {
             return true;
         }
 

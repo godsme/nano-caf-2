@@ -15,6 +15,7 @@ namespace nano_caf {
         OUT_OF_MEM,
         NULL_PTR,
         NULL_ACTOR,
+        INVALID_ARG,
         CLOSED,
         DISCARDED,
         SHUTDOWN,
