@@ -16,8 +16,8 @@ namespace nano_caf {
         using Object = std::shared_ptr<detail::FutureObject<T>>;
 
         Promise() : m_future{std::make_shared<detail::FutureObject<T>>()} {}
-        explicit Promise(Status cause) : Promise() {
-            m_future->OnFail(cause);
+        explicit Promise(Status cause) : Promise{} {
+            if(m_future) m_future->OnFail(cause);
         }
 
         auto GetFuture() noexcept -> Object {
@@ -30,8 +30,7 @@ namespace nano_caf {
 
     private:
         auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {
-            if(!m_future) return;
-            if(m_future->OnFail(cause)) {
+            if(m_future && m_future->OnFail(cause)) {
                 Notify(to);
             }
         }
@@ -53,8 +52,7 @@ namespace nano_caf {
         }
 
         auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr& to) noexcept -> void override {
-            if(!m_future) return;
-            if(m_future->SetValue(value)) {
+            if(m_future && m_future->SetValue(value)) {
                 Notify(to);
             }
         }

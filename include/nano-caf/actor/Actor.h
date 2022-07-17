@@ -49,7 +49,7 @@ namespace nano_caf {
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
         inline auto Request(ActorHandle const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
-                             [&timeout, this](auto&& future) mutable -> Future<R>{
+                             [&timeout, this](auto&& future) mutable -> Future<R> {
                                 return this->StartFutureTimer(InMs(timeout), future);
                              },
                              std::forward<ARGS>(args)...);

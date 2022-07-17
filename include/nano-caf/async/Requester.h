@@ -19,7 +19,7 @@ namespace nano_caf {
         Requester() = default;
         Requester(Requester&& another)
             : m_promise{std::move(another.m_promise)}
-            , m_ready{another.m_ready}{
+            , m_ready{another.m_ready} {
             another.m_ready = true;
         }
 

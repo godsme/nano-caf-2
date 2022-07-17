@@ -17,17 +17,17 @@ namespace nano_caf::detail {
     auto ActorTimerContext::StartExpectMsgTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Result<TimerId> {
         using WeakType = std::weak_ptr<detail::CancellableMsgHandler>;
         return StartTimer(std::move(self), spec, 1,
-                [this, weakHandler = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {
-                    auto &&handler = weakHandler.lock();
+                [this, weak = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {
+                    auto &&handler = weak.lock();
                     if (!handler || !handler->OnTimeout()) return Status::FAILED;
                     return actor.Send<TimeoutMsg>(timerId,
-                    [this, weakHandler = std::move(weakHandler)] {
-                            auto &&handler = weakHandler.lock();
-                            if (handler){
-                                handler->Cancel();
-                                ExpectOnceMsgHandlers::RemoveHandler(handler);
-                            }
-                    });
+                        [this, weak = std::move(weak)] {
+                                auto &&handler = weak.lock();
+                                if (handler){
+                                    handler->Cancel();
+                                    ExpectOnceMsgHandlers::RemoveHandler(handler);
+                                }
+                        });
                 });
         }
 

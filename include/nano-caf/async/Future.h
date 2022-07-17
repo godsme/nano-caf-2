@@ -25,8 +25,8 @@ namespace nano_caf {
 
         template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, Object> && !std::is_convertible_v<R, ObjectType>>>
         Future(R&& value) noexcept
-            : m_object{std::make_shared<detail::FutureObject<T>>(std::forward<R>(value))}{
-        }
+            : m_object{std::make_shared<detail::FutureObject<T>>(std::forward<R>(value))}
+        {}
 
         explicit operator bool() const {
             return (bool)m_object;
@@ -35,7 +35,9 @@ namespace nano_caf {
         template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<!IS_FUTURE<R>>>
         auto Then(F&& callback) noexcept -> Future<R> {
             if(!m_object) return {};
-            auto cb = std::make_shared<detail::FutureCallbackObject<R, T, F>>(std::forward<F>(callback));
+            using ObjType = detail::FutureCallbackObject<R, T, F>;
+            auto cb = std::make_shared<ObjType>(std::forward<F>(callback));
+            if(cb == nullptr) return {};
             m_object->RegisterObserver(cb);
             return Future<R>{cb};
         }
@@ -43,8 +45,9 @@ namespace nano_caf {
         template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<IS_FUTURE<R>>>
         auto Then(F&& callback) noexcept -> R {
             if(!m_object) return {};
-            using Object = detail::FutureCallbackProxy<FutureOfType<R>, T, F>;
-            auto cb = std::make_shared<Object>(std::forward<F>(callback));
+            using Proxy = detail::FutureCallbackProxy<FutureOfType<R>, T, F>;
+            auto cb = std::make_shared<Proxy>(std::forward<F>(callback));
+            if(cb == nullptr) return {};
             m_object->RegisterObserver(cb);
             return R{cb};
         }
@@ -58,11 +61,6 @@ namespace nano_caf {
             }
             return *this;
         }
-
-//        template<typename Rep, typename Period>
-//        auto Timeout(std::chrono::duration<Rep, Period> duration) -> Future<T> {
-//            std::make_shared<detail::CancelTimerObserver>();
-//        }
 
         auto Release() noexcept -> void {
             m_object.reset();

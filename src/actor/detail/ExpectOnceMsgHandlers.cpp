@@ -3,7 +3,7 @@
 //
 
 #include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
-#include <iostream>
+#include <nano-caf/msg/Message.h>
 
 namespace nano_caf::detail {
     auto ExpectOnceMsgHandlers::AddHandler(MsgTypeId id, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Status {
