@@ -22,6 +22,7 @@ namespace nano_caf {
 
     CAF_def_message(StartTimerMsg,
                     (id, TimerId),
+                    (subscriber, ActorWeakPtr),
                     (callback, TimeoutCallback));
 
     CAF_def_message(StopTimerMsg,

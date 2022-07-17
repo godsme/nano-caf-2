@@ -91,9 +91,7 @@ namespace nano_caf {
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [cb = std::forward<F>(f)](TimerId const& timerId) mutable -> Status {
-                                  ActorHandle actor = timerId.GetSubscriber();
-                                  if(!actor) return Status::NULL_ACTOR;
+                              [cb = std::forward<F>(f)](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
                                   return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));
                               });
         }
@@ -129,9 +127,7 @@ namespace nano_caf {
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>>& f) -> Future<R> {
             using WeakFuturePtr = typename Promise<R>::Object::weak_type;
             Result<TimerId> result = StartTimer(spec, 1,
-                   [weakFuture = WeakFuturePtr{f}](TimerId const& timerId) mutable {
-                       auto actor = timerId.GetSubscriber();
-                       if(!actor) return Status::NULL_ACTOR;
+                   [weakFuture = WeakFuturePtr{f}](ActorHandle& actor, TimerId const& timerId) mutable {
                        auto&& future = weakFuture.lock();
                        if(!future) return Status::NULL_PTR;
                        if(!future->OnTimeout()) return;

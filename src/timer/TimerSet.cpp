@@ -144,7 +144,12 @@ namespace nano_caf {
             return true;
         }
 
-        if(timerMsg->callback(timerId) != Status::OK ) {
+        ActorHandle actor = timerMsg->subscriber.Lock();
+        if(!actor) {
+            return true;
+        }
+
+        if(timerMsg->callback(actor, timerId) != Status::OK ) {
             return true;
         }
 

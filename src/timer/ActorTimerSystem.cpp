@@ -94,8 +94,8 @@ namespace nano_caf {
         if(!m_working) { return Status::CLOSED; }
         if(!sender) { return Status::NULL_ACTOR; }
 
-        TimerId id{sender, spec, std::chrono::steady_clock::now(), repeatTimes};
-        auto status = SendMsg(MakeMessage<StartTimerMsg>(id, std::move(callback)));
+        TimerId id{sender.ActorId(), spec, std::chrono::steady_clock::now(), repeatTimes};
+        auto status = SendMsg(MakeMessage<StartTimerMsg>(id, sender.ToWeakPtr(), std::move(callback)));
         if(status != Status::OK) {
             return status;
         }

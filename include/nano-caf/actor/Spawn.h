@@ -151,9 +151,7 @@ namespace nano_caf::detail {
         auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler>& handler) -> Result<TimerId> override {
             using WeakType = std::weak_ptr<detail::CancellableMsgHandler>;
             return StartTimer(spec, 1,
-                 [this, weakHandler = WeakType{handler}](TimerId const &timerId) mutable -> Status {
-                     ActorHandle actor = timerId.GetSubscriber();
-                     if (!actor) return Status::NULL_ACTOR;
+                 [this, weakHandler = WeakType{handler}](ActorHandle actor, TimerId const &timerId) mutable -> Status {
                      auto &&handler = weakHandler.lock();
                      if (!handler) return Status::NULL_PTR;
                      if (!handler->OnTimeout()) return Status::CLOSED;

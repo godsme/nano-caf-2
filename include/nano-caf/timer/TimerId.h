@@ -12,7 +12,7 @@
 namespace nano_caf {
     struct TimerId {
         TimerId() = default;
-        TimerId(ActorHandle const&, TimerSpec const&, std::chrono::steady_clock::time_point const&, std::size_t repeatTimes);
+        TimerId(intptr_t, TimerSpec const&, std::chrono::steady_clock::time_point const&, std::size_t repeatTimes);
         TimerId(TimerId const&);
         TimerId(TimerId&&);
         ~TimerId();
@@ -35,7 +35,6 @@ namespace nano_caf {
         auto GetIssueTime() const -> std::chrono::steady_clock::time_point;
         auto GetTimeSpec() const -> TimerSpec const&;
         auto SetIssueTime(std::chrono::steady_clock::time_point) -> void;
-        auto GetSubscriber() const -> ActorHandle;
 
         friend auto operator==(TimerId const& lhs, TimerId const& rhs) -> bool {
             return lhs.m_desc == rhs.m_desc;
