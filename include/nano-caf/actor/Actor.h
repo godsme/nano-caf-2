@@ -6,7 +6,6 @@
 #define NANO_CAF_2_404238781FDD4EA28C56C2A4FC1E624B
 
 #include <nano-caf/actor/detail/ExpectMsgHandler.h>
-#include <nano-caf/async/detail/CancelTimerObserver.h>
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/actor/Behavior.h>
 #include <nano-caf/async/Promise.h>
@@ -123,8 +122,7 @@ namespace nano_caf {
 
             auto future = handler->GetFuture();
             RegisterMsgHandler(MSG::ID, handler);
-            auto status = callback(handler);
-            if(status != Status::OK) {
+            if(auto status = callback(handler); status != Status::OK) {
                 return {};
             }
 
@@ -162,7 +160,6 @@ namespace nano_caf {
         virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> Result<TimerId> = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Result<TimerId> = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const&) noexcept -> Result<TimerId> = 0;
-        virtual auto StopTimer(TimerId&) noexcept -> void = 0;
     };
 }
 

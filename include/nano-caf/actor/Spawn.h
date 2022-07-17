@@ -127,10 +127,6 @@ namespace nano_caf::detail {
             return detail::ActorTimerContext::StartFutureTimer(Self_(), spec, notifier);
         }
 
-        auto StopTimer(TimerId& timerId) noexcept -> void override {
-            timerId.Cancel();
-        }
-
         auto ChangeBehavior(Behavior const& to) noexcept -> void override {
             m_behavior = to;
         }
