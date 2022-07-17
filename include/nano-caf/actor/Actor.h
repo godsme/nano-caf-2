@@ -20,10 +20,14 @@ namespace nano_caf {
 
     private:
         template<typename Rep, typename Period>
-        static auto InMs(std::chrono::duration<Rep, Period> timeout) -> Duration {
+        static inline auto InMs(std::chrono::duration<Rep, Period> timeout) -> Duration {
             return std::chrono::microseconds(timeout).count();
         }
     public:
+        virtual auto Self() const noexcept -> ActorHandle = 0;
+        virtual auto Exit(ExitReason) noexcept -> void = 0;
+        virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
+
         template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
         inline auto Send(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
             return to.Send<T, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::forward<ARGS>(args)...);
@@ -58,7 +62,7 @@ namespace nano_caf {
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename Rep, typename Period>
         auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [this, &timeout](auto&& handler) {
-                return StartExpectMsgTimer(InMs(timeout), handler);
+                return this->StartExpectMsgTimer(InMs(timeout), handler);
             });
         }
 
@@ -96,7 +100,7 @@ namespace nano_caf {
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [cb = f](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
+                              [cb = std::forward<F>(f)](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
                                   return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));
                               });
         }
@@ -152,12 +156,8 @@ namespace nano_caf {
             return handler->GetFuture()->RegisterTimerObserver(result);
         }
 
-    protected:
-        virtual auto Self() const noexcept -> ActorHandle = 0;
-        virtual auto Exit(ExitReason) noexcept -> void = 0;
-        virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
-
     private:
+        // DON'T OVERRIDE THOSE METHODS IN YOUR ACTOR!!!
         virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
         virtual auto RegisterMsgHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) -> Result<TimerId> = 0;
