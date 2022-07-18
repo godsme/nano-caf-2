@@ -101,7 +101,6 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestWorker.cpp
         tests/ut/TestActor.cpp
         tests/ut/TestCoordinator.cpp
-        tests/ut/TestLifoQueue.cpp
         tests/ut/TestSchedActor.cpp
         tests/ut/TestFutureObject.cpp
         tests/ut/TestFutureCallbackObject.cpp

@@ -56,9 +56,9 @@ namespace nano_caf {
     namespace {
         auto Process(Queue<Message>& queue, std::size_t& remain, MailBox::Consumer& f) -> TaskResult {
             while(remain > 0) {
-                auto msg = std::unique_ptr<Message>(queue.Dequeue());
+                auto* msg = queue.Dequeue();
                 if(msg == nullptr) return TaskResult::SUSPENDED;
-                if(f(*msg) == TaskResult::DONE) {
+                if(f(std::unique_ptr<Message>(msg)) == TaskResult::DONE) {
                     return TaskResult::DONE;
                 }
                 --remain;

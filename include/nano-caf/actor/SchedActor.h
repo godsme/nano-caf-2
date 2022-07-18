@@ -51,7 +51,7 @@ namespace nano_caf {
         std::optional<ExitReason> m_exitReason;
 
     protected:
-        Message* m_currentMsg{};
+        std::unique_ptr<Message> m_currentMsg{};
         bool m_inited{false};
     };
 }

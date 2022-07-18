@@ -15,7 +15,7 @@ namespace nano_caf {
     struct Message;
 
     struct MailBox : private LifoQueue {
-        using Consumer = std::function<auto (Message&) -> TaskResult>;
+        using Consumer = std::function<auto (std::unique_ptr<Message>) -> TaskResult>;
 
         MailBox() = default;
 

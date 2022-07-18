@@ -59,10 +59,10 @@ namespace nano_caf {
             }
         }
 
-        auto result = MailBox::Consume(maxSchedMsgs, [this](Message& msg) -> TaskResult {
-            m_currentMsg = &msg;
-            HandleMsg(msg);
-            m_currentMsg = nullptr;
+        auto result = MailBox::Consume(maxSchedMsgs, [this](std::unique_ptr<Message> msg) -> TaskResult {
+            m_currentMsg = std::move(msg);
+            HandleMsg(*m_currentMsg);
+            m_currentMsg.reset();
             return ExitCheck();
         });
 

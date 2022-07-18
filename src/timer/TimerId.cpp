@@ -133,8 +133,6 @@ namespace nano_caf {
 }
 
 namespace nano_caf::detail {
-
-
     auto TimerIdExt::GetIssueTime() const -> std::chrono::steady_clock::time_point {
         return m_desc->m_issueTime;
     }
