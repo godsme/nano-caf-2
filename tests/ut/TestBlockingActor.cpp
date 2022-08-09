@@ -37,7 +37,7 @@ namespace {
         ActorHandle server{};
 
         auto OnInit() -> void {
-            server = SpawnBlockingActor<Server>();
+            server = SpawnBlockingActor<Server, false>();
         }
 
         auto GetBehavior() noexcept -> Behavior {
@@ -63,6 +63,10 @@ SCENARIO("Blocking Actor") {
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
+    result = actor.Request<Msg::View>(22);
+    REQUIRE(result.Ok());
+    REQUIRE(*result == 122);
+
     REQUIRE(actor.Request<Msg::Close>().Ok());
 
     ExitReason reason{ExitReason::UNKNOWN};
@@ -76,9 +80,7 @@ SCENARIO("Blocking Actor Send") {
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = actor.Request<Msg::View>(22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 122);
+
 
     actor.Send<Msg::Close>();
 

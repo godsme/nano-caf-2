@@ -37,7 +37,7 @@ namespace nano_caf {
 
     auto MailBox::Put(Message* msg) noexcept -> bool {
         if(msg == nullptr) {
-            return !Empty();
+            return false;
         }
 
         if(msg->m_next == nullptr) {
@@ -72,9 +72,8 @@ namespace nano_caf {
         std::size_t remain = quota;
 
         while(1) {
-            while(!Reload()) {
-                if(LifoQueue::IsClosed()) return TaskResult::DONE;
-                if(LifoQueue::TryBlock()) return TaskResult::DONE;
+            while(!Reload() && Empty()) {
+                if(LifoQueue::IsClosed() || LifoQueue::TryBlock()) return TaskResult::DONE;
             }
 
             // There must be some unconsumed messages in mailbox.
