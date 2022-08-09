@@ -26,7 +26,6 @@ namespace nano_caf {
         using MailBox::IsClosed;
 
         auto Wait(ExitReason& reason) noexcept -> Status;
-
         auto Resume(std::size_t maxSchedMsgs) noexcept -> TaskResult;
 
     private:

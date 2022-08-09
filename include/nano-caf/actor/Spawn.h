@@ -27,13 +27,6 @@ namespace nano_caf::detail {
             : std::true_type {};
 
     template<typename T, typename = void>
-    struct ActorHasHandleMsg : std::false_type {};
-
-    template<typename T>
-    struct ActorHasHandleMsg<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().HandleMessage(std::declval<Message&>()))>>>
-            : std::true_type {};
-
-    template<typename T, typename = void>
     struct ActorHasGetBehavior : std::false_type {};
 
     template<typename T>

@@ -46,3 +46,16 @@ SCENARIO("Blocking Actor") {
     REQUIRE(actor.Wait(reason) == Status::OK);
     REQUIRE(reason == ExitReason::NORMAL);
 }
+
+SCENARIO("Blocking Actor Send") {
+    auto actor = SpawnBlockingActor<MyActor>();
+    auto result = actor.Request<Msg::Open>(22);
+    REQUIRE(result.Ok());
+    REQUIRE(*result == 32);
+
+    actor.Send<Msg::Close>();
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(actor.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::NORMAL);
+}

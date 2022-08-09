@@ -8,6 +8,7 @@
 #include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/async/Requester.h>
+#include <nano-caf/msg/Atom.h>
 #include <nano-caf/Status.h>
 #include <chrono>
 
@@ -41,14 +42,24 @@ namespace nano_caf {
             return ActorWeakPtr{*this};
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
             return Send(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
+        auto Send(ARGS&& ... args) const noexcept -> Status {
+            return Send(MakeMessage<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...));
+        }
+
+        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
             return Send(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
+        auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
+            return Send(MakeMessage<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>

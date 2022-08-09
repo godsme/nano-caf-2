@@ -16,7 +16,7 @@ namespace nano_caf::detail {
     struct BehaviorTrait;
 
     template<typename T>
-    constexpr bool NonConstLref = !std::is_const_v<T> && std::is_lvalue_reference_v<T>;
+    constexpr bool NonConstLRef = !std::is_const_v<T> && std::is_lvalue_reference_v<T>;
 
     template<typename F, typename = void>
     constexpr bool IS_ATOM_PATTERN = false;
@@ -27,7 +27,7 @@ namespace nano_caf::detail {
     template<typename F>
     struct BehaviorTrait<F, std::enable_if_t<IS_ATOM_PATTERN<F>>> {
     private:
-        static_assert(!NonConstLref<FirstArg<F>>, "the atom type cannot be non-const-lvalue-ref");
+        static_assert(!NonConstLRef<FirstArg<F>>, "the atom type cannot be non-const-lvalue-ref");
         using AtomType = std::decay_t<FirstArg<F>>;
         using MsgType = typename AtomType::MsgType;
         using FieldsTypes = typename MsgTypeTrait<MsgType>::FieldsTypes;
@@ -38,8 +38,8 @@ namespace nano_caf::detail {
         static_assert(FieldsTypes::template ExportTo<Invokable>::value, "parameters & message don't match");
 
         template <typename ... Ts>
-        using InvokeResult_i = std::invoke_result_t<F, AtomType, Ts...>;
-        using InvokeResult = typename FieldsTypes::template ExportTo<InvokeResult_i>;
+        using InvokeResult_f = std::invoke_result_t<F, AtomType, Ts...>;
+        using InvokeResult = typename FieldsTypes::template ExportTo<InvokeResult_f>;
         using MsgResultType = typename MsgTypeTrait<MsgType>::ResultType;
 
         static_assert(std::is_same_v<InvokeResult, MsgResultType> ||

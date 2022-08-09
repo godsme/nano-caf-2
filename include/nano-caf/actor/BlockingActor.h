@@ -10,7 +10,9 @@
 #include <thread>
 
 namespace nano_caf {
-    struct BlockingActor : AbstractActor, protected SchedActor {
+    struct BlockingActor
+            : AbstractActor
+            , protected SchedActor {
         explicit BlockingActor(bool);
         ~BlockingActor();
 

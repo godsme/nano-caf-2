@@ -9,7 +9,10 @@
 #include <nano-caf/actor/SchedActor.h>
 
 namespace nano_caf {
-    struct NonblockingActor : AbstractActor, protected SchedActor, private Resumable {
+    struct NonblockingActor
+            : AbstractActor
+            , protected SchedActor
+            , private Resumable {
         using SchedActor::SchedActor;
 
     private:
