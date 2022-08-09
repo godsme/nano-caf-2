@@ -44,22 +44,22 @@ namespace nano_caf {
 
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
+            return SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeMessage<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...));
+            return SendMsg(MakeMessage<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
+            return SendMsg(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeMessage<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
+            return SendMsg(MakeMessage<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
@@ -85,27 +85,27 @@ namespace nano_caf {
 
         using ActorPtr::Release;
 
+        auto SendMsg(Message*) const noexcept -> Status;
+
     private:
         friend struct Actor;
 
         template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
         auto DoRequest(ActorHandle const& sender, HANDLER&& handler, ARGS&& ... args) const noexcept -> Status {
-            return Send(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
+            return SendMsg(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, typename R, Message::Category CATEGORY = Message::NORMAL, typename F, typename ... ARGS>
         auto DoRequest(F&& f, ARGS&& ... args) -> Result<R> {
             Requester<R> requester{};
             auto&& future = requester.GetFuture();
-            auto status = Send(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(requester), std::forward<ARGS>(args)...));
+            auto status = SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(requester), std::forward<ARGS>(args)...));
             if(status != Status::OK) {
                 return Result<R>{ResultTag::CAUSE, status};
             }
 
             return f(future);
         }
-
-        auto Send(Message*) const noexcept -> Status;
     };
 }
 

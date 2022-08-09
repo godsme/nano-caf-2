@@ -39,7 +39,6 @@ namespace nano_caf {
 
     protected:
         auto Exit_(ExitReason reason) -> void;
-
     private:
         virtual auto InitHandler() noexcept -> void {}
         virtual auto ExitHandler(ExitReason) noexcept -> void {}
@@ -50,7 +49,7 @@ namespace nano_caf {
         std::optional<ExitReason> m_exitReason;
 
     protected:
-        std::unique_ptr<Message> m_currentMsg{};
+        mutable std::unique_ptr<Message> m_currentMsg{};
         bool m_inited{false};
     };
 }

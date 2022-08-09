@@ -15,7 +15,8 @@ namespace nano_caf {
     struct Message : ListElem<Message>  {
         enum Category : uint64_t {
             NORMAL,
-            URGENT
+            URGENT,
+            DEFAULT
         };
 
         explicit Message(MsgTypeId id,  Category category = Category::NORMAL)

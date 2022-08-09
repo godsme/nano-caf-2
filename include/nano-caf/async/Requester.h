@@ -38,6 +38,8 @@ namespace nano_caf {
             OnSuccess(value);
         }
         auto Join(Future<R>&& future, ActorWeakPtr&) noexcept -> void override {
+            if(future.IsForward()) return;
+
             future.Fail([this](Status cause) {
                 OnFail_(cause);
             });

@@ -37,6 +37,9 @@ namespace nano_caf {
         Either(Either&& result) : Parent{static_cast<Parent&&>(result)} {}
         Either(Either const& result) : Parent{static_cast<Parent const&>(result)} {}
 
+        auto operator=(Either const& result) noexcept -> Either& = default;
+        auto operator=(Either&& result) noexcept -> Either& = default;
+
         auto Left() const noexcept -> LeftType const* {
             return std::get_if<0>(static_cast<Parent const*>(this));
         }

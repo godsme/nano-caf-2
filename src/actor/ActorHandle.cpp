@@ -14,7 +14,7 @@ namespace nano_caf {
         return result;
     }
 
-    auto ActorHandle::Send(Message* msg) const noexcept -> Status {
+    auto ActorHandle::SendMsg(Message* msg) const noexcept -> Status {
         auto actor = ActorPtr::Get();
         if(actor == nullptr) return Status::NULL_ACTOR;
         return actor->SendMsg(msg);

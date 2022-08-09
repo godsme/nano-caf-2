@@ -17,17 +17,40 @@ namespace {
 
     __CAF_actor_interface(Msg, MSG_interface_id,
         (Open,  (const long&) -> long),
+        (View,  (const long&) -> long),
         (Close, () -> void)
     );
 
+    struct Server : Actor {
+        auto GetBehavior() noexcept -> Behavior {
+            return {
+                [](Msg::View, long value) -> long {
+                    return 100 + value;
+                },
+                [this](Msg::Close) -> void {
+                    Exit(ExitReason::NORMAL);
+                }
+            };
+        }
+    };
     struct MyActor : Actor {
+        ActorHandle server{};
+
+        auto OnInit() -> void {
+            server = SpawnBlockingActor<Server>();
+        }
+
         auto GetBehavior() noexcept -> Behavior {
             return {
                 [](Msg::Open, long value) -> long {
                     return 10 + value;
                 },
+                [this](Msg::View, long value) -> Future<long> {
+                    return Future<long>::Forward(ForwardTo(server));
+                },
                 [this](Msg::Close) -> void {
-                    Exit(ExitReason::NORMAL);
+                    Request<Msg::Close>(server)
+                        .Then([this] { Exit(ExitReason::NORMAL); });
                 },
             };
         }
@@ -52,6 +75,10 @@ SCENARIO("Blocking Actor Send") {
     auto result = actor.Request<Msg::Open>(22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
+
+    result = actor.Request<Msg::View>(22);
+    REQUIRE(result.Ok());
+    REQUIRE(*result == 122);
 
     actor.Send<Msg::Close>();
 

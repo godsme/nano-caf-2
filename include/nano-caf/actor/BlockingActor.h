@@ -13,7 +13,7 @@ namespace nano_caf {
     struct BlockingActor
             : AbstractActor
             , protected SchedActor {
-        explicit BlockingActor(bool);
+        explicit BlockingActor(bool sync);
         ~BlockingActor();
 
     private:

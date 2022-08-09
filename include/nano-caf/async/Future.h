@@ -13,15 +13,28 @@
 #include <memory>
 
 namespace nano_caf {
+    namespace detail {
+        struct FutureForwardTag {};
+    }
+
     template<typename T>
     struct Future final {
+    private:
+        Future(detail::FutureForwardTag) : m_forward{true} {}
+    public:
         using Object = ValueTypeOf<T>;
         using ObjectType = std::shared_ptr<detail::FutureObject<T>>;
+
+        static auto Forward(Status status = Status::OK) -> Future<T> {
+            return status == Status::OK ? Future{detail::FutureForwardTag{}} : Future{};
+        }
 
         Future() noexcept = default;
         Future(ObjectType object) noexcept
             : m_object{std::move(object)}
         {}
+
+
 
         template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, Object> && !std::is_convertible_v<R, ObjectType>>>
         Future(R&& value) noexcept
@@ -66,12 +79,16 @@ namespace nano_caf {
             m_object.reset();
         }
 
+        auto IsForward() const -> bool {
+            return m_forward;
+        }
     private:
         template<typename, typename, typename>
         friend struct detail::FutureCallbackProxy;
 
     private:
         ObjectType m_object;
+        bool m_forward{false};
     };
 }
 

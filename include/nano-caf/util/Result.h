@@ -35,6 +35,9 @@ namespace nano_caf {
         Result(Result&& result) : Parent{static_cast<Parent&&>(result)} {}
         Result(Result const& result) : Parent{static_cast<Parent const&>(result)} {}
 
+        auto operator=(Result const& result) noexcept -> Result& = default;
+        auto operator=(Result&& result) noexcept -> Result& = default;
+
         auto Ok() const noexcept -> bool {
             return Parent::Index() == 0;
         }

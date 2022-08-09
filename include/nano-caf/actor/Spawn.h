@@ -123,6 +123,14 @@ namespace nano_caf::detail {
             m_behavior = to;
         }
 
+        auto ForwardTo(ActorHandle const& to, Message::Category category = Message::DEFAULT) const noexcept -> Status override {
+            if(m_currentMsg == nullptr) return Status::NULL_PTR;
+            if(category != Message::DEFAULT) {
+                m_currentMsg->category = category;
+            }
+            return to.SendMsg(m_currentMsg.release());
+        }
+
         ~ActorObject() {
             detail::ActorTimerContext::ClearAllTimers((intptr_t)this);
         }
@@ -133,18 +141,23 @@ namespace nano_caf::detail {
 }
 
 namespace nano_caf {
-    template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
-    auto Spawn(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::ActorObject<T, NonblockingActor>;
-        auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
-        return ptr ? ptr.Get() : nullptr;
+    namespace detail {
+        template<typename T, typename ActorType, bool SYNC, typename MEM_ALLOCATOR, typename ... ARGS>
+        auto DoSpawn(ARGS&& ... args) -> ActorHandle {
+            using ActorObject = detail::ActorObject<T, ActorType>;
+            auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
+            return ptr ? ptr.Get() : nullptr;
+        }
     }
 
-    template<typename T, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
+    template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
+    auto Spawn(ARGS&& ... args) -> ActorHandle {
+        return detail::DoSpawn<T, NonblockingActor, SYNC, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
+    }
+
+    template<typename T, bool SYNC = true, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
     auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
-        using ActorObject = detail::ActorObject<T, BlockingActor>;
-        auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(true, std::forward<ARGS>(args)...);
-        return ptr ? ptr.Get() : nullptr;
+        return detail::DoSpawn<T, BlockingActor, SYNC, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
     }
 }
 

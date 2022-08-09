@@ -94,6 +94,8 @@ namespace nano_caf {
             return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
+        virtual auto ForwardTo(ActorHandle const& to, Message::Category CATEGORY = Message::DEFAULT) const noexcept -> Status = 0;
+
     private:
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {

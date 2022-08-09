@@ -6,7 +6,7 @@
 #include <numeric>
 
 namespace nano_caf {
-    BlockingActor::BlockingActor(bool) : SchedActor(true) {
+    BlockingActor::BlockingActor(bool sync) : SchedActor(sync) {
         Run();
     }
     BlockingActor::~BlockingActor() {
