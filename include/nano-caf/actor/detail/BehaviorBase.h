@@ -20,29 +20,34 @@ namespace nano_caf::detail {
         F f_;
 
         using ResultType = typename CallableTrait<F>::ResultType;
+        using Handler = auto (*)(MSG_TYPE& msg, F& f) -> ResultType;
 
-        auto HandleMsg(Message &msg, auto (*handler)(MSG_TYPE& msg, F& f) -> ResultType) -> bool {
+        template<typename T, typename R = typename T::ResultType>
+        auto HandlePromiseMsg(ActorWeakPtr &sender, AbstractPromise<R>& promise, T& body, Handler handler) -> void {
+            if constexpr (IS_FUTURE<ResultType>) {
+                promise.Join(handler(body, f_), sender);
+            } else if constexpr(std::is_void_v<ResultType>) {
+                handler(body, f_);
+                promise.Reply(Void, sender);
+            } else {
+                promise.Reply(handler(body, f_), sender);
+            }
+        }
+
+        auto HandleMsg(Message &msg, Handler handler) -> bool {
             auto *body = msg.Body<MSG_TYPE>();
             if (body == nullptr) return false;
             if constexpr (IS_REQUEST<MSG_TYPE>) {
                 auto* p = msg.Promise<MSG_TYPE>();
                 if(p == nullptr) {
-                    // should never happend
-                    return true;
-                }
-
-                if constexpr (IS_FUTURE<ResultType>) {
-                    p->Join(handler(*body, f_), msg.sender);
-                } else if constexpr(std::is_void_v<ResultType>) {
+                    // no promise, sender doesn't care about the result.
                     handler(*body, f_);
-                    p->Reply(Void, msg.sender);
                 } else {
-                    p->Reply(handler(*body, f_), msg.sender);
+                    HandlePromiseMsg<MSG_TYPE>(msg.sender, *p, *body, handler);
                 }
             } else {
                 handler(*body, f_);
             }
-
             return true;
         }
     };

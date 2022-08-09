@@ -12,7 +12,7 @@ using namespace nano_caf;
 
 namespace {
     enum : uint32_t {
-        MSG_interface_id = 1
+        MSG_interface_id = 2
     };
 
     __CAF_actor_interface(Msg, MSG_interface_id,
