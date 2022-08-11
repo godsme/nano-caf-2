@@ -146,7 +146,8 @@ namespace nano_caf {
         auto DoSpawn(ARGS&& ... args) -> ActorHandle {
             using ActorObject = detail::ActorObject<T, ActorType>;
             auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
-            return ptr ? ptr.Get() : nullptr;
+            CAF_ASSERT_TRUE_NIL(ptr);
+            return ptr.Get();
         }
     }
 

@@ -32,6 +32,7 @@ add_library(nano_caf
         include/nano-caf/util/AggregateTrait.h
         include/nano-caf/util/ShutdownNotifier.h
         include/nano-caf/util/CvNotifier.h
+        include/nano-caf/util/Assertions.h
         include/nano-caf/scheduler/Resumable.h
         include/nano-caf/scheduler/WorkSharingQueue.h
         include/nano-caf/scheduler/Coordinator.h
@@ -100,7 +101,6 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestWorkSharingQueue.cpp
         tests/ut/TestWorker.cpp
         tests/ut/TestActor.cpp
-        tests/ut/TestCoordinator.cpp
         tests/ut/TestSchedActor.cpp
         tests/ut/TestFutureObject.cpp
         tests/ut/TestFutureCallbackObject.cpp

@@ -5,6 +5,7 @@
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/util/Assertions.h>
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired) {
@@ -25,7 +26,7 @@ namespace nano_caf {
     }
 
     auto SchedActor::Wait(ExitReason& reason) noexcept -> Status {
-        if(!m_promise) return Status::FAILED;
+        CAF_ASSERT_TRUE(m_promise);
         auto&& future = m_promise->get_future();
         future.wait();
         reason = future.get();

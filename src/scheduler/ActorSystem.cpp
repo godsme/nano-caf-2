@@ -5,6 +5,7 @@
 #include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/scheduler/Coordinator.h>
 #include <nano-caf/timer/ActorTimerSystem.h>
+#include <nano-caf/util/Assertions.h>
 
 namespace nano_caf {
     struct ActorSystem::ActorSystemImpl
@@ -33,9 +34,8 @@ namespace nano_caf {
     auto ActorSystem::StartUp(std::size_t numOfWorkers) noexcept -> Status {
         if(m_impl == nullptr) {
             m_impl = new ActorSystemImpl{};
-            if(m_impl == nullptr) {
-                return Status::OUT_OF_MEM;
-            }
+            CAF_ASSERT_NEW_PTR(m_impl);
+
             m_impl->StartUp(numOfWorkers);
         }
 
@@ -54,22 +54,22 @@ namespace nano_caf {
                      TimerSpec const& spec,
                      std::size_t repeatTimes,
                      TimeoutCallback&& callback) -> Result<TimerId> {
-        if(m_impl == nullptr) return Status::NULL_PTR;
+        CAF_ASSERT_VALID_PTR(m_impl);
         return m_impl->StartTimer(self, spec, repeatTimes, std::move(callback));
     }
 
     auto ActorSystem::StopTimer(TimerId const& timerId) -> Status {
-        if(m_impl == nullptr) return Status::NULL_PTR;
+        CAF_ASSERT_VALID_PTR(m_impl);
         return m_impl->StopTimer(timerId);
     }
 
     auto ActorSystem::ClearActorTimer(intptr_t actorId) -> Status {
-        if(m_impl == nullptr) return Status::NULL_PTR;
+        CAF_ASSERT_VALID_PTR(m_impl);
         return m_impl->ClearActorTimer(actorId);
     }
 
     auto ActorSystem::Schedule(Resumable* resumable) noexcept -> Status {
-        if(m_impl == nullptr) return Status::NULL_PTR;
+        CAF_ASSERT_VALID_PTR(m_impl);
         return m_impl->Schedule(resumable);
     }
 }

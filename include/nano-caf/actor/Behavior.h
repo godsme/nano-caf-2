@@ -6,12 +6,12 @@
 #define NANO_CAF_2_2239C8FB16B44B439B32BB3860323AF3
 
 #include <nano-caf/util/CallableTrait.h>
+#include <nano-caf/util/Assertions.h>
 #include <nano-caf/actor/detail/MsgHandler.h>
 #include <nano-caf/actor/detail/BehaviorObject.h>
 #include <nano-caf/actor/detail/Behaviors.h>
 #include <memory>
 #include <vector>
-#include <spdlog/spdlog.h>
 
 namespace nano_caf {
     struct Behavior {
@@ -23,10 +23,7 @@ namespace nano_caf {
             static_assert(((CallableTrait<ARGS>::NUM_OF_ARGS > 0) && ...));
             m_handlers = std::make_shared<Handlers>(
                     std::initializer_list<Handler>{std::make_shared<detail::BehaviorObject<ARGS>>(std::move(args))...});
-            if(m_handlers == nullptr) {
-                SPDLOG_ERROR("create behaviors failed, out of memory");
-                return;
-            }
+            CAF_ASSERT_VALID_PTR_VOID(m_handlers);
             for(auto&& handler : *m_handlers) {
                 if(handler == nullptr) {
                     SPDLOG_ERROR("create behavior failed, out of memory");
@@ -39,11 +36,7 @@ namespace nano_caf {
         Behavior() = default;
 
         auto HandleMsg(Message& msg) noexcept -> bool {
-            if(m_handlers == nullptr) {
-                SPDLOG_WARN("empty behavior");
-                return false;
-            }
-
+            CAF_ASSERT_VALID_PTR_BOOL(m_handlers);
             for(auto&& handler : *m_handlers) {
                 if(handler->HandleMsg(msg)) {
                     return true;
@@ -58,8 +51,8 @@ namespace nano_caf {
         }
 
     private:
-
-        Behavior(std::shared_ptr<Handlers> handlers) : m_handlers{handlers} {}
+        Behavior(std::shared_ptr<Handlers> handlers)
+            : m_handlers{std::move(handlers)} {}
 
     public:
         friend auto operator+(Behavior const& lhs, Behavior const& rhs) -> Behavior {

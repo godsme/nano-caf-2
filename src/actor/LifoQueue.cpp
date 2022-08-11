@@ -4,12 +4,13 @@
 #include <nano-caf/actor/LifoQueue.h>
 #include <nano-caf/msg/Message.h>
 #include <memory>
+#include <nano-caf/util/Assertions.h>
 
 namespace nano_caf {
     LifoQueue::LifoQueue() : m_stack{Blocked()} {}
 
     auto LifoQueue::Enqueue(Message* msg) noexcept -> Status {
-        if(msg == nullptr) return Status::NULL_PTR;
+        CAF_ASSERT_VALID_PTR(msg);
         auto* head = m_stack.load();
         auto* closed = Eof();
 

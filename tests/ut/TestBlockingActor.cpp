@@ -80,8 +80,6 @@ SCENARIO("Blocking Actor Send") {
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-
-
     actor.Send<Msg::Close>();
 
     ExitReason reason{ExitReason::UNKNOWN};

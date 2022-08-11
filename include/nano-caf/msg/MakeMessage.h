@@ -92,22 +92,22 @@ namespace nano_caf::detail {
 }
 
 namespace nano_caf {
-    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
     auto MakeMessage(ARGS&& ... args) -> Message* {
         return new detail::MessageEntity<T, CATEGORY>(std::forward<ARGS>(args)...);
     }
 
-    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
     auto MakeMessage(ActorPtr const& sender, ARGS&& ... args) -> Message* {
         return new detail::MessageEntity<T, CATEGORY>(sender, std::forward<ARGS>(args)...);
     }
 
-    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename HANDLER, typename ... ARGS>
     auto MakeRequest(ActorPtr const& sender, HANDLER&& handler, ARGS&& ... args) -> Message* {
         return new detail::RequestEntity<T, HANDLER, CATEGORY>(sender, std::forward<HANDLER>(handler), std::forward<ARGS>(args)...);
     }
 
-    template<typename T, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+    template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename HANDLER, typename ... ARGS>
     auto MakeRequest(HANDLER&& handler, ARGS&& ... args) -> Message* {
         return new detail::RequestEntity<T, HANDLER, CATEGORY>(std::forward<HANDLER>(handler), std::forward<ARGS>(args)...);
     }

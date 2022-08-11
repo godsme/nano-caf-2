@@ -42,34 +42,34 @@ namespace nano_caf {
             return ActorWeakPtr{*this};
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
             return SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
         auto Send(ARGS&& ... args) const noexcept -> Status {
             return SendMsg(MakeMessage<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
             return SendMsg(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
         auto Send(ActorHandle const& sender, ARGS&& ... args) const noexcept -> Status {
             return SendMsg(MakeMessage<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<ARGS>(args)...));
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
         auto Request(ARGS&& ... args) -> Result<R> {
             return DoRequest<ATOM, R, CATEGORY>([](auto&& future) -> Result<R> {
                 return future.get();
             }, std::forward<ARGS>(args)...);
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
         auto Request(std::chrono::duration<Rep, Period> duration, ARGS&& ... args) -> Result<R> {
             return DoRequest<ATOM, R, CATEGORY>([&duration](auto&& future) {
                 if(future.wait_for(duration) != std::future_status::ready) {
@@ -90,12 +90,12 @@ namespace nano_caf {
     private:
         friend struct Actor;
 
-        template<typename MSG, Message::Category CATEGORY = Message::NORMAL, typename HANDLER, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename HANDLER, typename ... ARGS>
         auto DoRequest(ActorHandle const& sender, HANDLER&& handler, ARGS&& ... args) const noexcept -> Status {
             return SendMsg(MakeRequest<MSG, CATEGORY>(static_cast<ActorPtr const&>(sender), std::forward<HANDLER>(handler), std::forward<ARGS>(args)...));
         }
 
-        template<typename ATOM, typename R, Message::Category CATEGORY = Message::NORMAL, typename F, typename ... ARGS>
+        template<typename ATOM, typename R, Message::Category CATEGORY = Message::DEFAULT, typename F, typename ... ARGS>
         auto DoRequest(F&& f, ARGS&& ... args) -> Result<R> {
             Requester<R> requester{};
             auto&& future = requester.GetFuture();
