@@ -29,7 +29,7 @@ SCENARIO("non atom behavior object") {
 
     detail::BehaviorObject<decltype(f)> obj(std::move(f));
 
-    REQUIRE(obj(*msg));
+    REQUIRE(obj.HandleMsg(*msg));
     REQUIRE(invoked);
 }
 
@@ -48,7 +48,7 @@ SCENARIO("atom behavior object") {
 
     detail::BehaviorObject<decltype(f)> obj(std::move(f));
 
-    REQUIRE(obj(*msg));
+    REQUIRE(obj.HandleMsg(*msg));
     REQUIRE(invoked);
 }
 
@@ -84,7 +84,7 @@ SCENARIO("request behavior object non void") {
 
     detail::BehaviorObject<decltype(f)> obj(std::move(f));
 
-    REQUIRE(obj(*msg));
+    REQUIRE(obj.HandleMsg(*msg));
     REQUIRE(invoked);
 
     auto* handler = dynamic_cast<OpenHandler*>(msg->Promise<Msg3::Open::MsgType>());
@@ -113,7 +113,7 @@ SCENARIO("request behavior object void") {
 
     detail::BehaviorObject<decltype(f)> obj(std::move(f));
 
-    REQUIRE(obj(*msg));
+    REQUIRE(obj.HandleMsg(*msg));
     REQUIRE(invoked);
 
     auto* handler = dynamic_cast<CloseHandler*>(msg->Promise<Msg3::Close::MsgType>());

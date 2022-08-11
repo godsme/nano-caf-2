@@ -17,6 +17,8 @@ namespace nano_caf::detail {
     template<typename F, typename MSG_TYPE>
     struct BehaviorBase {
         BehaviorBase(F &&f) : f_(std::move(f)) {}
+
+    private:
         F f_;
 
         using ResultType = typename CallableTrait<F>::ResultType;
@@ -34,6 +36,7 @@ namespace nano_caf::detail {
             }
         }
 
+    protected:
         auto HandleMsg(Message &msg, Handler handler) -> bool {
             auto *body = msg.Body<MSG_TYPE>();
             if (body == nullptr) return false;

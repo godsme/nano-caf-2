@@ -26,24 +26,29 @@ namespace nano_caf {
         virtual auto Exit(ExitReason) noexcept -> void = 0;
         virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
 
-        template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+        template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         inline auto Send(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
             return to.Send<T, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::forward<ARGS>(args)...);
         }
 
-        template<typename T, Message::Category CATEGORY = Message::NORMAL, typename ... ARGS>
+        template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
+        inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
+            return static_cast<ActorHandle const&>(Self()).Send<T, CATEGORY>(std::forward<ARGS>(args)...);
+        }
+
+        template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         inline auto Reply(ARGS&& ... args) const noexcept -> Status {
             return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
         inline auto Request(ActorHandle const& to, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [](auto&& future) { return Future<R>{future}; },
                              std::forward<ARGS>(args)...);
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
         inline auto Request(ActorHandle const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [&timeout, this](auto&& future) mutable -> Future<R> {
