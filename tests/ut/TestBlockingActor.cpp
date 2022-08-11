@@ -46,7 +46,7 @@ namespace {
                     return 10 + value;
                 },
                 [this](Msg::View, long value) -> Future<long> {
-                    return Future<long>::Forward(ForwardTo(server));
+                    return ForwardTo<long, Message::URGENT>(server);
                 },
                 [this](Msg::Close) -> void {
                     Request<Msg::Close>(server)

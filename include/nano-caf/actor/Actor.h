@@ -99,7 +99,12 @@ namespace nano_caf {
             return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
-        virtual auto ForwardTo(ActorHandle const& to, Message::Category CATEGORY = Message::DEFAULT) const noexcept -> Status = 0;
+        template<typename R, Message::Category CATEGORY = Message::DEFAULT>
+        inline auto ForwardTo(ActorHandle const& to) const noexcept -> Future<R> {
+            return Future<R>::Forward(ForwardTo(to, CATEGORY));
+        }
+
+        virtual auto ForwardTo(ActorHandle const& to, Message::Category = Message::DEFAULT) const noexcept -> Status = 0;
 
     private:
         template<typename F>
