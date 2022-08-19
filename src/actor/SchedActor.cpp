@@ -5,37 +5,23 @@
 #include <nano-caf/actor/SchedActor.h>
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
-#include <nano-caf/util/Assertions.h>
+#include <nano-caf/actor/detail/ActorCtlBlock.h>
 
 namespace nano_caf {
     SchedActor::SchedActor(bool syncRequired) {
         if(syncRequired) {
-            m_promise.emplace();
+            CtlBlock()->EnableSync();
         }
     }
 
     auto SchedActor::OnExit(ExitReason reason) noexcept -> void {
         ExitHandler(reason);
-        TrySync();
+        CtlBlock()->OnExit(*m_exitReason);
     }
 
     SchedActor::~SchedActor() {
         if(!m_exitReason) {
             OnExit(ExitReason::UNKNOWN);
-        }
-    }
-
-    auto SchedActor::Wait(ExitReason& reason) noexcept -> Status {
-        CAF_ASSERT_TRUE(m_promise);
-        auto&& future = m_promise->get_future();
-        future.wait();
-        reason = future.get();
-        return Status::OK;
-    }
-
-    auto SchedActor::TrySync() noexcept -> void {
-        if(m_promise) {
-            m_promise->set_value(*m_exitReason);
         }
     }
 
@@ -45,6 +31,13 @@ namespace nano_caf {
             return TaskResult::DONE;
         }
         return TaskResult::SUSPENDED;
+    }
+
+    auto SchedActor::Close(ExitReason reason) -> void {
+        if(!m_exitReason) {
+            m_exitReason.emplace(reason);
+            OnExit(*m_exitReason);
+        }
     }
 
     auto SchedActor::Init() noexcept -> TaskResult {
@@ -100,5 +93,9 @@ namespace nano_caf {
                 break;
             }
         }
+    }
+
+    auto SchedActor::CtlBlock() noexcept -> detail::ActorCtlBlock* {
+        return reinterpret_cast<detail::ActorCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
     }
 }

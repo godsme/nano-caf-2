@@ -26,8 +26,9 @@ namespace nano_caf {
         explicit SharedPtrDataHolder(T* ptr) noexcept : m_ptr{ptr} {}
 
     protected:
-        auto CtlBlock() const noexcept -> SharedPtrCtlBlock* {
-            return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(m_ptr) - CACHE_LINE_SIZE);
+        auto CtlBlock() const noexcept -> detail::SharedPtrCtlBlock* {
+            if(m_ptr == nullptr) return nullptr;
+            return reinterpret_cast<detail::SharedPtrCtlBlock*>(reinterpret_cast<char*>(m_ptr) - CACHE_LINE_SIZE);
         }
 
     protected:

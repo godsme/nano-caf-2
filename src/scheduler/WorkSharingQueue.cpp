@@ -9,10 +9,8 @@ namespace nano_caf {
     template struct Queue<Resumable>;
 
     auto WorkSharingQueue::Reschedule(Resumable* task) noexcept -> void {
-        {
-            std::unique_lock lock{m_lock};
-            m_tasks.Enqueue(task);
-        }
+        std::unique_lock lock{m_lock};
+        m_tasks.Enqueue(task);
         m_cv.notify_one();
     }
 

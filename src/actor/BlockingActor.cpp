@@ -9,15 +9,19 @@ namespace nano_caf {
     BlockingActor::BlockingActor(bool sync) : SchedActor(sync) {
         Run();
     }
+
     BlockingActor::~BlockingActor() {
-        // TODO:
+        if(!m_closed.exchange(true)) {
+            m_cv.WakeUp();
+        }
+        m_thread.join();
     }
 
-    auto BlockingActor::Sleep() noexcept -> void {
-        std::unique_lock lock{m_lock};
-        m_cv.wait(lock, [this]() {
-            return !SchedActor::IsBlocked();
+    auto BlockingActor::Sleep() noexcept -> bool {
+        m_cv.Wait([this]() {
+            return !MailBox::IsBlocked() || m_closed;
         });
+        return m_closed;
     }
 
     namespace {
@@ -26,24 +30,26 @@ namespace nano_caf {
     auto BlockingActor::Run() noexcept -> void {
         m_thread = std::thread([this](){
             while(1) {
-                Sleep();
+                if(Sleep()) {
+                    SchedActor::Close(ExitReason::ABNORMAL);
+                    break;
+                }
                 SchedActor::Resume(NO_LIMITS);
-                if(SchedActor::IsClosed()) break;
+                if(MailBox::IsClosed()) {
+                    m_closed = true;
+                    break;
+                }
             }
         });
-        m_thread.detach();
     }
 
-    auto BlockingActor::SendMsg(Message* msg) noexcept -> Status {
-        if(auto status = SchedActor::SendMsg(msg); status != Status::BLOCKED) {
+    auto BlockingActor::Send(Message* msg) noexcept -> Status {
+        if(auto status = MailBox::SendMsg(msg); status != Status::BLOCKED) {
             return status;
         }
-        m_cv.notify_one();
-        return Status::OK;
-    }
 
-    auto BlockingActor::Wait(ExitReason& reason) noexcept -> Status {
-        SchedActor::Wait(reason);
+        m_cv.WakeUp();
+
         return Status::OK;
     }
 }

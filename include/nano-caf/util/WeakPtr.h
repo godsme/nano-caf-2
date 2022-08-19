@@ -13,6 +13,8 @@ namespace nano_caf {
     private:
         using Parent = SharedPtrDataHolder<T>;
         using Parent::m_ptr;
+
+    protected:
         using Parent::CtlBlock;
 
     public:

@@ -5,7 +5,7 @@
 #ifndef NANO_CAF_2_28C671DF7AB34E83BDED55878F4A9D22
 #define NANO_CAF_2_28C671DF7AB34E83BDED55878F4A9D22
 
-#include <nano-caf/scheduler/Resumable.h>
+#include <nano-caf/actor/AbstractActor.h>
 #include <nano-caf/util/CacheLineSize.h>
 #include <nano-caf/actor/MailBox.h>
 #include <nano-caf/actor/ExitReason.h>
@@ -14,18 +14,16 @@
 #include <optional>
 
 namespace nano_caf {
-    struct SharedPtrCtlBlock;
+    namespace detail {
+        struct ActorCtlBlock;
+    }
 
     struct SchedActor
-            : protected MailBox {
+            : AbstractActor
+            , protected MailBox {
         explicit SchedActor(bool syncRequired = false);
         ~SchedActor();
 
-        using MailBox::SendMsg;
-        using MailBox::IsBlocked;
-        using MailBox::IsClosed;
-
-        auto Wait(ExitReason& reason) noexcept -> Status;
         auto Resume(std::size_t maxSchedMsgs) noexcept -> TaskResult;
 
     private:
@@ -33,19 +31,20 @@ namespace nano_caf {
 
     private:
         auto ExitCheck() noexcept -> TaskResult;
-        auto TrySync() noexcept -> void;
         auto OnExit(ExitReason) noexcept -> void;
         auto HandleMsg(Message&) noexcept -> void;
 
     protected:
         auto Exit_(ExitReason reason) -> void;
+        auto Close(ExitReason reason) -> void;
+        auto CtlBlock() noexcept -> detail::ActorCtlBlock*;
+
     private:
         virtual auto InitHandler() noexcept -> void {}
         virtual auto ExitHandler(ExitReason) noexcept -> void {}
         virtual auto HandleUserDefinedMsg(Message&) noexcept -> bool { return false; };
 
     private:
-        std::optional<std::promise<ExitReason>> m_promise;
         std::optional<ExitReason> m_exitReason;
 
     protected:

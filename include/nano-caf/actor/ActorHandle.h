@@ -6,6 +6,7 @@
 #define NANO_CAF_2_18EE9B4948A14E4F89BFE3893421ECE2
 
 #include <nano-caf/actor/ActorPtr.h>
+#include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/async/Requester.h>
 #include <nano-caf/msg/Atom.h>

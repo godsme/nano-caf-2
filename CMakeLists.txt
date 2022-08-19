@@ -40,6 +40,7 @@ add_library(nano_caf
         include/nano-caf/actor/AbstractActor.h
         include/nano-caf/actor/NonblockingActor.h
         include/nano-caf/actor/detail/MsgHandler.h
+        include/nano-caf/actor/detail/ActorCtlBlock.h
         include/nano-caf/actor/detail/BehaviorBase.h
         include/nano-caf/actor/detail/Behaviors.h
         include/nano-caf/actor/detail/MsgTypeTrait.h
@@ -91,6 +92,7 @@ add_library(nano_caf
         src/actor/ActorHandle.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/actor/detail/ActorTimerContext.cpp
+        src/actor/detail/ActorCtlBlock.cpp
         src/util/SharedPtrCtlBlock.cpp
         src/timer/TimerId.cpp
         src/timer/TimerSet.cpp

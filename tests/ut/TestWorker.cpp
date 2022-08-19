@@ -35,6 +35,7 @@ namespace {
 using namespace std::chrono_literals;
 
 SCENARIO("Worker") {
+    numOfTasks = 0;
     WorkSharingQueue queue;
 
     Worker worker1 = Worker(queue);

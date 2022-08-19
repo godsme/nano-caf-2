@@ -4,17 +4,14 @@
 
 #include <nano-caf/actor/NonblockingActor.h>
 #include <nano-caf/scheduler/ActorSystem.h>
+#include <nano-caf/actor/detail/ActorCtlBlock.h>
 
 namespace nano_caf {
-    auto NonblockingActor::SendMsg(Message* msg) noexcept -> Status {
-        if(auto status = SchedActor::SendMsg(msg); status != Status::BLOCKED) {
+    auto NonblockingActor::Send(Message* msg) noexcept -> Status {
+        if(auto status = MailBox::SendMsg(msg); status != Status::BLOCKED) {
             return status;
         }
         return ActorSystem::Instance().Schedule(this);
-    }
-
-    auto NonblockingActor::Wait(ExitReason& reason) noexcept -> Status {
-        return SchedActor::Wait(reason);
     }
 
     namespace {
@@ -26,14 +23,10 @@ namespace nano_caf {
     }
 
     auto NonblockingActor::AddRef() noexcept -> void {
-        return CtlBlock()->AddRef();
+        return SchedActor::CtlBlock()->AddRef();
     }
 
     auto NonblockingActor::Release() noexcept -> void {
-        return CtlBlock()->Release();
-    }
-
-    auto NonblockingActor::CtlBlock() noexcept -> SharedPtrCtlBlock* {
-        return reinterpret_cast<SharedPtrCtlBlock*>(reinterpret_cast<char*>(this) - CACHE_LINE_SIZE);
+        return SchedActor::CtlBlock()->Release();
     }
 }

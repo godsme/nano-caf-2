@@ -64,6 +64,7 @@ namespace nano_caf::detail {
     struct RequestEntity : MessageEntity<T, CATEGORY> {
         using Parent = MessageEntity<T, CATEGORY>;
         using Handler = std::decay_t<HANDLER>;
+        using PromiseType = AbstractPromise<typename T::ResultType>;
 
         template<typename ... ARGS>
         RequestEntity(ActorPtr const& sender, HANDLER&& handler, ARGS&&...args)
@@ -77,12 +78,11 @@ namespace nano_caf::detail {
         {}
 
         auto GetPromise() const noexcept -> void* override {
-            return reinterpret_cast<void*>(const_cast<Handler*>(&m_handler));
+            return reinterpret_cast<void*>(static_cast<PromiseType*>(const_cast<Handler*>(&m_handler)));
         }
 
         virtual auto OnDiscard() noexcept -> void override {
-            auto&& notifier = reinterpret_cast<FailNotifier&>(m_handler);
-            notifier.OnFail(Status::DISCARDED, Parent::sender);
+            static_cast<FailNotifier&>(m_handler).OnFail(Status::DISCARDED, Parent::sender);
         }
 
     private:

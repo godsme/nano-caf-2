@@ -5,6 +5,7 @@
 #include <nano-caf/util/SharedPtr.h>
 #include <nano-caf/msg/Message.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/actor/detail/ActorCtlBlock.h>
 
 #include <catch.hpp>
 
@@ -13,6 +14,10 @@ using namespace std::chrono_literals;
 
 namespace {
     struct MySchedActor : SchedActor {
+        auto Send(Message* msg) noexcept -> Status override {
+            return MailBox::SendMsg(msg);
+        }
+
         virtual auto HandleUserDefinedMsg(Message& msg) noexcept -> bool override {
             msgs[numOfMsgs++] = msg.id;
             if(msg.id == 1000) SchedActor::Exit_(ExitReason::SHUTDOWN);
@@ -36,7 +41,7 @@ namespace {
         }
     };
 
-    using Actor = SharedBlock<MySchedActor, MemClaimer>;
+    using Actor = SharedBlock<MySchedActor, detail::ActorCtlBlock, MemClaimer>;
 
     std::vector<MsgTypeId> discardMessages;
 
@@ -66,8 +71,8 @@ SCENARIO("SchedActor Resume") {
     {
         auto actor = SharedPtr<MySchedActor>(rawActor, false);
 
-        REQUIRE(actor->SendMsg(new MyMessage{100, Message::Category::NORMAL}) == Status::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{200, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{100, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->Send(new MyMessage{200, Message::Category::URGENT}) == Status::OK);
         REQUIRE(allocatedBlocks == 2);
 
         auto *task = static_cast<SchedActor *>(actor.Get());
@@ -79,10 +84,10 @@ SCENARIO("SchedActor Resume") {
 
         actor->numOfMsgs = 0;
 
-        REQUIRE(actor->SendMsg(new MyMessage{300, Message::Category::NORMAL}) == Status::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{400, Message::Category::URGENT}) == Status::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{500, Message::Category::NORMAL}) == Status::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{600, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{300, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->Send(new MyMessage{400, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{500, Message::Category::NORMAL}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{600, Message::Category::URGENT}) == Status::OK);
         REQUIRE(allocatedBlocks == 4);
 
         REQUIRE(task->Resume(3) == TaskResult::SUSPENDED);
@@ -93,7 +98,7 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(allocatedBlocks == 1);
 
         actor->numOfMsgs = 0;
-        REQUIRE(actor->SendMsg(new MyMessage{700, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{700, Message::Category::URGENT}) == Status::OK);
         REQUIRE(task->Resume(3) == TaskResult::DONE);
         REQUIRE(actor->numOfMsgs == 2);
         REQUIRE(actor->msgs[0] == 700);
@@ -101,16 +106,16 @@ SCENARIO("SchedActor Resume") {
         REQUIRE(allocatedBlocks == 0);
 
         actor->numOfMsgs = 0;
-        REQUIRE(actor->SendMsg(new MyMessage{800, Message::Category::NORMAL}) == Status::BLOCKED);
-        REQUIRE(actor->SendMsg(new MyMessage{900, Message::Category::NORMAL}) == Status::OK);
-        REQUIRE(actor->SendMsg(new MyMessage{1000, Message::Category::URGENT}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{800, Message::Category::NORMAL}) == Status::BLOCKED);
+        REQUIRE(actor->Send(new MyMessage{900, Message::Category::NORMAL}) == Status::OK);
+        REQUIRE(actor->Send(new MyMessage{1000, Message::Category::URGENT}) == Status::OK);
         REQUIRE(task->Resume(3) == TaskResult::DONE);
         REQUIRE(actor->numOfMsgs == 1);
         REQUIRE(actor->msgs[0] == 1000);
         REQUIRE(allocatedBlocks == 0);
         REQUIRE(actor->exitReason == ExitReason::SHUTDOWN);
 
-        REQUIRE(actor->SendMsg(new MyMessage{11, Message::Category::NORMAL}) == Status::CLOSED);
+        REQUIRE(actor->Send(new MyMessage{11, Message::Category::NORMAL}) == Status::CLOSED);
 
         REQUIRE_FALSE(claimed);
     }
@@ -119,13 +124,17 @@ SCENARIO("SchedActor Resume") {
 
 namespace {
     struct MySchedActor2 : SchedActor {
+        auto Send(Message* msg) noexcept -> Status override {
+            return MailBox::SendMsg(msg);
+        }
+
         auto ExitHandler(ExitReason reason) noexcept -> void override {
             exitReason = reason;
         }
         ExitReason exitReason{ExitReason::NORMAL};
     };
 
-    using Actor2 = SharedBlock<MySchedActor2, MemClaimer>;
+    using Actor2 = SharedBlock<MySchedActor2, detail::ActorCtlBlock, MemClaimer>;
 }
 
 namespace {
@@ -141,9 +150,9 @@ SCENARIO("SchedActor Destroy") {
     discardMessages.clear();
     auto actor = SharedPtr<MySchedActor2>((new Actor2{})->Get(), false);
 
-    REQUIRE(actor->SendMsg(new Msg2{100, Message::Category::NORMAL}) == Status::BLOCKED);
-    REQUIRE(actor->SendMsg(new MyMessage{200, Message::Category::URGENT}) == Status::OK);
-    REQUIRE(actor->SendMsg(new Msg2{300, Message::Category::URGENT}) == Status::OK);
+    REQUIRE(actor->Send(new Msg2{100, Message::Category::NORMAL}) == Status::BLOCKED);
+    REQUIRE(actor->Send(new MyMessage{200, Message::Category::URGENT}) == Status::OK);
+    REQUIRE(actor->Send(new Msg2{300, Message::Category::URGENT}) == Status::OK);
     REQUIRE(allocatedBlocks == 3);
     REQUIRE(discardMessages.size() == 0);
     actor.Release();

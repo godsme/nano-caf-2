@@ -19,13 +19,13 @@ namespace nano_caf {
         Requester() = default;
         Requester(Requester&& another)
             : m_promise{std::move(another.m_promise)}
-            , m_ready{another.m_ready} {
+            , m_ready{false} {
             another.m_ready = true;
         }
 
         ~Requester() {
             if(!m_ready) {
-                m_promise.set_value(ValueType{ResultTag::CAUSE, Status::DISCARDED});
+                OnFail_(Status::DISCARDED);
             }
         }
 
@@ -70,7 +70,7 @@ namespace nano_caf {
         }
     private:
         std::promise<ValueType> m_promise;
-        bool m_ready{false};
+        std::atomic_bool m_ready{false};
     };
 }
 

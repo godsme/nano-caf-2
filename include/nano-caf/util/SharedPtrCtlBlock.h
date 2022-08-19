@@ -9,7 +9,7 @@
 #include <atomic>
 #include <new>
 
-namespace nano_caf {
+namespace nano_caf::detail {
     struct SharedPtrCtlBlock {
         using ObjectDestructor = auto (*)(void*) noexcept -> void;
         using BlockDestructor = auto (*)(void*) noexcept -> void;

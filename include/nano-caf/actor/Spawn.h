@@ -10,6 +10,7 @@
 #include <nano-caf/actor/BlockingActor.h>
 #include <nano-caf/actor/NonblockingActor.h>
 #include <nano-caf/actor/detail/ActorTimerContext.h>
+#include <nano-caf/actor/detail/ActorCtlBlock.h>
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -145,7 +146,7 @@ namespace nano_caf {
         template<typename T, typename ActorType, bool SYNC, typename MEM_ALLOCATOR, typename ... ARGS>
         auto DoSpawn(ARGS&& ... args) -> ActorHandle {
             using ActorObject = detail::ActorObject<T, ActorType>;
-            auto ptr = MakeShared<ActorObject, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
+            auto ptr = MakeShared<ActorObject, detail::ActorCtlBlock, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
             CAF_ASSERT_TRUE_NIL(ptr);
             return ptr.Get();
         }

@@ -23,7 +23,7 @@ namespace {
 SCENARIO("SharedPtr") {
     numOfBlocks = 0;
     {
-        auto p = MakeShared<int, MemClaimer>(10);
+        auto p = MakeShared<int, detail::SharedPtrCtlBlock, MemClaimer>(10);
         REQUIRE(numOfBlocks == 1);
         REQUIRE((bool)p);
         REQUIRE(*p == 10);

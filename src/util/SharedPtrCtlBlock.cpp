@@ -3,8 +3,7 @@
 //
 #include <nano-caf/util/SharedPtrCtlBlock.h>
 
-namespace nano_caf {
-
+namespace nano_caf::detail {
     auto SharedPtrCtlBlock::Release() noexcept -> void {
         if (m_refs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             m_objectDestructor(Get<void*>());
