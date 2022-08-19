@@ -19,8 +19,10 @@ namespace nano_caf {
         using Handlers = std::vector<Handler>;
         template<typename ... ARGS>
         Behavior(ARGS&&...args) {
-            static_assert(sizeof...(ARGS) > 0);
             static_assert(((CallableTrait<ARGS>::NUM_OF_ARGS > 0) && ...));
+            if(sizeof...(ARGS) == 0) {
+                return;
+            }
 
             auto handlers = std::make_shared<Handlers>();
             CAF_ASSERT_NEW_PTR_VOID(handlers);
