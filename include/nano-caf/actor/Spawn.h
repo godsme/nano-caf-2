@@ -28,6 +28,13 @@ namespace nano_caf::detail {
             : std::true_type {};
 
     template<typename T, typename = void>
+    struct ActorHasOnExit : std::false_type {};
+
+    template<typename T>
+    struct ActorHasOnExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnExit())>>>
+            : std::true_type {};
+
+    template<typename T, typename = void>
     struct ActorHasGetBehavior : std::false_type {};
 
     template<typename T>
@@ -87,6 +94,10 @@ namespace nano_caf::detail {
             if constexpr (ActorHasExit<T>::value) {
                 T::OnExit(reason);
             }
+
+            if constexpr(ActorHasOnExit<T>::value) {
+                T::OnExit();
+            }
         }
 
         auto CurrentSender() const noexcept -> ActorHandle override {
@@ -133,6 +144,7 @@ namespace nano_caf::detail {
         }
 
         ~ActorObject() {
+            ACTOR::Close(ExitReason::ABNORMAL);
             detail::ActorTimerContext::ClearAllTimers((intptr_t)this);
         }
 

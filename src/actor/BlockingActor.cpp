@@ -30,10 +30,7 @@ namespace nano_caf {
     auto BlockingActor::Run() noexcept -> void {
         m_thread = std::thread([this](){
             while(1) {
-                if(Sleep()) {
-                    SchedActor::Close(ExitReason::ABNORMAL);
-                    break;
-                }
+                if(Sleep()) break;
                 SchedActor::Resume(NO_LIMITS);
                 if(MailBox::IsClosed()) {
                     m_closed = true;

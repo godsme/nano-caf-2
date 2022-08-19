@@ -16,13 +16,10 @@ namespace nano_caf {
 
     auto SchedActor::OnExit(ExitReason reason) noexcept -> void {
         ExitHandler(reason);
-        CtlBlock()->OnExit(*m_exitReason);
+        CtlBlock()->OnExit(reason);
     }
 
     SchedActor::~SchedActor() {
-        if(!m_exitReason) {
-            OnExit(ExitReason::UNKNOWN);
-        }
     }
 
     auto SchedActor::ExitCheck() noexcept -> TaskResult {

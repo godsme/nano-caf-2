@@ -34,11 +34,17 @@ namespace {
         }
     };
 
+    bool exit_invoked = false;
     struct MyActor : Actor {
         ActorHandle server{};
 
         auto OnInit() -> void {
+            exit_invoked = false;
             server = SpawnBlockingActor<Server, false>();
+        }
+
+        auto OnExit() -> void {
+            exit_invoked = true;
         }
 
         auto GetBehavior() noexcept -> Behavior {
@@ -58,35 +64,37 @@ namespace {
     };
 }
 
-SCENARIO("Blocking Actor") {
-    auto actor = SpawnBlockingActor<MyActor>();
-    auto result = actor.Request<Msg::Open>(22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 32);
-
-    result = actor.Request<Msg::View>(22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 122);
-
-    REQUIRE(actor.Request<Msg::Close>().Ok());
-
-    ExitReason reason{ExitReason::UNKNOWN};
-    REQUIRE(actor.Wait(reason) == Status::OK);
-    REQUIRE(reason == ExitReason::NORMAL);
-}
-
-SCENARIO("Blocking Actor Send") {
-    auto actor = SpawnBlockingActor<MyActor>();
-    auto result = actor.Request<Msg::Open>(22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 32);
-
-    actor.Send<Msg::Close>();
-
-    ExitReason reason{ExitReason::UNKNOWN};
-    REQUIRE(actor.Wait(reason) == Status::OK);
-    REQUIRE(reason == ExitReason::NORMAL);
-}
+//SCENARIO("Blocking Actor") {
+//    auto actor = SpawnBlockingActor<MyActor>();
+//    auto result = actor.Request<Msg::Open>(22);
+//    REQUIRE(result.Ok());
+//    REQUIRE(*result == 32);
+//
+//    result = actor.Request<Msg::View>(22);
+//    REQUIRE(result.Ok());
+//    REQUIRE(*result == 122);
+//
+//    REQUIRE(actor.Request<Msg::Close>().Ok());
+//
+//    ExitReason reason{ExitReason::UNKNOWN};
+//    REQUIRE(actor.Wait(reason) == Status::OK);
+//    REQUIRE(reason == ExitReason::NORMAL);
+//}
+//
+//SCENARIO("Blocking Actor Send") {
+//    auto actor = SpawnBlockingActor<MyActor>();
+//    auto result = actor.Request<Msg::Open>(22);
+//    REQUIRE(result.Ok());
+//    REQUIRE(*result == 32);
+//
+//    actor.Send<Msg::Close>();
+//
+//    ExitReason reason{ExitReason::UNKNOWN};
+//    REQUIRE(actor.Wait(reason) == Status::OK);
+//    REQUIRE(reason == ExitReason::NORMAL);
+//
+//    REQUIRE(exit_invoked);
+//}
 
 SCENARIO("Blocking Actor No closing") {
     ActorWeakPtr weak{};
@@ -102,6 +110,7 @@ SCENARIO("Blocking Actor No closing") {
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(weak.Wait(reason) == Status::OK);
     REQUIRE(reason == ExitReason::ABNORMAL);
+    REQUIRE(exit_invoked);
 }
 
 namespace {

@@ -10,7 +10,6 @@
 #include <nano-caf/scheduler/TaskResult.h>
 #include <functional>
 
-
 namespace nano_caf {
     struct Message;
 

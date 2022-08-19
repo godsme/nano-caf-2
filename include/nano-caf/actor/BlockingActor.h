@@ -16,8 +16,8 @@ namespace nano_caf {
 
     private:
         auto Send(Message*) noexcept -> Status override;
-
         auto Run() noexcept -> void;
+
     private:
         auto Sleep() noexcept -> bool;
 

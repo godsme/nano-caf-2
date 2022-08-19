@@ -41,7 +41,7 @@ namespace nano_caf {
 
     private:
         virtual auto InitHandler() noexcept -> void {}
-        virtual auto ExitHandler(ExitReason) noexcept -> void {}
+        virtual auto ExitHandler(ExitReason) noexcept -> void = 0;
         virtual auto HandleUserDefinedMsg(Message&) noexcept -> bool { return false; };
 
     private:
