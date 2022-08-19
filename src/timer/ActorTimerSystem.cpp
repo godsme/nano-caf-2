@@ -3,7 +3,6 @@
 //
 #include <nano-caf/timer/ActorTimerSystem.h>
 #include <nano-caf/msg/MakeMessage.h>
-#include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/util/Queue.h>
 
 namespace nano_caf {

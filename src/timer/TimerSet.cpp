@@ -2,7 +2,6 @@
 // Created by Darwin Yuan on 2022/6/25.
 //
 #include <nano-caf/timer/TimerSet.h>
-#include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/util/ShutdownNotifier.h>
 
 namespace nano_caf {

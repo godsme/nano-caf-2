@@ -7,7 +7,6 @@
 
 #include <nano-caf/async/AbstractPromise.h>
 #include <nano-caf/async/Future.h>
-#include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 #include <nano-caf/actor/GlobalActorContext.h>
 
