@@ -9,7 +9,6 @@
 #include <nano-caf/util/CallableTrait.h>
 #include <nano-caf/actor/detail/MsgTypeTrait.h>
 #include <nano-caf/actor/detail/BehaviorBase.h>
-#include <nano-caf/actor/detail/MsgHandler.h>
 #include <nano-caf/async/Future.h>
 
 namespace nano_caf::detail {
@@ -50,9 +49,9 @@ namespace nano_caf::detail {
         using Base = BehaviorBase<F, MsgType>;
 
     public:
-        struct Type : detail::MsgHandler, private Base {
+        struct Type : private Base {
             using Base::Base;
-            auto HandleMsg(Message& msg) noexcept -> bool override {
+            auto operator()(Message& msg) noexcept -> bool {
                 return Base::HandleMsg(msg, [](MsgType& msg, F& f) -> InvokeResult {
                     return MsgTypeTrait<MsgType>::Call(msg, [&](auto &&... args) -> InvokeResult {
                         return f(AtomType{}, std::forward<decltype(args)>(args)...);
@@ -71,9 +70,9 @@ namespace nano_caf::detail {
 
         using Base = BehaviorBase<F, MsgType>;
     public:
-        struct Type : detail::MsgHandler, private Base {
+        struct Type : private Base {
             using Base::Base;
-            auto HandleMsg(Message& msg) noexcept -> bool override {
+            auto operator()(Message& msg) noexcept -> bool {
                 return Base::HandleMsg(msg, [](MsgType &msg, F &f) { return f(msg); });
             }
         };
