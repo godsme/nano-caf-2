@@ -6,7 +6,7 @@
 #define NANO_CAF_2_DEDD159F43C5440295CE21A9860AB502
 
 #include <nano-caf/Status.h>
-#include <nano-caf/actor/ActorPtr.h>
+#include <nano-caf/actor/ActorWeakPtr.h>
 #include <nano-caf/util/Void.h>
 
 namespace nano_caf {

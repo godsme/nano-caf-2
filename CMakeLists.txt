@@ -51,6 +51,7 @@ add_library(nano_caf
         include/nano-caf/actor/LifoQueue.h
         include/nano-caf/actor/SchedActor.h
         include/nano-caf/actor/ActorPtr.h
+        include/nano-caf/actor/ActorWeakPtr.h
         include/nano-caf/actor/Spawn.h
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
@@ -90,6 +91,7 @@ add_library(nano_caf
         src/actor/BlockingActor.cpp
         src/actor/NonblockingActor.cpp
         src/actor/ActorHandle.cpp
+        src/actor/ActorWeakPtr.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/actor/detail/ActorTimerContext.cpp
         src/actor/detail/ActorCtlBlock.cpp

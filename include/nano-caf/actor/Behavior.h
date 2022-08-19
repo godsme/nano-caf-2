@@ -50,7 +50,8 @@ namespace nano_caf {
 
     private:
         Behavior(std::shared_ptr<Handlers> handlers)
-            : m_handlers{std::move(handlers)} {}
+            : m_handlers{std::move(handlers)}
+        {}
 
     public:
         friend auto operator+(Behavior const& lhs, Behavior const& rhs) -> Behavior {
