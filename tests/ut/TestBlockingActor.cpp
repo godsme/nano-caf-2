@@ -36,7 +36,7 @@ namespace {
 
     bool exit_invoked = false;
     struct MyActor : Actor {
-        ActorHandle server{};
+        ActorPtr server{};
 
         auto OnInit() -> void {
             exit_invoked = false;
@@ -66,15 +66,15 @@ namespace {
 
 SCENARIO("Blocking Actor") {
     auto actor = SpawnBlockingActor<MyActor>();
-    auto result = actor.Request<Msg::Open>(22);
+    auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = actor.Request<Msg::View>(22);
+    result = GlobalActorContext::Request<Msg::View>(actor, 22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 122);
 
-    REQUIRE(actor.Request<Msg::Close>().Ok());
+    REQUIRE(GlobalActorContext::Request<Msg::Close>(actor).Ok());
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);
@@ -83,11 +83,11 @@ SCENARIO("Blocking Actor") {
 
 SCENARIO("Blocking Actor Send") {
     auto actor = SpawnBlockingActor<MyActor>();
-    auto result = actor.Request<Msg::Open>(22);
+    auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    actor.Send<Msg::Close>();
+    GlobalActorContext::Send<Msg::Close>(actor);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);
@@ -100,11 +100,11 @@ SCENARIO("Blocking Actor No closing") {
     ActorWeakPtr weak{};
     {
         auto actor = SpawnBlockingActor<MyActor>();
-        auto result = actor.Request<Msg::Open>(22);
+        auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
         REQUIRE(result.Ok());
         REQUIRE(*result == 32);
 
-        weak = actor.ToWeakPtr();
+        weak = actor;
     }
 
     REQUIRE(exit_invoked);
@@ -160,19 +160,19 @@ namespace {
 
 SCENARIO("Blocking Actor Derived GetBehavior") {
     auto actor = SpawnBlockingActor<DerivedActor>();
-    auto result = actor.Request<Msg::Open>(22);
+    auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = actor.Request<Msg1::Seek>(10);
+    result = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
     REQUIRE(result.Ok());
     REQUIRE(*result == 22);
 
-    result = actor.Request<Msg::View>(10);
+    result = GlobalActorContext::Request<Msg::View>(actor, 10);
     REQUIRE(result.Ok());
     REQUIRE(*result == 21);
 
-    actor.Send<Msg::Close>();
+    GlobalActorContext::Send<Msg::Close>(actor);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);
@@ -195,19 +195,19 @@ namespace {
 }
 SCENARIO("Blocking Actor Derived GetBehavior Override") {
     auto actor = SpawnBlockingActor<DerivedActor2>();
-    auto result = actor.Request<Msg::Open>(22);
+    auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = actor.Request<Msg1::Seek>(10);
+    result = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
     REQUIRE(result.Ok());
     REQUIRE(*result == 22);
 
-    result = actor.Request<Msg::View>(10);
+    result = GlobalActorContext::Request<Msg::View>(actor, 10);
     REQUIRE(result.Ok());
     REQUIRE(*result == 23);
 
-    actor.Send<Msg::Close>();
+    GlobalActorContext::Send<Msg::Close>(actor);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);

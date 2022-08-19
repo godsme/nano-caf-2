@@ -5,7 +5,7 @@
 #ifndef NANO_CAF_2_EFCBBF89BBB743A7AB631E7E4464AC6A
 #define NANO_CAF_2_EFCBBF89BBB743A7AB631E7E4464AC6A
 
-#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/timer/TimerSpec.h>
 #include <nano-caf/timer/TimerId.h>
 #include <nano-caf/timer/TimeoutCallback.h>
@@ -21,7 +21,7 @@ namespace nano_caf {
         auto StartUp(std::size_t numOfWorkers) noexcept -> Status;
         auto Shutdown() noexcept -> void;
 
-        auto StartTimer( ActorHandle const& self,
+        auto StartTimer( ActorPtr const& self,
                          TimerSpec const& spec,
                          std::size_t repeatTimes,
                          TimeoutCallback&& callback) -> Result<TimerId>;

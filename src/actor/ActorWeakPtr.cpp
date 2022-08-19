@@ -11,4 +11,8 @@ namespace nano_caf {
         CAF_ASSERT_VALID_PTR(ctlBlock);
         return ctlBlock->Wait(reason);
     }
+
+    auto ActorWeakPtr::Lock() const noexcept -> ActorPtr {
+        return ActorPtr{Parent::Lock()};
+    }
 }

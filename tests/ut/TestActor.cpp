@@ -4,6 +4,7 @@
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
 #include <nano-caf/actor/Actor.h>
+#include <nano-caf/scheduler/ActorSystem.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -27,7 +28,7 @@ namespace {
 
     struct PingActor : Actor {
         std::size_t times{};
-        ActorHandle pongActor{};
+        ActorPtr pongActor{};
 
         PingActor(std::size_t times) : times{times} {}
 
@@ -57,7 +58,7 @@ SCENARIO("Ping Pong BehaviorBasedActor") {
     auto ping = Spawn<PingActor, true>(std::size_t(10));
     REQUIRE(ping);
 
-    ping.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(ping);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(ping.Wait(reason) == Status::OK);

@@ -55,9 +55,9 @@ add_library(nano_caf
         include/nano-caf/actor/Spawn.h
         include/nano-caf/actor/MailBox.h
         include/nano-caf/actor/ExitReason.h
-        include/nano-caf/actor/ActorHandle.h
         include/nano-caf/actor/Behavior.h
         include/nano-caf/actor/Actor.h
+        include/nano-caf/actor/GlobalActorContext.h
         include/nano-caf/actor/detail/ExpectMsgHandler.h
         include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
         include/nano-caf/async/FutureConcept.h
@@ -90,7 +90,7 @@ add_library(nano_caf
         src/actor/SchedActor.cpp
         src/actor/BlockingActor.cpp
         src/actor/NonblockingActor.cpp
-        src/actor/ActorHandle.cpp
+        src/actor/ActorPtr.cpp
         src/actor/ActorWeakPtr.cpp
         src/actor/detail/ExpectOnceMsgHandlers.cpp
         src/actor/detail/ActorTimerContext.cpp

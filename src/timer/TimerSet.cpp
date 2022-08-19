@@ -141,7 +141,7 @@ namespace nano_caf {
             return true;
         }
 
-        ActorHandle actor = timerMsg->subscriber.Lock();
+        ActorPtr actor = timerMsg->subscriber.Lock();
         if(!actor) {
             return true;
         }

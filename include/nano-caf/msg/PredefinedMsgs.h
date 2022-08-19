@@ -11,7 +11,7 @@
 #include <nano-caf/timer/TimerId.h>
 #include <nano-caf/timer/TimerSpec.h>
 #include <nano-caf/timer/TimeoutCallback.h>
-#include <nano-caf/actor/ActorPtr.h>
+#include <nano-caf/actor/ActorWeakPtr.h>
 #include <memory>
 
 namespace nano_caf {

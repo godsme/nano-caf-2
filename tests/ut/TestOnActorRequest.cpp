@@ -23,7 +23,7 @@ namespace {
         Status cause{Status::OK};
         long result = 0;
         auto Test() {
-            ActorHandle to;
+            ActorPtr to;
             Request<Msg::Open>(to, 100)
                     .Then([this](long r) {
                         result = r;
@@ -60,7 +60,7 @@ namespace {
 
     long result = 0;
     struct RequestActor : Actor {
-        ActorHandle server{};
+        ActorPtr server{};
 
         long value{};
         RequestActor(long value) : value{value} {}
@@ -89,7 +89,7 @@ SCENARIO("OnActorRequest calc") {
     auto requester = Spawn<RequestActor, true>(203);
     REQUIRE(requester);
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);

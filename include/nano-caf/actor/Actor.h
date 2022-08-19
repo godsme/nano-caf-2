@@ -6,7 +6,7 @@
 #define NANO_CAF_2_404238781FDD4EA28C56C2A4FC1E624B
 
 #include <nano-caf/actor/detail/ExpectMsgHandler.h>
-#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/actor/Behavior.h>
 #include <nano-caf/async/Promise.h>
 #include <nano-caf/Status.h>
@@ -22,18 +22,23 @@ namespace nano_caf {
         }
 
     public:
-        virtual auto Self() const noexcept -> ActorHandle = 0;
+        virtual auto Self() const noexcept -> ActorPtr = 0;
         virtual auto Exit(ExitReason) noexcept -> void = 0;
         virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
 
-        template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
-        inline auto Send(ActorHandle const& to, ARGS&& ... args) const noexcept -> Status {
-            return to.Send<T, CATEGORY>(static_cast<ActorHandle const&>(Self()), std::forward<ARGS>(args)...);
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
+        inline auto Send(ActorPtr const& to, ARGS&& ... args) const noexcept -> Status {
+            return to.SendMsg(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(Self()), std::forward<ARGS>(args)...));
         }
 
-        template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
+        static auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
+            return Send<typename ATOM::MsgType, CATEGORY>(to, std::forward<ARGS>(args)...);
+        }
+
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
-            return static_cast<ActorHandle const&>(Self()).Send<T, CATEGORY>(std::forward<ARGS>(args)...);
+            return Self().SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
@@ -41,15 +46,22 @@ namespace nano_caf {
             return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
         }
 
+        template<typename R, Message::Category CATEGORY = Message::DEFAULT>
+        inline auto ForwardTo(ActorPtr const& to) const noexcept -> Future<R> {
+            return Future<R>::Forward(ForwardTo(to, CATEGORY));
+        }
+
+        virtual auto ForwardTo(ActorPtr const& to, Message::Category = Message::DEFAULT) const noexcept -> Status = 0;
+
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
-        inline auto Request(ActorHandle const& to, ARGS&& ... args) noexcept -> Future<R> {
+        inline auto Request(ActorPtr const& to, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [](auto&& future) { return Future<R>{future}; },
                              std::forward<ARGS>(args)...);
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
-        inline auto Request(ActorHandle const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
+        inline auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [&timeout, this](auto&& future) mutable -> Future<R> {
                                 return this->StartFutureTimer(InMs(timeout), future);
@@ -69,6 +81,7 @@ namespace nano_caf {
             });
         }
 
+    public:
         template<typename F>
         inline auto After(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, 1, std::forward<F>(f));
@@ -99,26 +112,19 @@ namespace nano_caf {
             return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
-        template<typename R, Message::Category CATEGORY = Message::DEFAULT>
-        inline auto ForwardTo(ActorHandle const& to) const noexcept -> Future<R> {
-            return Future<R>::Forward(ForwardTo(to, CATEGORY));
-        }
-
-        virtual auto ForwardTo(ActorHandle const& to, Message::Category = Message::DEFAULT) const noexcept -> Status = 0;
-
     private:
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [cb = std::forward<F>(f)](ActorHandle& actor,TimerId const& timerId) mutable -> Status {
-                                  return actor.Send<TimeoutMsg>(timerId, std::forward<F>(cb));
+                              [cb = std::forward<F>(f)](ActorPtr& actor,TimerId const& timerId) mutable -> Status {
+                                  return GlobalActorContext::Send<TimeoutMsg>(actor, timerId, std::forward<F>(cb));
                               });
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
-        auto DoRequest(ActorHandle const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
+        auto DoRequest(ActorPtr const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
             Promise<R> promise;
-            auto status = to.DoRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorHandle const&>(Self()), promise, std::forward<ARGS>(args)...);
+            auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(Self()), promise, std::forward<ARGS>(args)...));
             CAF_ASSERT_R(status, Promise<R>::GetFailedFuture(status));
             return f(promise.GetFuture());
         }
@@ -153,7 +159,7 @@ namespace nano_caf {
 
     private:
         // DON'T OVERRIDE THOSE METHODS IN YOUR ACTOR!!!
-        virtual auto CurrentSender() const noexcept -> ActorHandle = 0;
+        virtual auto CurrentSender() const noexcept -> ActorPtr = 0;
         virtual auto RegisterMsgHandler(MsgTypeId, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> void = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> Result<TimerId> = 0;
         virtual auto StartTimer(TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Result<TimerId> = 0;

@@ -87,7 +87,7 @@ namespace nano_caf {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     auto ActorTimerSystem::StartTimer
-            ( ActorHandle const& sender
+            ( ActorPtr const& sender
             , TimerSpec const& spec
             , std::size_t repeatTimes
             , TimeoutCallback && callback) -> Result<TimerId> {
@@ -97,7 +97,7 @@ namespace nano_caf {
 
         detail::TimerIdExt id{sender.ActorId(), spec, repeatTimes};
         if(!id) { return Status::OUT_OF_MEM; }
-        auto status = SendMsg(MakeMessage<StartTimerMsg>(id, sender.ToWeakPtr(), std::move(callback)));
+        auto status = SendMsg(MakeMessage<StartTimerMsg>(id, ActorWeakPtr{sender}, std::move(callback)));
         if(status != Status::OK) {
             return status;
         }

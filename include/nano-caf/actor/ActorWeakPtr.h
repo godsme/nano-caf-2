@@ -8,11 +8,15 @@
 #include <nano-caf/util/WeakPtr.h>
 #include <nano-caf/actor/ExitReason.h>
 #include <nano-caf/actor/AbstractActor.h>
+#include <nano-caf/actor/ActorPtr.h>
 
 namespace nano_caf {
-    struct ActorWeakPtr : WeakPtr<AbstractActor> {
+    struct ActorWeakPtr : private WeakPtr<AbstractActor> {
         using Parent = WeakPtr<AbstractActor>;
         using Parent::Parent;
+
+        ActorWeakPtr(ActorPtr const& p) : Parent{p.Get()} {}
+        ActorWeakPtr(ActorPtr&& p) : Parent{p.Get()} {}
 
         ActorWeakPtr(ActorWeakPtr const&) = default;
         ActorWeakPtr(ActorWeakPtr&&) = default;
@@ -20,7 +24,12 @@ namespace nano_caf {
         auto operator=(ActorWeakPtr const&) noexcept -> ActorWeakPtr& = default;
         auto operator=(ActorWeakPtr&&) noexcept -> ActorWeakPtr& = default;
 
+        using Parent::UseCount;
+        using Parent::Reset;
+        using Parent::Expired;
+
         auto Wait(ExitReason& reason) -> Status;
+        auto Lock() const noexcept -> ActorPtr;
     };
 }
 

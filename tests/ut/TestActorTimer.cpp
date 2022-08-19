@@ -3,6 +3,7 @@
 //
 #include <nano-caf/actor/Spawn.h>
 #include <nano-caf/actor/Actor.h>
+#include <nano-caf/scheduler/ActorSystem.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
@@ -43,7 +44,7 @@ SCENARIO("Actor Timer") {
     auto actor = Spawn<MyActor, true>(std::size_t(5));
     REQUIRE(actor);
 
-    actor.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(actor);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);
@@ -89,7 +90,7 @@ SCENARIO("Actor Timer Cancel") {
     auto actor = Spawn<MyActor2, true>();
     REQUIRE(actor);
 
-    actor.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(actor);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(actor.Wait(reason) == Status::OK);

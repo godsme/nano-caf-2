@@ -50,7 +50,7 @@ namespace nano_caf {
         }
     }
 
-    auto ActorSystem::StartTimer( ActorHandle const& self,
+    auto ActorSystem::StartTimer( ActorPtr const& self,
                      TimerSpec const& spec,
                      std::size_t repeatTimes,
                      TimeoutCallback&& callback) -> Result<TimerId> {

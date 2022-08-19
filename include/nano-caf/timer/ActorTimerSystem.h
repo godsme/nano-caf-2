@@ -23,7 +23,7 @@ namespace nano_caf {
         auto Start() -> void;
         auto Stop() -> void;
 
-        auto StartTimer( ActorHandle const& self,
+        auto StartTimer( ActorPtr const& self,
                          TimerSpec const& spec,
                          std::size_t repeatTimes,
                          TimeoutCallback&& callback) -> Result<TimerId>;

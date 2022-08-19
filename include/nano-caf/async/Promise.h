@@ -9,6 +9,7 @@
 #include <nano-caf/async/Future.h>
 #include <nano-caf/actor/ActorHandle.h>
 #include <nano-caf/msg/PredefinedMsgs.h>
+#include <nano-caf/actor/GlobalActorContext.h>
 
 namespace nano_caf {
     template<typename T>
@@ -62,7 +63,7 @@ namespace nano_caf {
         auto Notify(ActorWeakPtr& to) noexcept -> void {
             auto actor = to.Lock();
             if(actor) {
-                ActorHandle{std::move(actor)}.Send<FutureDoneNotify>(std::move(m_future));
+                GlobalActorContext::Send<FutureDoneNotify>(std::move(actor), std::move(m_future));
             }
         }
     private:

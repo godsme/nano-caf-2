@@ -6,14 +6,16 @@
 #define NANO_CAF_2_E31D54CB6C2A4111BF9929487F8CC06A
 
 #include <nano-caf/timer/TimerSpec.h>
-#include <nano-caf/scheduler/ActorSystem.h>
 #include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
+#include <nano-caf/async/PromiseDoneNotifier.h>
+#include <nano-caf/timer/TimeoutCallback.h>
+#include <nano-caf/util/Result.h>
 
 namespace nano_caf::detail {
     struct ActorTimerContext : private ExpectOnceMsgHandlers {
-        auto StartTimer(ActorHandle&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&&) noexcept -> nano_caf::Result<TimerId>;
-        auto StartExpectMsgTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Result<TimerId>;
-        auto StartFutureTimer(ActorHandle&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const&) noexcept -> Result<TimerId>;
+        auto StartTimer(ActorPtr&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&&) noexcept -> Result<TimerId>;
+        auto StartExpectMsgTimer(ActorPtr&& self, TimerSpec const& spec, std::shared_ptr<detail::CancellableMsgHandler> const&) noexcept -> Result<TimerId>;
+        auto StartFutureTimer(ActorPtr&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const&) noexcept -> Result<TimerId>;
         auto ClearAllTimers(intptr_t self) -> void;
 
         using ExpectOnceMsgHandlers::AddHandler;

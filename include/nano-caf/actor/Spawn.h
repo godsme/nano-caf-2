@@ -5,7 +5,7 @@
 #ifndef NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 #define NANO_CAF_2_EE44DD5E09F64C729C20F495B1ECD2D4
 
-#include <nano-caf/actor/ActorHandle.h>
+#include <nano-caf/actor/ActorPtr.h>
 #include <nano-caf/actor/Behavior.h>
 #include <nano-caf/actor/BlockingActor.h>
 #include <nano-caf/actor/NonblockingActor.h>
@@ -55,8 +55,8 @@ namespace nano_caf::detail {
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
         using ACTOR::m_currentMsg;
 
-        auto Self_() const noexcept -> ActorHandle {
-            return ActorHandle{const_cast<ActorObject*>(this), true};
+        auto Self_() const noexcept -> ActorPtr {
+            return ActorPtr{const_cast<ActorObject*>(this), true};
         }
 
     public:
@@ -76,7 +76,7 @@ namespace nano_caf::detail {
             }
         }
 
-        auto Self() const noexcept -> ActorHandle override {
+        auto Self() const noexcept -> ActorPtr override {
             return Self_();
         }
 
@@ -100,7 +100,7 @@ namespace nano_caf::detail {
             }
         }
 
-        auto CurrentSender() const noexcept -> ActorHandle override {
+        auto CurrentSender() const noexcept -> ActorPtr override {
             if(m_currentMsg == nullptr) return {};
             return m_currentMsg->sender.Lock().Get();
         }
@@ -135,7 +135,7 @@ namespace nano_caf::detail {
             m_behavior = to;
         }
 
-        auto ForwardTo(ActorHandle const& to, Message::Category category = Message::DEFAULT) const noexcept -> Status override {
+        auto ForwardTo(ActorPtr const& to, Message::Category category = Message::DEFAULT) const noexcept -> Status override {
             CAF_ASSERT_VALID_PTR(m_currentMsg);
             if(category != Message::DEFAULT) {
                 m_currentMsg->category = category;
@@ -156,21 +156,20 @@ namespace nano_caf::detail {
 namespace nano_caf {
     namespace detail {
         template<typename T, typename ActorType, bool SYNC, typename MEM_ALLOCATOR, typename ... ARGS>
-        auto DoSpawn(ARGS&& ... args) -> ActorHandle {
+        auto DoSpawn(ARGS&& ... args) -> ActorPtr {
             using ActorObject = detail::ActorObject<T, ActorType>;
-            auto ptr = MakeShared<ActorObject, detail::ActorCtlBlock, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
-            CAF_ASSERT_TRUE_NIL(ptr);
-            return ptr.Get();
+            auto p = MakeShared<ActorObject, detail::ActorCtlBlock, MEM_ALLOCATOR>(SYNC, std::forward<ARGS>(args)...);
+            return {p.Get()};
         }
     }
 
     template<typename T, bool SYNC = false, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
-    auto Spawn(ARGS&& ... args) -> ActorHandle {
+    auto Spawn(ARGS&& ... args) -> ActorPtr {
         return detail::DoSpawn<T, NonblockingActor, SYNC, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
     }
 
     template<typename T, bool SYNC = true, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>
-    auto SpawnBlockingActor(ARGS&& ... args) -> ActorHandle {
+    auto SpawnBlockingActor(ARGS&& ... args) -> ActorPtr {
         return detail::DoSpawn<T, BlockingActor, SYNC, MEM_ALLOCATOR>(std::forward<ARGS>(args)...);
     }
 }

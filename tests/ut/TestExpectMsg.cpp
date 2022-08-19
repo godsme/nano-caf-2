@@ -60,10 +60,10 @@ namespace {
 
     long result = 0;
     struct RequestActor : Actor {
-        ActorHandle server{};
+        ActorPtr server{};
         long value{};
 
-        RequestActor(long value, ActorHandle server)
+        RequestActor(long value, ActorPtr server)
             : server{server}
             , value{value}
         {}
@@ -93,12 +93,12 @@ SCENARIO("On Actor Expect Msg") {
     auto requester = Spawn<RequestActor, true>(203, server);
     REQUIRE(requester);
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(1000ms);
 
-    server.Send<DoneNotify>(20);
+    GlobalActorContext::Send<DoneNotify>(server, 20);
     server.Release();
 
     ExitReason reason{ExitReason::UNKNOWN};
@@ -122,7 +122,7 @@ SCENARIO("On Actor No Wait") {
 
     server.Release();
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);
@@ -134,12 +134,12 @@ SCENARIO("On Actor No Wait") {
 
 namespace {
     struct CloseRequestActor : Actor {
-        ActorHandle server{};
+        ActorPtr server{};
         long value{};
 
-        CloseRequestActor(long value, ActorHandle server)
-                : server{server}
-                , value{value}
+        CloseRequestActor(long value, ActorPtr server)
+            : server{server}
+            , value{value}
         {}
 
         auto OnInit() -> void {
@@ -167,10 +167,10 @@ SCENARIO("On Actor Wait void") {
     auto requester = Spawn<CloseRequestActor, true>(203, server);
     REQUIRE(requester);
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     std::this_thread::sleep_for(10ms);
-    server.Send<DoneNotify>(20);
+    GlobalActorContext::Send<DoneNotify>(server, 20);
     server.Release();
 
     ExitReason reason{ExitReason::UNKNOWN};
@@ -194,7 +194,7 @@ SCENARIO("On Actor no Wait void") {
 
     server.Release();
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     ExitReason reason{ExitReason::UNKNOWN};
     REQUIRE(requester.Wait(reason) == Status::OK);
@@ -230,10 +230,10 @@ namespace {
 
     Status failedCause = Status::OK;
     struct RequestActor2 : Actor {
-        ActorHandle server{};
+        ActorPtr server{};
         long value{};
 
-        RequestActor2(long value, ActorHandle server)
+        RequestActor2(long value, ActorPtr server)
                 : server{server}
                 , value{value}
         {}
@@ -266,7 +266,7 @@ SCENARIO("On Actor expect msg timeout ") {
 
     server.Release();
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
 
     ExitReason reason{ExitReason::UNKNOWN};
@@ -290,10 +290,10 @@ SCENARIO("On Actor expect msg without timeout ") {
     auto requester = Spawn<RequestActor2, true>(203, server);
     REQUIRE(requester);
 
-    requester.Send<BootstrapMsg>();
+    GlobalActorContext::Send<BootstrapMsg>(requester);
 
     std::this_thread::sleep_for(10ms);
-    server.Send<DoneNotify>(20);
+    GlobalActorContext::Send<DoneNotify>(server, 20);
     server.Release();
 
     ExitReason reason{ExitReason::UNKNOWN};
