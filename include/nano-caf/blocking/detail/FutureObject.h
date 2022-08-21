@@ -30,27 +30,25 @@ namespace nano_caf::blocking::detail {
 
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
         auto SetValue(T&& value) noexcept -> Status {
-            std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!m_result, Status::INVALID_OP);
-            m_result.emplace(Result<R>{ResultTag::VALUE, std::forward<T>(value)});
-            TryNotify();
-            return Status::OK;
+            return Set(std::forward<T>(value), ResultTag::VALUE);
         }
 
         auto OnFail(Status cause) noexcept -> Status {
-            std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!m_result, Status::INVALID_OP);
-            m_result.emplace(Result<R>{ResultTag::CAUSE, cause});
-            TryNotify();
-            return Status::OK;
+            return Set(cause, ResultTag::CAUSE);
         }
 
     private:
-        auto TryNotify() -> void {
+        template<typename T, typename TAG>
+        auto Set(T&& value, TAG tag) noexcept -> Status {
+            std::unique_lock lock{m_mutex};
+            CAF_ASSERT_TRUE_R(!stale && !m_result, Status::INVALID_OP);
             if(m_cb) {
-                m_cb(std::move(*m_result));
+                m_cb(Result<R>{tag, std::forward<T>(value)});
                 stale = true;
+            } else {
+                m_result.emplace(Result<R>{tag, std::forward<T>(value)});
             }
+            return Status::OK;
         }
 
     private:
