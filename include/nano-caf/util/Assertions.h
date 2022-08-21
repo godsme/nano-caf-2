@@ -36,7 +36,6 @@ __CAF_ASSERT(expr, )
 ///////////////////////////////////////////////////////////////////////////
 #define __CAF_ASSERT_TRUE(expr, result) do {                         \
     if(!(expr)) {                                                    \
-        SPDLOG_ERROR("{} expected true, but actually false", #expr); \
         result;                                                      \
     }                                                                \
 } while(0)

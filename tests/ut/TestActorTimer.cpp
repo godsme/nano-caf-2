@@ -24,7 +24,7 @@ namespace {
             });
             REQUIRE(timer_1.Ok());
 
-            timerId_1 = timer_1;
+            timerId_1 = *timer_1;
 
             auto timer_2 = After(10ms, [this] {
                 Exit(ExitReason::ABNORMAL);
@@ -32,7 +32,7 @@ namespace {
 
             REQUIRE(timer_2.Ok());
 
-            timerId_2 = timer_2;
+            timerId_2 = *timer_2;
         }
     };
 }
@@ -66,7 +66,7 @@ namespace {
             });
             REQUIRE(timer_1.Ok());
 
-            timerId_1 = timer_1;
+            timerId_1 = *timer_1;
 
             auto timer_2 = After(3ms, [this] {
                 timerId_1.Cancel();
@@ -74,7 +74,7 @@ namespace {
 
             REQUIRE(timer_2.Ok());
 
-            timerId_2 = timer_2;
+            timerId_2 = *timer_2;
 
             After(5ms, [this] {
                 Exit(ExitReason::ABNORMAL);

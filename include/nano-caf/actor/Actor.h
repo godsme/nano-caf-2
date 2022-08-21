@@ -145,7 +145,7 @@ namespace nano_caf {
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>> const& future) -> Future<R> {
             Result<TimerId> result = StartTimer(spec, future);
             CAF_ASSERT_TRUE_R(result.Ok(), Promise<R>::GetFailedFuture(result.GetStatus()));
-            CAF_ASSERT_R(future->RegisterTimerObserver(result), Promise<R>::GetFailedFuture(status_));
+            CAF_ASSERT_R(future->RegisterTimerObserver(*result), Promise<R>::GetFailedFuture(status_));
             return Future<R>{future};
         }
 
@@ -154,7 +154,7 @@ namespace nano_caf {
             std::shared_ptr<detail::CancellableMsgHandler> cancellableMsgHandler = handler;
             auto result = StartTimer(spec, cancellableMsgHandler);
             CAF_ASSERT_TRUE_R(result.Ok(), result.GetStatus());
-            return handler->GetFuture()->RegisterTimerObserver(result);
+            return handler->GetFuture()->RegisterTimerObserver(*result);
         }
 
     private:

@@ -34,8 +34,6 @@ namespace nano_caf {
             : m_object{std::move(object)}
         {}
 
-
-
         template<typename R, typename = std::enable_if_t<std::is_convertible_v<R, Object> && !std::is_convertible_v<R, ObjectType>>>
         Future(R&& value) noexcept
             : m_object{std::make_shared<detail::FutureObject<T>>(std::forward<R>(value))}

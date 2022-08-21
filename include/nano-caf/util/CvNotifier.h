@@ -60,6 +60,15 @@ namespace nano_caf {
             }
         }
 
+        template<typename F>
+        auto WakeUp(F&& f) -> void {
+            std::unique_lock lock(m_mutex);
+            f();
+            if(m_sleeping) {
+                m_cv.notify_one();
+            }
+        }
+
     private:
         std::mutex m_mutex{};
         std::condition_variable m_cv{};

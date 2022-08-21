@@ -60,6 +60,8 @@ add_library(nano_caf
         include/nano-caf/actor/GlobalActorContext.h
         include/nano-caf/actor/detail/ExpectMsgHandler.h
         include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
+        include/nano-caf/blocking/detail/FutureObject.h
+        include/nano-caf/blocking/Future.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
         include/nano-caf/async/detail/InvokeResultType.h
@@ -116,6 +118,7 @@ add_executable(nano_caf_ut third_party/catch.cpp
         tests/ut/TestExpectOnceMsgHandlers.cpp
         tests/ut/TestExpectMsg.cpp
         tests/ut/TestActorTimer.cpp
+        tests/ut/TestBlockingFutureObject.cpp
         tests/ut/TestTimerId.cpp)
 
 target_link_libraries(nano_caf_ut nano_caf)

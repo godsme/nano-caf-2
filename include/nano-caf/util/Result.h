@@ -17,7 +17,6 @@ namespace nano_caf {
         constexpr static Value VALUE{};
     };
 
-
     template<typename T>
     struct Result : private Either<T, Status> {
         using Parent = Either<T, Status>;
@@ -46,7 +45,7 @@ namespace nano_caf {
             return Parent::Index() == 1 ? *Parent::Right() : Status::OK;
         }
 
-        operator ValueTypeOf<T> () const {
+        explicit operator ValueTypeOf<T> () const {
             return *Parent::Left();
         }
 
