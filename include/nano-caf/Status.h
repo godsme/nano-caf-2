@@ -16,6 +16,7 @@ namespace nano_caf {
         NULL_PTR,
         NULL_ACTOR,
         INVALID_ARG,
+        INVALID_OP,
         CLOSED,
         DISCARDED,
         SHUTDOWN,

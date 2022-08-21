@@ -4,18 +4,17 @@
 
 #include <nano-caf/actor/detail/ExpectOnceMsgHandlers.h>
 #include <nano-caf/msg/Message.h>
+#include <nano-caf/util/Assertions.h>
 
 namespace nano_caf::detail {
     auto ExpectOnceMsgHandlers::AddHandler(MsgTypeId id, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Status {
-        if(handler == nullptr) {
-            return Status::NULL_PTR;
-        }
+        CAF_ASSERT_VALID_PTR(handler);
         m_handlers.emplace(id, handler);
         return Status::OK;
     }
 
     auto ExpectOnceMsgHandlers::RemoveHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void {
-        if(handler == nullptr) return;
+        CAF_ASSERT_VALID_PTR_VOID(handler);
         auto result = std::find_if(m_handlers.begin(), m_handlers.end(), [&handler](auto&& elem) {
             return elem.second == handler;
         });
