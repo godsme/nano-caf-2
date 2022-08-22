@@ -19,24 +19,51 @@ namespace nano_caf::blocking {
         Future(Object const& object) noexcept : m_object{object} {}
 
         template<typename F>
-        auto Then(F&& cb) -> void {
-            if(m_object == nullptr) {
-                cb(Result<R>(ResultTag::CAUSE, Status::NULL_PTR));
-            } else {
-                m_object->SetCallback(cb);
+        auto SetCallback(F&& cb) -> Status {
+            if(m_object != nullptr) {
+                return m_object->SetCallback(cb);
             }
+            cb(Result<R>(ResultTag::CAUSE, Status::NULL_PTR));
+            return Status::OK;
         }
 
-        auto Get() noexcept -> Result<R> {
+        auto Wait() noexcept -> Result<R> {
             CvNotifier cv;
             std::optional<Result<R>> value;
-            Then([&](auto&& result) {
+            auto status = SetCallback([&](auto&& result) {
                 cv.WakeUp([&] {
                     value.emplace(static_cast<decltype(result)>(result));
                 });
             });
+            if(status != Status::OK) {
+                return {ResultTag::CAUSE, status};
+            }
             cv.Wait([&]{ return value.has_value(); });
             return *value;
+        }
+
+        template<typename Rep, typename Period>
+        auto WaitFor(std::chrono::duration<Rep, Period> duration) noexcept -> Result<R> {
+            CvNotifier cv;
+            std::optional<Result<R>> value;
+            auto status = SetCallback([&](auto&& result) {
+                cv.WakeUp([&] {
+                    value.emplace(static_cast<decltype(result)>(result));
+                });
+            });
+            if(status != Status::OK) {
+                return {ResultTag::CAUSE, status};
+            }
+            if(cv.WaitFor(duration, [&]{ return value.has_value(); })) {
+                return *value;
+            }
+
+            m_object->UnsetCallback();
+            if(value) {
+                return *value;
+            }
+
+            return {ResultTag::CAUSE, Status::TIMEOUT};
         }
 
     private:

@@ -6,9 +6,9 @@
 #define NANO_CAF_2_C69126EA67124275B0F83E88763A4724
 
 #include <nano-caf/util/Result.h>
+#include <nano-caf/util/Assertions.h>
 #include <optional>
 #include <mutex>
-#include "nano-caf/util/Assertions.h"
 
 namespace nano_caf::blocking::detail {
     template<typename R>
@@ -18,14 +18,19 @@ namespace nano_caf::blocking::detail {
         template<typename CB, typename = std::enable_if_t<std::is_convertible_v<CB, Callback>>>
         auto SetCallback(CB&& cb) -> Status {
             std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!stale && !m_cb, Status::INVALID_OP);
+            CAF_ASSERT_TRUE_R(!notified && !m_cb, Status::INVALID_OP);
             if(m_result) {
                 cb(std::move(*m_result));
-                stale = true;
+                notified = true;
             } else {
                 m_cb = std::forward<CB>(cb);
             }
             return Status::OK;
+        }
+
+        auto UnsetCallback() -> void {
+            std::unique_lock lock{m_mutex};
+            m_cb = nullptr;
         }
 
         template<typename T, typename = std::enable_if_t<std::is_convertible_v<T, ValueTypeOf<R>>>>
@@ -41,10 +46,10 @@ namespace nano_caf::blocking::detail {
         template<typename T, typename TAG>
         auto Set(T&& value, TAG tag) noexcept -> Status {
             std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!stale && !m_result, Status::INVALID_OP);
+            CAF_ASSERT_TRUE_R(!notified && !m_result, Status::INVALID_OP);
             if(m_cb) {
                 m_cb(Result<R>{tag, std::forward<T>(value)});
-                stale = true;
+                notified = true;
             } else {
                 m_result.emplace(Result<R>{tag, std::forward<T>(value)});
             }
@@ -53,9 +58,9 @@ namespace nano_caf::blocking::detail {
 
     private:
         std::mutex m_mutex;
-        Callback m_cb;
-        std::optional<Result<R>> m_result;
-        bool stale{false};
+        Callback m_cb{};
+        std::optional<Result<R>> m_result{};
+        bool notified{};
     };
 }
 
