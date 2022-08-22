@@ -16,17 +16,13 @@ namespace nano_caf {
         using Object = std::shared_ptr<detail::FutureObject<T>>;
 
         Promise() : m_future{std::make_shared<detail::FutureObject<T>>()} {}
-        explicit Promise(Status cause) : Promise{} {
-            if(m_future) m_future->OnFail(cause);
-        }
-
         auto GetFuture() noexcept -> Object {
             return m_future;
         }
 
-        static auto GetFailedFuture(Status status) -> Object {
-            return Promise{status}.m_future;
-        }
+//        static auto GetFailedFuture(Status status) -> Object {
+//            return Promise{status}.m_future;
+//        }
 
     private:
         auto OnFail(Status cause, ActorWeakPtr& to) noexcept -> void override {

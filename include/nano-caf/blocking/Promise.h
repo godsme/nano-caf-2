@@ -15,10 +15,11 @@ namespace nano_caf::blocking {
         using FutureObject = blocking::detail::FutureObject<R>;
 
         Promise() : m_object{std::make_shared<FutureObject>()} {}
-        Promise(Promise&& another)
-                : m_object{std::move(another.m_object)} {
-            another.m_object = nullptr;
-        }
+        Promise(Promise const&) = delete;
+        Promise(Promise&&) = default;
+
+        auto operator=(Promise const&) noexcept -> Promise& = delete;
+        auto operator=(Promise&&) noexcept -> Promise& = default;
 
         ~Promise() {
             if(m_object && !m_object->HasBeenSet()) {

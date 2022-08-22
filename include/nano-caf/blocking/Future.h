@@ -19,8 +19,8 @@ namespace nano_caf::blocking {
 
         Future() : m_object{Status::NULL_PTR} {}
         Future(Status cause) : m_object{cause} {}
-        Future(Object const& object) noexcept : m_object{object} {
-            if(object == nullptr) {
+        Future(Object object) noexcept : m_object{std::move(object)} {
+            if(*m_object == nullptr) {
                 m_object = Result<Object>{Status::NULL_PTR};
             }
         }

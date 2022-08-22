@@ -43,7 +43,9 @@ namespace nano_caf::detail {
             } else {
                 auto&& future = result.m_object;
                 for(auto&& observer : Super::m_observers) {
-                    future->RegisterObserver(observer);
+                    if(future.Ok()) {
+                        (*future)->RegisterObserver(observer);
+                    }
                 }
                 Super::m_observers.clear();
             }
