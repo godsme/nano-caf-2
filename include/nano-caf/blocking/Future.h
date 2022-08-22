@@ -14,30 +14,36 @@
 namespace nano_caf::blocking {
     template<typename R>
     struct Future {
+        using ResultType = ValueTypeOf<R>;
         using Object = std::shared_ptr<detail::FutureObject<R>>;
-        Future() = default;
-        Future(Object const& object) noexcept : m_object{object} {}
+
+        Future() : m_object{Status::NULL_PTR} {}
+        Future(Status cause) : m_object{cause} {}
+        Future(Object const& object) noexcept : m_object{object} {
+            if(object == nullptr) {
+                m_object = Result<Object>{Status::NULL_PTR};
+            }
+        }
+
+        explicit operator bool () {
+            return m_object.Ok();
+        }
 
         template<typename F>
-        auto SetCallback(F&& cb) -> Status {
-            if(m_object != nullptr) {
-                return m_object->SetCallback(cb);
+        auto Then(F&& cb) -> void {
+            if(!m_object.Ok()) {
+                cb(Result<R>(ResultTag::CAUSE, m_object.GetStatus()));
+            } else if(auto status = (*m_object)->SetCallback(cb); status != Status::OK) {
+                cb(Result<R>(ResultTag::CAUSE, status));
             }
-            cb(Result<R>(ResultTag::CAUSE, Status::NULL_PTR));
-            return Status::OK;
         }
 
         auto Wait() noexcept -> Result<R> {
             CvNotifier cv;
             std::optional<Result<R>> value;
-            auto status = SetCallback([&](auto&& result) {
-                cv.WakeUp([&] {
-                    value.emplace(static_cast<decltype(result)>(result));
-                });
+            Then([&](auto&& result) {
+                cv.WakeUp([&] { value.emplace(static_cast<decltype(result)>(result)); });
             });
-            if(status != Status::OK) {
-                return {ResultTag::CAUSE, status};
-            }
             cv.Wait([&]{ return value.has_value(); });
             return *value;
         }
@@ -46,28 +52,19 @@ namespace nano_caf::blocking {
         auto WaitFor(std::chrono::duration<Rep, Period> duration) noexcept -> Result<R> {
             CvNotifier cv;
             std::optional<Result<R>> value;
-            auto status = SetCallback([&](auto&& result) {
-                cv.WakeUp([&] {
-                    value.emplace(static_cast<decltype(result)>(result));
-                });
+            Then([&](auto&& result) {
+                cv.WakeUp([&] { value.emplace(static_cast<decltype(result)>(result)); });
             });
-            if(status != Status::OK) {
-                return {ResultTag::CAUSE, status};
+            if(!cv.WaitFor(duration, [&]{ return value.has_value(); })) {
+                if(m_object.Ok()) {
+                    m_object.GetValue()->UnsetCallback();
+                }
             }
-            if(cv.WaitFor(duration, [&]{ return value.has_value(); })) {
-                return *value;
-            }
-
-            m_object->UnsetCallback();
-            if(value) {
-                return *value;
-            }
-
-            return {ResultTag::CAUSE, Status::TIMEOUT};
+            return value ? *value : Result<R>{ResultTag::CAUSE, Status::TIMEOUT};
         }
 
     private:
-        Object m_object{};
+        Result<Object> m_object;
     };
 }
 

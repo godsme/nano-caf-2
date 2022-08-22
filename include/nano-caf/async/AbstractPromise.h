@@ -17,10 +17,11 @@ namespace nano_caf {
         virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void = 0;
     };
 
-    template<typename T>
+    template<typename R>
     struct AbstractPromise : FailNotifier {
-        virtual auto Reply(ValueTypeOf<T> const& value, ActorWeakPtr&) noexcept -> void = 0;
-        virtual auto Join(Future<T>&&, ActorWeakPtr&) noexcept -> void = 0;
+        virtual auto Reply(ValueTypeOf<R> const&, ActorWeakPtr&) noexcept -> void = 0;
+        virtual auto Reply(ValueTypeOf<R>&&, ActorWeakPtr&) noexcept -> void = 0;
+        virtual auto Join(Future<R>&&, ActorWeakPtr&) noexcept -> void = 0;
     };
 }
 

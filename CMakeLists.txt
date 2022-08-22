@@ -62,6 +62,7 @@ add_library(nano_caf
         include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
         include/nano-caf/blocking/detail/FutureObject.h
         include/nano-caf/blocking/Future.h
+        include/nano-caf/blocking/Promise.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
         include/nano-caf/async/detail/InvokeResultType.h
@@ -72,7 +73,6 @@ add_library(nano_caf
         include/nano-caf/async/detail/CancelTimerObserver.h
         include/nano-caf/async/Future.h
         include/nano-caf/async/Promise.h
-        include/nano-caf/async/Requester.h
         include/nano-caf/msg/Message.h
         include/nano-caf/msg/MakeMessage.h
         include/nano-caf/msg/MsgDef.h

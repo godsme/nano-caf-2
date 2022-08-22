@@ -7,7 +7,7 @@
 
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/msg/Atom.h>
-#include <nano-caf/async/Requester.h>
+#include <nano-caf/blocking/Promise.h>
 
 namespace nano_caf {
     struct GlobalActorContext {
@@ -22,32 +22,34 @@ namespace nano_caf {
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
-        static auto Request(ActorPtr const& to, ARGS&& ... args) -> Result<R> {
-            return DoRequest<ATOM, R, CATEGORY>(to, [](auto&& future) -> Result<R> {
-                return future.get();
+        static auto Async(ActorPtr const& to, ARGS&& ... args) -> blocking::Future<R> {
+            blocking::Promise<R> promise{};
+            auto&& future = promise.GetFuture();
+            auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(promise), std::forward<ARGS>(args)...));
+            if(status != Status::OK) {
+                return {status};
+            }
+            return future;
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
+        static auto Request(ActorPtr const& to, ARGS&& ... args) -> auto {
+            return DoRequest<ATOM, CATEGORY>(to, [](auto&& future) {
+                return future.Wait();
             }, std::forward<ARGS>(args)...);
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
-        static auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> duration, ARGS&& ... args) -> Result<R> {
-            return DoRequest<ATOM, R, CATEGORY>(to, [&duration](auto&& future) {
-                if(future.wait_for(duration) != std::future_status::ready) {
-                    return Result<R>{ResultTag::CAUSE, Status::TIMEOUT};
-                }
-                return future.get();
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename Rep, typename Period, typename ... ARGS>
+        static auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> duration, ARGS&& ... args) -> auto {
+            return DoRequest<ATOM, CATEGORY>(to, [&duration](auto&& future) {
+                return future.WaitFor(duration);
             }, std::forward<ARGS>(args)...);
         }
 
     private:
-        template<typename ATOM, typename R, Message::Category CATEGORY = Message::DEFAULT, typename F, typename ... ARGS>
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
         static auto DoRequest(ActorPtr const& to, F&& f, ARGS&& ... args) -> Result<R> {
-            Requester<R> requester{};
-            auto&& future = requester.GetFuture();
-            auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(requester), std::forward<ARGS>(args)...));
-            if(status != Status::OK) {
-                return Result<R>{ResultTag::CAUSE, status};
-            }
-            return f(future);
+            return f(Async<ATOM, CATEGORY>(to, std::forward<ARGS>(args)...));
         }
     };
 }

@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 
 SCENARIO("Blocking Future") {
     auto object = std::make_shared<blocking::detail::FutureObject<int>>();
-    blocking::Future future{object};
+    blocking::Future<int> future{object};
 
     auto thread = std::thread([object]{
         std::this_thread::sleep_for(2ms);
@@ -25,7 +25,7 @@ SCENARIO("Blocking Future") {
 
 SCENARIO("Blocking Future Wait For") {
     auto object = std::make_shared<blocking::detail::FutureObject<int>>();
-    blocking::Future future{object};
+    blocking::Future<int> future{object};
 
     auto thread = std::thread([object]{
         std::this_thread::sleep_for(10ms);
@@ -45,3 +45,21 @@ SCENARIO("Blocking Future Wait For") {
     }
     thread.join();
 }
+
+SCENARIO("Empty Blocking Future") {
+    blocking::Future<int> future{};
+
+    WHEN("Wait") {
+        auto result = future.Wait();
+        REQUIRE_FALSE(result.Ok());
+        REQUIRE(result.GetStatus() == Status::NULL_PTR);
+    }
+
+    WHEN("Set callback") {
+        future.Then([](auto&& result) {
+            REQUIRE_FALSE(result.Ok());
+            REQUIRE(result.GetStatus() == Status::NULL_PTR);
+        });
+    }
+}
+

@@ -68,6 +68,9 @@ namespace {
         virtual auto Reply(ValueTypeOf<long> const& value, ActorWeakPtr&) noexcept -> void override {
             m_value = value;
         }
+        virtual auto Reply(ValueTypeOf<long>&& value, ActorWeakPtr&) noexcept -> void override {
+            m_value = value;
+        }
 
         long m_value{};
     };
@@ -97,6 +100,9 @@ namespace {
         virtual auto OnFail(Status, ActorWeakPtr&) noexcept -> void override {}
         virtual auto Join(Future<void>&&, ActorWeakPtr&) noexcept -> void override {}
         virtual auto Reply(ValueTypeOf<void> const& value, ActorWeakPtr&) noexcept -> void override {
+            present = true;
+        }
+        virtual auto Reply(ValueTypeOf<void>&& value, ActorWeakPtr&) noexcept -> void override {
             present = true;
         }
 

@@ -58,6 +58,12 @@ namespace nano_caf {
             }
         }
 
+        auto Reply(ValueTypeOf<T>&& value, ActorWeakPtr& to) noexcept -> void override {
+            if(m_future && m_future->SetValue(std::move(value))) {
+                Notify(to);
+            }
+        }
+
     private:
         auto Notify(ActorWeakPtr& to) noexcept -> void {
             auto actor = to.Lock();

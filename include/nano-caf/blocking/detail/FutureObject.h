@@ -42,6 +42,11 @@ namespace nano_caf::blocking::detail {
             return Set(cause, ResultTag::CAUSE);
         }
 
+        auto HasBeenSet() const noexcept  -> bool {
+            std::unique_lock lock{m_mutex};
+            return notified || m_cb;
+        }
+
     private:
         template<typename T, typename TAG>
         auto Set(T&& value, TAG tag) noexcept -> Status {
@@ -57,7 +62,7 @@ namespace nano_caf::blocking::detail {
         }
 
     private:
-        std::mutex m_mutex;
+        mutable std::mutex m_mutex;
         Callback m_cb{};
         std::optional<Result<R>> m_result{};
         bool notified{};
