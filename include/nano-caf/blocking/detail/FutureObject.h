@@ -42,9 +42,10 @@ namespace nano_caf::blocking::detail {
             return Set(cause, ResultTag::CAUSE);
         }
 
-        auto HasBeenSet() const noexcept  -> bool {
+        auto NotifyDiscard() noexcept  -> void {
             std::unique_lock lock{m_mutex};
-            return notified || m_cb;
+            if(notified || m_cb) return;
+            DoSet(Status::DISCARDED, ResultTag::CAUSE);
         }
 
     private:
@@ -52,13 +53,18 @@ namespace nano_caf::blocking::detail {
         auto Set(T&& value, TAG tag) noexcept -> Status {
             std::unique_lock lock{m_mutex};
             CAF_ASSERT_TRUE_R(!notified && !m_result, Status::INVALID_OP);
+            DoSet(std::forward<T>(value), tag);
+            return Status::OK;
+        }
+
+        template<typename T, typename TAG>
+        auto DoSet(T&& value, TAG tag) -> void {
             if(m_cb) {
                 m_cb(Result<R>{tag, std::forward<T>(value)});
                 notified = true;
             } else {
                 m_result.emplace(Result<R>{tag, std::forward<T>(value)});
             }
-            return Status::OK;
         }
 
     private:

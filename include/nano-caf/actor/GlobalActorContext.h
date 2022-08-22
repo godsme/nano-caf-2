@@ -25,9 +25,8 @@ namespace nano_caf {
         static auto Async(ActorPtr const& to, ARGS&& ... args) -> blocking::Future<R> {
             blocking::Promise<R> promise{};
             auto&& future = promise.GetFuture();
-            if(auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(promise), std::forward<ARGS>(args)...)); status != Status::OK) {
-                return {status};
-            }
+            CAF_ASSERT_TRUE_R(future, {Status::NULL_PTR});
+            CAF_ASSERT_R(to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(promise), std::forward<ARGS>(args)...)), {status_});
             return future;
         }
 

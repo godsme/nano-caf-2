@@ -8,6 +8,7 @@
 #include <catch.hpp>
 
 using namespace nano_caf;
+using namespace std::chrono_literals;
 
 namespace {
     enum : uint32_t {
@@ -16,7 +17,7 @@ namespace {
     };
 
     __CAF_actor_interface(Msg, MSG_interface_id,
-        (Open,  (const long&) -> long),
+        (Open,  (const long&) -> unsigned long),
         (View,  (const long&) -> long),
         (Close, () -> void)
     );
@@ -24,6 +25,10 @@ namespace {
     struct Server : Actor {
         auto GetBehavior() noexcept -> Behavior {
             return {
+                [](Msg::Open, long value) -> unsigned long {
+                    std::this_thread::sleep_for(10ms);
+                    return 10 + value;
+                },
                 [](Msg::View, long value) -> long {
                     return 100 + value;
                 },
@@ -49,14 +54,14 @@ namespace {
 
         auto GetBehavior() noexcept -> Behavior {
             return {
-                [](Msg::Open, long value) -> long {
-                    return 10 + value;
+                [this](Msg::Open, long value) -> Future<unsigned long> {
+                    return Request<Msg::Open>(server, value);
                 },
                 [this](Msg::View, long value) -> Future<long> {
                     return ForwardTo<long, Message::URGENT>(server);
                 },
-                [this](Msg::Close) -> void {
-                    Request<Msg::Close>(server)
+                [this](Msg::Close) -> Future<void> {
+                    return Request<Msg::Close>(server)
                         .Then([this] { Exit(ExitReason::NORMAL); });
                 },
             };
@@ -70,9 +75,9 @@ SCENARIO("Blocking Actor") {
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = GlobalActorContext::Request<Msg::View>(actor, 22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 122);
+    auto result2 = GlobalActorContext::Request<Msg::View>(actor, 22);
+    REQUIRE(result2.Ok());
+    REQUIRE(*result2 == 122);
 
     REQUIRE(GlobalActorContext::Request<Msg::Close>(actor).Ok());
 
@@ -121,7 +126,7 @@ namespace {
 
     struct BaseActor : Actor {
         const Behavior InitBehavior = Behavior {
-            [](Msg::Open, long value) -> long {
+            [](Msg::Open, long value) -> unsigned long {
                 return 20 + value;
             },
             [](Msg::View, long value) -> Future<long> {
@@ -131,7 +136,7 @@ namespace {
 
         auto GetBehavior() noexcept -> Behavior {
             return {
-                [](Msg::Open, long value) -> long {
+                [](Msg::Open, long value) -> unsigned long {
                     return 10 + value;
                 },
                 [](Msg::View, long value) -> Future<long> {
@@ -164,13 +169,13 @@ SCENARIO("Blocking Actor Derived GetBehavior") {
     REQUIRE(result.Ok());
     REQUIRE(*result == 32);
 
-    result = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 22);
+    auto result2 = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
+    REQUIRE(result2.Ok());
+    REQUIRE(*result2 == 22);
 
-    result = GlobalActorContext::Request<Msg::View>(actor, 10);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 21);
+    result2 = GlobalActorContext::Request<Msg::View>(actor, 10);
+    REQUIRE(result2.Ok());
+    REQUIRE(*result2 == 21);
 
     GlobalActorContext::Send<Msg::Close>(actor);
 
@@ -195,17 +200,23 @@ namespace {
 }
 SCENARIO("Blocking Actor Derived GetBehavior Override") {
     auto actor = SpawnBlockingActor<DerivedActor2>();
-    auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 32);
+    {
+        auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
+        REQUIRE(result.Ok());
+        REQUIRE(*result == 32);
+    }
 
-    result = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 22);
+    {
+        auto result = GlobalActorContext::Request<Msg1::Seek>(actor, 10);
+        REQUIRE(result.Ok());
+        REQUIRE(*result == 22);
+    }
 
-    result = GlobalActorContext::Request<Msg::View>(actor, 10);
-    REQUIRE(result.Ok());
-    REQUIRE(*result == 23);
+    {
+        auto result = GlobalActorContext::Request<Msg::View>(actor, 10);
+        REQUIRE(result.Ok());
+        REQUIRE(*result == 23);
+    }
 
     GlobalActorContext::Send<Msg::Close>(actor);
 

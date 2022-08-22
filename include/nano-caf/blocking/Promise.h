@@ -15,15 +15,21 @@ namespace nano_caf::blocking {
         using FutureObject = blocking::detail::FutureObject<R>;
 
         Promise() : m_object{std::make_shared<FutureObject>()} {}
-        Promise(Promise const&) = default;
-        Promise(Promise&&) = default;
+        Promise(Promise const& another) : m_object{another.m_object}, m_owner{false} {}
+        Promise(Promise&& another) : m_object{another.m_object}, m_owner{another.m_owner} {
+            another.m_owner = false;
+            another.m_object = nullptr;
+        }
 
-        auto operator=(Promise const&) noexcept -> Promise& = default;
-        auto operator=(Promise&&) noexcept -> Promise& = default;
+        auto operator=(Promise const& rhs) noexcept -> Promise& = delete;
+        auto operator=(Promise&& rhs) noexcept -> Promise& = delete;
 
         ~Promise() {
-            if(m_object && !m_object->HasBeenSet()) {
-                OnFail_(Status::DISCARDED);
+            if(m_object) {
+                if(m_owner) {
+                    m_object->NotifyDiscard();
+                }
+                m_object = nullptr;
             }
         }
 
@@ -52,11 +58,11 @@ namespace nano_caf::blocking {
             });
 
             if constexpr(std::is_void_v<R>) {
-                future.Then([promise = *this]() mutable {
+                future.Then([promise = std::move(*this)]() mutable {
                     promise.OnSuccess(Void);
                 });
             } else {
-                future.Then([promise = *this](auto&& value) mutable {
+                future.Then([promise = std::move(*this)](auto&& value) mutable {
                     promise.OnSuccess(value);
                 });
             }
@@ -84,6 +90,7 @@ namespace nano_caf::blocking {
 
     private:
         std::shared_ptr<FutureObject> m_object;
+        bool m_owner{true};
     };
 }
 
