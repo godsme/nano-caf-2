@@ -1,13 +1,13 @@
 //
 // Created by Darwin Yuan on 2022/8/22.
 //
-#include <nano-caf/blocking/detail/FutureObject.h>
+#include <nano-caf/blocking/detail/BlockingFutureObject.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
 
 SCENARIO("Blocking FutureObject") {
-    blocking::detail::FutureObject<int> object;
+    detail::BlockingFutureObject<int> object;
 
     std::optional<Result<int>> result;
     REQUIRE(object.SetCallback([&](Result<int>&& r) {
@@ -54,7 +54,7 @@ SCENARIO("Blocking FutureObject") {
 }
 
 SCENARIO("Blocking FutureObject Set callback later") {
-    blocking::detail::FutureObject<int> object;
+    detail::BlockingFutureObject<int> object;
 
     std::optional<Result<int>> result;
 

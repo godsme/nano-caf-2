@@ -7,7 +7,7 @@
 
 #include <nano-caf/msg/MakeMessage.h>
 #include <nano-caf/msg/Atom.h>
-#include <nano-caf/blocking/Promise.h>
+#include <nano-caf/blocking/BlockingPromise.h>
 
 namespace nano_caf {
     struct GlobalActorContext {
@@ -22,8 +22,8 @@ namespace nano_caf {
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
-        static auto Async(ActorPtr const& to, ARGS&& ... args) -> blocking::Future<R> {
-            blocking::Promise<R> promise{};
+        static auto Async(ActorPtr const& to, ARGS&& ... args) -> BlockingFuture<R> {
+            BlockingPromise<R> promise{};
             auto&& future = promise.GetFuture();
             CAF_ASSERT_TRUE_R(future, {Status::NULL_PTR});
             CAF_ASSERT_R(to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(std::move(promise), std::forward<ARGS>(args)...)), {status_});

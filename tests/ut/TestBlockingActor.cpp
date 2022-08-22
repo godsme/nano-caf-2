@@ -26,7 +26,7 @@ namespace {
         auto GetBehavior() noexcept -> Behavior {
             return {
                 [](Msg::Open, long value) -> unsigned long {
-                    std::this_thread::sleep_for(10ms);
+                    std::this_thread::sleep_for(100ms);
                     return 10 + value;
                 },
                 [](Msg::View, long value) -> long {

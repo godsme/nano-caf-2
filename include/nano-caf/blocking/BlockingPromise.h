@@ -2,34 +2,31 @@
 // Created by Darwin Yuan on 2022/8/22.
 //
 
-#ifndef NANO_CAF_2_5089EB00FB8B4400B36D50EE57D6344E
-#define NANO_CAF_2_5089EB00FB8B4400B36D50EE57D6344E
+#ifndef NANO_CAF_2_5CF232FA52F4448EBCD8D5F2E8762F1B
+#define NANO_CAF_2_5CF232FA52F4448EBCD8D5F2E8762F1B
 
 #include <nano-caf/async/AbstractPromise.h>
-#include <nano-caf/blocking/Future.h>
+#include <nano-caf/blocking/BlockingFuture.h>
 
-namespace nano_caf::blocking {
+namespace nano_caf {
     template<typename R>
-    struct Promise : AbstractPromise<R> {
+    struct BlockingPromise : AbstractPromise<R> {
         using ResultType = ValueTypeOf<R>;
-        using FutureObject = blocking::detail::FutureObject<R>;
+        using FutureObject = detail::BlockingFutureObject<R>;
 
-        Promise() : m_object{std::make_shared<FutureObject>()} {}
-        Promise(Promise const& another) : m_object{another.m_object}, m_owner{false} {}
-        Promise(Promise&& another) : m_object{another.m_object}, m_owner{another.m_owner} {
+        BlockingPromise() : m_object{std::make_shared<FutureObject>()} {}
+        BlockingPromise(BlockingPromise const& another) : m_object{another.m_object}, m_owner{false} {}
+        BlockingPromise(BlockingPromise&& another) : m_object{another.m_object}, m_owner{another.m_owner} {
             another.m_owner = false;
             another.m_object = nullptr;
         }
 
-        auto operator=(Promise const& rhs) noexcept -> Promise& = delete;
-        auto operator=(Promise&& rhs) noexcept -> Promise& = delete;
+        auto operator=(BlockingPromise const& rhs) noexcept -> BlockingPromise& = delete;
+        auto operator=(BlockingPromise&& rhs) noexcept -> BlockingPromise& = delete;
 
-        ~Promise() {
-            if(m_object) {
-                if(m_owner) {
-                    m_object->NotifyDiscard();
-                }
-                m_object = nullptr;
+        ~BlockingPromise() {
+            if(m_owner && m_object) {
+                m_object->NotifyDiscard();
             }
         }
 
@@ -37,7 +34,7 @@ namespace nano_caf::blocking {
             return m_object;
         }
 
-        auto GetFuture() noexcept -> blocking::Future<R> {
+        auto GetFuture() noexcept -> BlockingFuture<R> {
             return {m_object};
         }
 
@@ -94,4 +91,4 @@ namespace nano_caf::blocking {
     };
 }
 
-#endif //NANO_CAF_2_5089EB00FB8B4400B36D50EE57D6344E
+#endif //NANO_CAF_2_5CF232FA52F4448EBCD8D5F2E8762F1B

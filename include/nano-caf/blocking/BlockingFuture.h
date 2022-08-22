@@ -2,24 +2,24 @@
 // Created by Darwin Yuan on 2022/8/22.
 //
 
-#ifndef NANO_CAF_2_08CA3EC9F076472892CE9F63AFF10533
-#define NANO_CAF_2_08CA3EC9F076472892CE9F63AFF10533
+#ifndef NANO_CAF_2_F0098E8841F046EF8B307CEC5C813DAB
+#define NANO_CAF_2_F0098E8841F046EF8B307CEC5C813DAB
 
-#include <nano-caf/blocking/detail/FutureObject.h>
+#include <nano-caf/blocking/detail/BlockingFutureObject.h>
 #include <nano-caf/util/Assertions.h>
 #include <nano-caf/util/CvNotifier.h>
 #include <nano-caf/util/Result.h>
 #include <memory>
 
-namespace nano_caf::blocking {
+namespace nano_caf {
     template<typename R>
-    struct Future {
+    struct BlockingFuture {
         using ResultType = ValueTypeOf<R>;
-        using Object = std::shared_ptr<detail::FutureObject<R>>;
+        using Object = std::shared_ptr<detail::BlockingFutureObject<R>>;
 
-        Future() : m_object{Status::NULL_PTR} {}
-        Future(Status cause) : m_object{cause} {}
-        Future(Object object) noexcept : m_object{std::move(object)} {
+        BlockingFuture() : m_object{Status::NULL_PTR} {}
+        BlockingFuture(Status cause) : m_object{cause} {}
+        BlockingFuture(Object object) noexcept : m_object{std::move(object)} {
             if(*m_object == nullptr) {
                 m_object = Result<Object>{Status::NULL_PTR};
             }
@@ -68,4 +68,4 @@ namespace nano_caf::blocking {
     };
 }
 
-#endif //NANO_CAF_2_08CA3EC9F076472892CE9F63AFF10533
+#endif //NANO_CAF_2_F0098E8841F046EF8B307CEC5C813DAB

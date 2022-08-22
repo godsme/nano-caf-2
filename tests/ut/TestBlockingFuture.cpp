@@ -1,15 +1,15 @@
 //
 // Created by Darwin Yuan on 2022/8/22.
 //
-#include <nano-caf/blocking/Future.h>
+#include <nano-caf/blocking/BlockingFuture.h>
 #include <catch.hpp>
 
 using namespace nano_caf;
 using namespace std::chrono_literals;
 
 SCENARIO("Blocking Future") {
-    auto object = std::make_shared<blocking::detail::FutureObject<int>>();
-    blocking::Future<int> future{object};
+    auto object = std::make_shared<detail::BlockingFutureObject<int>>();
+    BlockingFuture<int> future{object};
 
     auto thread = std::thread([object]{
         std::this_thread::sleep_for(2ms);
@@ -24,8 +24,8 @@ SCENARIO("Blocking Future") {
 }
 
 SCENARIO("Blocking Future Wait For") {
-    auto object = std::make_shared<blocking::detail::FutureObject<int>>();
-    blocking::Future<int> future{object};
+    auto object = std::make_shared<detail::BlockingFutureObject<int>>();
+    BlockingFuture<int> future{object};
 
     auto thread = std::thread([object]{
         std::this_thread::sleep_for(10ms);
@@ -47,7 +47,7 @@ SCENARIO("Blocking Future Wait For") {
 }
 
 SCENARIO("Empty Blocking Future") {
-    blocking::Future<int> future{};
+    BlockingFuture<int> future{};
 
     WHEN("Wait") {
         auto result = future.Wait();

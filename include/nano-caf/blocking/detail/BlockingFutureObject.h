@@ -2,17 +2,17 @@
 // Created by Darwin Yuan on 2022/8/22.
 //
 
-#ifndef NANO_CAF_2_C69126EA67124275B0F83E88763A4724
-#define NANO_CAF_2_C69126EA67124275B0F83E88763A4724
+#ifndef NANO_CAF_2_B8C0CE697D844CBDB7AF81717C538245
+#define NANO_CAF_2_B8C0CE697D844CBDB7AF81717C538245
 
 #include <nano-caf/util/Result.h>
 #include <nano-caf/util/Assertions.h>
 #include <optional>
 #include <mutex>
 
-namespace nano_caf::blocking::detail {
+namespace nano_caf::detail {
     template<typename R>
-    struct FutureObject {
+    struct BlockingFutureObject {
         using Callback = std::function<auto (Result<R>) -> void>;
 
         template<typename CB, typename = std::enable_if_t<std::is_convertible_v<CB, Callback>>>
@@ -44,7 +44,7 @@ namespace nano_caf::blocking::detail {
 
         auto NotifyDiscard() noexcept  -> void {
             std::unique_lock lock{m_mutex};
-            if(notified || m_cb) return;
+            if(notified || m_result) return;
             DoSet(Status::DISCARDED, ResultTag::CAUSE);
         }
 
@@ -75,4 +75,4 @@ namespace nano_caf::blocking::detail {
     };
 }
 
-#endif //NANO_CAF_2_C69126EA67124275B0F83E88763A4724
+#endif //NANO_CAF_2_B8C0CE697D844CBDB7AF81717C538245

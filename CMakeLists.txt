@@ -60,9 +60,9 @@ add_library(nano_caf
         include/nano-caf/actor/GlobalActorContext.h
         include/nano-caf/actor/detail/ExpectMsgHandler.h
         include/nano-caf/actor/detail/ExpectOnceMsgHandlers.h
-        include/nano-caf/blocking/detail/FutureObject.h
-        include/nano-caf/blocking/Future.h
-        include/nano-caf/blocking/Promise.h
+        include/nano-caf/blocking/detail/BlockingFutureObject.h
+        include/nano-caf/blocking/BlockingFuture.h
+        include/nano-caf/blocking/BlockingPromise.h
         include/nano-caf/async/FutureConcept.h
         include/nano-caf/async/AbstractPromise.h
         include/nano-caf/async/detail/InvokeResultType.h
