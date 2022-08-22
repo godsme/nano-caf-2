@@ -15,10 +15,10 @@ namespace nano_caf::blocking {
         using FutureObject = blocking::detail::FutureObject<R>;
 
         Promise() : m_object{std::make_shared<FutureObject>()} {}
-        Promise(Promise const&) = delete;
+        Promise(Promise const&) = default;
         Promise(Promise&&) = default;
 
-        auto operator=(Promise const&) noexcept -> Promise& = delete;
+        auto operator=(Promise const&) noexcept -> Promise& = default;
         auto operator=(Promise&&) noexcept -> Promise& = default;
 
         ~Promise() {
@@ -47,17 +47,17 @@ namespace nano_caf::blocking {
         auto Join(nano_caf::Future<R>&& future, ActorWeakPtr&) noexcept -> void override {
             if(future.IsForward()) return;
 
-            future.Fail([this](Status cause) {
-                OnFail_(cause);
+            future.Fail([promise = *this](Status cause) mutable {
+                promise.OnFail_(cause);
             });
 
             if constexpr(std::is_void_v<R>) {
-                future.Then([this]() {
-                    OnSuccess(Void);
+                future.Then([promise = *this]() mutable {
+                    promise.OnSuccess(Void);
                 });
             } else {
-                future.Then([this](auto&& value) {
-                    OnSuccess(value);
+                future.Then([promise = *this](auto&& value) mutable {
+                    promise.OnSuccess(value);
                 });
             }
         }
