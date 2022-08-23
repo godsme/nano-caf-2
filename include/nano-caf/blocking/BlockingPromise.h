@@ -7,6 +7,7 @@
 
 #include <nano-caf/async/AbstractPromise.h>
 #include <nano-caf/blocking/BlockingFuture.h>
+#include <nano-caf/async/Future.h>
 
 namespace nano_caf {
     template<typename R>
@@ -16,7 +17,7 @@ namespace nano_caf {
 
         BlockingPromise() : m_object{std::make_shared<FutureObject>()} {}
         BlockingPromise(BlockingPromise const& another) : m_object{another.m_object}, m_owner{false} {}
-        BlockingPromise(BlockingPromise&& another) : m_object{another.m_object}, m_owner{another.m_owner} {
+        BlockingPromise(BlockingPromise&& another) : m_object{std::move(another.m_object)}, m_owner{another.m_owner} {
             another.m_owner = false;
             another.m_object = nullptr;
         }
