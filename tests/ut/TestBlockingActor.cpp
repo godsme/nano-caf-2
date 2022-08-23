@@ -19,6 +19,7 @@ namespace {
     __CAF_actor_interface(Msg, MSG_interface_id,
         (Open,  (const long&) -> unsigned long),
         (View,  (const long&) -> long),
+        (Discard, () -> void),
         (Close, () -> void)
     );
 
@@ -108,6 +109,24 @@ SCENARIO("Blocking Actor No closing") {
         auto result = GlobalActorContext::Request<Msg::Open>(actor, 22);
         REQUIRE(result.Ok());
         REQUIRE(*result == 32);
+
+        weak = actor;
+    }
+
+    REQUIRE(exit_invoked);
+
+    ExitReason reason{ExitReason::UNKNOWN};
+    REQUIRE(weak.Wait(reason) == Status::OK);
+    REQUIRE(reason == ExitReason::ABNORMAL);
+}
+
+SCENARIO("Blocking Actor Unimplemented") {
+    ActorWeakPtr weak{};
+    {
+        auto actor = SpawnBlockingActor<MyActor>();
+        auto result = GlobalActorContext::Request<Msg::Discard>(actor);
+        REQUIRE_FALSE(result.Ok());
+        REQUIRE(result.GetStatus() == Status::DISCARDED);
 
         weak = actor;
     }
