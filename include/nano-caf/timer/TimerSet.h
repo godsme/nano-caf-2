@@ -42,7 +42,7 @@ namespace nano_caf {
         auto HandleMsg(std::unique_ptr<Message> msg) -> void;
 
         template<typename PRED, typename OP>
-        auto TimerFindAndModify(int code, intptr_t actor_id, PRED&& pred, OP&& op) -> void;
+        auto TimerFindAndModify(intptr_t actor_id, PRED&& pred, OP&& op) -> void;
 
     private:
         using Timers = std::multimap<TimePoint, std::unique_ptr<Message>>;

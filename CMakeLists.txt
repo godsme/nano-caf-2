@@ -9,6 +9,8 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
 
+add_compile_options( -Wall -Wextra )
+
 add_library(nano_caf
         include/nano-caf/Status.h
         include/nano-caf/util/TypeList.h

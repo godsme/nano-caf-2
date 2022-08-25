@@ -45,10 +45,10 @@ struct __CAF_method_name(x) : nano_caf::AtomSignature {                 \
    struct MsgType : Type::MsgType {                                     \
       using TupleParent = Type::MsgType;                                \
       using TupleParent::TupleParent;                                   \
-      constexpr static bool IS_REQUEST = true;                          \
+      [[maybe_unused]]  constexpr static bool IS_REQUEST = true;        \
       using ResultType = Type::ResultType;                              \
       MsgType(Type::MsgType&& rhs) : Type::MsgType(std::move(rhs)) {}   \
-      constexpr static nano_caf::MsgTypeId ID =                         \
+      [[maybe_unused]]  constexpr static nano_caf::MsgTypeId ID =       \
            static_cast<nano_caf::MsgTypeId>(n) | __secrete_type_id;     \
    };                                                                   \
 };
@@ -65,8 +65,10 @@ private:                                                                        
            static_cast<nano_caf::MsgTypeId>(i_type_id) << 32;                         \
 public:                                                                               \
    template <size_t, typename> struct __SeCrEtE_method;                               \
-   constexpr static size_t TOTAL_METHODS = __MACO_num_of_args(__VA_ARGS__);           \
+   [[maybe_unused]] constexpr static size_t TOTAL_METHODS = __MACO_num_of_args(__VA_ARGS__); \
    __MACO_map_i(__CAF_actor_method, __VA_ARGS__);                                     \
 }
+
+
 
 #endif //NANO_CAF_2_BB6FF278D65443C89D772C52256ADA42

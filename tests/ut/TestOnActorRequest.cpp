@@ -33,7 +33,7 @@ namespace {
                         this->cause = cause;
                     });
         }
-        auto HandleMessage(Message &msg) noexcept -> void {}
+        auto HandleMessage(Message&) noexcept -> void {}
     };
 }
 

@@ -41,7 +41,7 @@ namespace nano_caf {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     template<typename PRED, typename OP>
-    auto TimerSet::TimerFindAndModify(int code, intptr_t actor_id, PRED&& pred, OP&& op) -> void {
+    auto TimerSet::TimerFindAndModify(intptr_t actor_id, PRED&& pred, OP&& op) -> void {
         auto range = m_actorIndexer.equal_range(actor_id);
         auto result = std::find_if(range.first, range.second, std::forward<PRED>(pred));
         if(result != range.second) {
@@ -51,7 +51,7 @@ namespace nano_caf {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     auto TimerSet::RemoveTimer(TimerId const& timerId) -> void {
-        TimerFindAndModify(0, timerId.GetActorId(),
+        TimerFindAndModify(timerId.GetActorId(),
               [&](auto const& item) {
                   auto&& [_, msg] = *item.second;
                   return msg->template Body<StartTimerMsg>()->id == timerId;
@@ -64,14 +64,14 @@ namespace nano_caf {
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     auto TimerSet::RemoveIndex(intptr_t actor_id, Timers ::iterator const& iterator) -> void {
-        TimerFindAndModify(1, actor_id,
+        TimerFindAndModify(actor_id,
                           [&](auto const& item)      { return item.second == iterator; },
                           [this](auto const& result) { m_actorIndexer.erase(result);   });
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////
     auto TimerSet::UpdateIndex(intptr_t actor_id, Timers::iterator const& from, Timers::iterator const& to) -> void {
-        TimerFindAndModify(2, actor_id,
+        TimerFindAndModify(actor_id,
                           [&](auto const& item) { return item.second == from; },
                           [&](auto& result)     { result->second = to; });
     }

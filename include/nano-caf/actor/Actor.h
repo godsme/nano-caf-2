@@ -32,13 +32,18 @@ namespace nano_caf {
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
-        static auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
+        inline auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
             return Send<typename ATOM::MsgType, CATEGORY>(to, std::forward<ARGS>(args)...);
         }
 
-        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!Is_Msg_Atom<MSG>, bool> = true, typename ... ARGS>
         inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
             return Self().SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
+        }
+
+        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<Is_Msg_Atom<ATOM>, bool> = true, typename ... ARGS>
+        inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
+            return ToSelf<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...);
         }
 
         template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>

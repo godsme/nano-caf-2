@@ -58,7 +58,7 @@ namespace {
                 [this](Msg::Open, long value) -> Future<unsigned long> {
                     return Request<Msg::Open>(server, value);
                 },
-                [this](Msg::View, long value) -> Future<long> {
+                [this](Msg::View, long) -> Future<long> {
                     return ForwardTo<long, Message::URGENT>(server);
                 },
                 [this](Msg::Close) -> Future<void> {

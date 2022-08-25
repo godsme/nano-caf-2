@@ -30,7 +30,7 @@ namespace nano_caf::detail {
         }
         auto range = m_handlers.equal_range(msg.id);
         if(range.first == range.second) return false;
-        std::for_each(range.first, range.second, [this, &msg](auto&& elem){
+        std::for_each(range.first, range.second, [&msg](auto&& elem){
             elem.second->HandleMsg(msg);
         });
         m_handlers.erase(range.first, range.second);

@@ -22,7 +22,7 @@ namespace nano_caf::detail {
     constexpr bool IS_ATOM_PATTERN = false;
 
     template<typename F>
-    constexpr bool IS_ATOM_PATTERN<F, std::enable_if_t<IS_MSG_ATOM<std::decay_t<FirstArg<F>>>>> = true;
+    constexpr bool IS_ATOM_PATTERN<F, std::enable_if_t<Is_Msg_Atom<std::decay_t<FirstArg<F>>>>> = true;
 
     template<typename F>
     struct BehaviorTrait<F, std::enable_if_t<IS_ATOM_PATTERN<F>>> {

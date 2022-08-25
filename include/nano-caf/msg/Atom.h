@@ -11,7 +11,7 @@ namespace nano_caf {
     struct AtomSignature {};
 
     template<typename T>
-    constexpr bool IS_MSG_ATOM = std::is_base_of_v<AtomSignature, T>;
+    constexpr bool Is_Msg_Atom = std::is_base_of_v<AtomSignature, T>;
 }
 
 #endif //NANO_CAF_2_704D56F9C18A439484FB84B126AEB51B

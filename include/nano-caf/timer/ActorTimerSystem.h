@@ -47,7 +47,6 @@ namespace nano_caf {
 
         ShutdownNotifier m_shutdown{};
 
-        std::atomic<uint64_t> m_timerId{0};
         bool m_working{false};
     };
 }

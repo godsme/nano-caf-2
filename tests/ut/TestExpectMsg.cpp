@@ -75,7 +75,7 @@ namespace {
                     result = r;
                     Exit(ExitReason::NORMAL);
                 })
-                .Fail([this](Status cause) {
+                .Fail([this](Status) {
                     Exit(ExitReason::ABNORMAL);
                 });
         }
@@ -144,12 +144,12 @@ namespace {
 
         auto OnInit() -> void {
             Request<Msg::Close>(server, value)
-                    .Then([this]() {
-                        Exit(ExitReason::NORMAL);
-                    })
-                    .Fail([this](Status cause) {
-                        Exit(ExitReason::ABNORMAL);
-                    });
+                .Then([this]() {
+                    Exit(ExitReason::NORMAL);
+                })
+                .Fail([this](Status) {
+                    Exit(ExitReason::ABNORMAL);
+                });
         }
     };
 }
@@ -215,8 +215,8 @@ namespace {
                             return base + value + notify.num;
                         });
                     },
-                    [this](Msg::Close, long value) -> Future<void> {
-                        return ExpectMsg<DoneNotify>(1000ms, [value, this](auto &&notify) -> void {});
+                    [this](Msg::Close, long) -> Future<void> {
+                        return ExpectMsg<DoneNotify>(1000ms, [](auto&&) -> void {});
                     },
                     [this](ExitMsg::Atom, ExitReason reason) {
                         Exit(reason);
