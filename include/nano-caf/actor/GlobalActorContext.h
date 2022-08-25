@@ -11,14 +11,9 @@
 
 namespace nano_caf {
     struct GlobalActorContext {
-        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!Is_Msg_Atom<MSG>, bool> = true, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         static auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
-            return to.SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
-        }
-
-        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<Is_Msg_Atom<ATOM>, bool> = true, typename ... ARGS>
-        static auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
-            return Send<typename ATOM::MsgType, CATEGORY>(to, std::forward<ARGS>(args)...);
+            return to.SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>

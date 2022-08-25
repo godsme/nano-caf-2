@@ -26,24 +26,14 @@ namespace nano_caf {
         virtual auto Exit(ExitReason) noexcept -> void = 0;
         virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
 
-        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!std::is_base_of_v<nano_caf::AtomSignature, MSG>, bool> = true, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         inline auto Send(ActorPtr const& to, ARGS&& ... args) const noexcept -> Status {
-            return to.SendMsg(MakeMessage<MSG, CATEGORY>(static_cast<ActorPtr const&>(Self()), std::forward<ARGS>(args)...));
+            return to.SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(static_cast<ActorPtr const&>(Self()), std::forward<ARGS>(args)...));
         }
 
-        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<std::is_base_of_v<nano_caf::AtomSignature, ATOM>, bool> = true, typename ... ARGS>
-        inline auto Send(ActorPtr const& to, ARGS&& ... args) noexcept -> Status {
-            return Send<typename ATOM::MsgType, CATEGORY>(to, std::forward<ARGS>(args)...);
-        }
-
-        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<!Is_Msg_Atom<MSG>, bool> = true, typename ... ARGS>
+        template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
-            return Self().SendMsg(MakeMessage<MSG, CATEGORY>(std::forward<ARGS>(args)...));
-        }
-
-        template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, std::enable_if_t<Is_Msg_Atom<ATOM>, bool> = true, typename ... ARGS>
-        inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
-            return ToSelf<typename ATOM::MsgType, CATEGORY>(std::forward<ARGS>(args)...);
+            return Self().SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
@@ -59,7 +49,7 @@ namespace nano_caf {
         virtual auto ForwardTo(ActorPtr const& to, Message::Category = Message::DEFAULT) const noexcept -> Status = 0;
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
-        inline auto Request(ActorPtr const& to, ARGS&& ... args) noexcept -> Future<R> {
+        inline auto Request(ActorPtr const& to, ARGS&& ... args) const noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [](auto&& future) { return Future<R>{future}; },
                              std::forward<ARGS>(args)...);
@@ -127,7 +117,7 @@ namespace nano_caf {
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::NORMAL, typename R = typename ATOM::Type::ResultType, typename F, typename ... ARGS>
-        auto DoRequest(ActorPtr const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
+        auto DoRequest(ActorPtr const& to, F&& f, ARGS&& ... args) const noexcept -> Future<R> {
             Promise<R> promise;
             auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(Self()), promise, std::forward<ARGS>(args)...));
             CAF_ASSERT_R(status, Future<R>::By(status));

@@ -8,7 +8,7 @@
 #include <nano-caf/scheduler/ActorSystem.h>
 
 namespace nano_caf::detail {
-    auto ActorTimerContext::StartTimer(ActorPtr&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) noexcept -> Result<TimerId> {
+    auto ActorTimerContext::StartTimer(ActorPtr&& self, TimerSpec const& spec, std::size_t repeatTimes, TimeoutCallback&& callback) const noexcept -> Result<TimerId> {
         auto result = ActorSystem::Instance().StartTimer(self, spec, repeatTimes, std::move(callback));
         if(result.Ok()) {
             timerUsed = true;
@@ -33,7 +33,7 @@ namespace nano_caf::detail {
                 });
         }
 
-    auto ActorTimerContext::StartFutureTimer(ActorPtr&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) noexcept -> Result<TimerId> {
+    auto ActorTimerContext::StartFutureTimer(ActorPtr&& self, TimerSpec const& spec, std::shared_ptr<PromiseDoneNotifier> const& notifier) const noexcept -> Result<TimerId> {
         return StartTimer(std::move(self), spec, 1,
                     [weakNotifier = std::weak_ptr<PromiseDoneNotifier>{notifier}](ActorPtr& actor, TimerId const&) mutable -> Status {
                         auto&& future = weakNotifier.lock();
