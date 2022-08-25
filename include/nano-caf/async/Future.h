@@ -33,6 +33,10 @@ namespace nano_caf {
             return status == Status::OK ? Future{detail::FutureForwardTag{}} : Future{};
         }
 
+        static auto By(Status cause) -> Future<T> {
+            return {detail::FutureCauseTag{}, cause};
+        }
+
         Future() noexcept : m_object{Status::NULL_PTR}, m_forward{false} {}
         Future(detail::FutureCauseTag, Status cause) : m_object{cause}, m_forward{false} {}
         Future(ObjectType object) noexcept
@@ -54,7 +58,7 @@ namespace nano_caf {
 
         template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<!IS_FUTURE<R>>>
         auto Then(F&& callback) noexcept -> Future<R> {
-            if(!m_object.Ok()) return {detail::FutureCauseTag{}, m_object.GetStatus()};
+            if(!m_object.Ok()) return Future<R>::By(m_object.GetStatus());
             using ObjType = detail::FutureCallbackObject<R, T, F>;
             auto cb = std::make_shared<ObjType>(std::forward<F>(callback));
             if(cb == nullptr) return {};
@@ -64,7 +68,7 @@ namespace nano_caf {
 
         template<typename F, typename R = detail::InvokeResultType<F, T>, typename = std::enable_if_t<IS_FUTURE<R>>>
         auto Then(F&& callback) noexcept -> R {
-            if(!m_object.Ok()) return {detail::FutureCauseTag{}, m_object.GetStatus()};
+            if(!m_object.Ok()) return R::By(m_object.GetStatus());
             using Proxy = detail::FutureCallbackProxy<FutureOfType<R>, T, F>;
             auto cb = std::make_shared<Proxy>(std::forward<F>(callback));
             if(cb == nullptr) return {};

@@ -130,7 +130,7 @@ namespace nano_caf {
         auto DoRequest(ActorPtr const& to, F&& f, ARGS&& ... args) noexcept -> Future<R> {
             Promise<R> promise;
             auto status = to.SendMsg(MakeRequest<typename ATOM::MsgType, CATEGORY>(static_cast<ActorPtr const&>(Self()), promise, std::forward<ARGS>(args)...));
-            CAF_ASSERT_R(status, (Future<R>{detail::FutureCauseTag{}, status}));
+            CAF_ASSERT_R(status, Future<R>::By(status));
             return f(promise.GetFuture());
         }
 
@@ -149,8 +149,8 @@ namespace nano_caf {
         template<typename R>
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>> const& future) -> Future<R> {
             Result<TimerId> result = StartTimer(spec, future);
-            CAF_ASSERT_TRUE_R(result.Ok(), (Future<R>{detail::FutureCauseTag{}, result.GetStatus()}));
-            CAF_ASSERT_R(future->RegisterTimerObserver(*result), (Future<R>{detail::FutureCauseTag{}, status_}));
+            CAF_ASSERT_TRUE_R(result.Ok(), Future<R>::By(result.GetStatus()));
+            CAF_ASSERT_R(future->RegisterTimerObserver(*result), Future<R>::By(status_));
             return Future<R>{future};
         }
 
