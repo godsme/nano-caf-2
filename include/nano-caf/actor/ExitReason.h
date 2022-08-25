@@ -8,7 +8,7 @@
 #include <cstdint>
 
 namespace nano_caf {
-    enum ExitReason : uint8_t {
+    enum class ExitReason : uint8_t {
         NORMAL,
         ABNORMAL,
         SHUTDOWN,
