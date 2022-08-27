@@ -19,14 +19,12 @@ namespace nano_caf::detail {
     DEF_METHOD_DETECTOR(Actor_Has_Exit, void, OnInit, ExitReason);
     DEF_METHOD_DETECTOR(Actor_Has_OnExit, void, OnExit);
     DEF_METHOD_DETECTOR(Actor_Has_GetBehavior, Behavior, GetBehavior);
-    DEF_MEMBER_VAR_DETECTOR(Actor_Has_InitBehavior, Behavior, Init_Behavior);
+    DEF_MEMBER_VAR_DETECTOR(Actor_Has_InitBehavior, Behavior, INIT_Behavior);
 
     /////////////////////////////////////////////////////////////
     template<typename T, typename ACTOR>
     struct ActorObject final : ACTOR, T, private detail::ActorTimerContext {
     private:
-        static_assert(!(Actor_Has_InitBehavior<T> && Actor_Has_GetBehavior<T>),
-                "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
         using ACTOR::m_currentMsg;
 
         auto Self_() const noexcept -> ActorPtr {
