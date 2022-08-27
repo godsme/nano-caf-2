@@ -11,47 +11,21 @@
 #include <nano-caf/actor/NonblockingActor.h>
 #include <nano-caf/actor/detail/ActorTimerContext.h>
 #include <nano-caf/actor/detail/ActorCtlBlock.h>
+#include <nano-caf/util/MemberDetector.h>
 
 namespace nano_caf::detail {
-    template<typename T, typename = void>
-    struct ActorHasInit : std::false_type {};
+    /////////////////////////////////////////////////////////////
+    DEF_METHOD_DETECTOR(Actor_Has_Init, void, OnInit);
+    DEF_METHOD_DETECTOR(Actor_Has_Exit, void, OnInit, ExitReason);
+    DEF_METHOD_DETECTOR(Actor_Has_OnExit, void, OnExit);
+    DEF_METHOD_DETECTOR(Actor_Has_GetBehavior, Behavior, GetBehavior);
+    DEF_MEMBER_VAR_DETECTOR(Actor_Has_InitBehavior, Behavior, Init_Behavior);
 
-    template<typename T>
-    struct ActorHasInit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnInit())>>>
-            : std::true_type {};
-
-    template<typename T, typename = void>
-    struct ActorHasExit : std::false_type {};
-
-    template<typename T>
-    struct ActorHasExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnExit(ExitReason::NORMAL))>>>
-            : std::true_type {};
-
-    template<typename T, typename = void>
-    struct ActorHasOnExit : std::false_type {};
-
-    template<typename T>
-    struct ActorHasOnExit<T, std::enable_if_t<std::is_void_v<decltype(std::declval<T>().OnExit())>>>
-            : std::true_type {};
-
-    template<typename T, typename = void>
-    struct ActorHasGetBehavior : std::false_type {};
-
-    template<typename T>
-    struct ActorHasGetBehavior<T, std::enable_if_t<std::is_same_v<Behavior, decltype(std::declval<T>().GetBehavior())>>>
-            : std::true_type {};
-
-    template<typename T, typename = void>
-    struct ActorHasInitBehavior : std::false_type {};
-
-    template<typename T>
-    struct ActorHasInitBehavior<T, std::enable_if_t<std::is_same_v<Behavior, std::decay_t<decltype(T::INIT_Behavior)>>>>
-            : std::true_type {};
-
+    /////////////////////////////////////////////////////////////
     template<typename T, typename ACTOR>
     struct ActorObject final : ACTOR, T, private detail::ActorTimerContext {
     private:
-        static_assert(!(ActorHasInitBehavior<T>::value && ActorHasGetBehavior<T>::value),
+        static_assert(!(Actor_Has_InitBehavior<T> && Actor_Has_GetBehavior<T>),
                 "you can only either defined GetBehavior() or INIT_Behavior in a certain actor");
         using ACTOR::m_currentMsg;
 
@@ -65,13 +39,13 @@ namespace nano_caf::detail {
             : ACTOR{sync}
             , T{std::forward<ARGS>(args)...}
         {
-            if constexpr(!ActorHasInit<T>::value) {
+            if constexpr(!Actor_Has_Init<T>) {
                 ACTOR::m_inited = true;
             }
 
-            if constexpr(ActorHasGetBehavior<T>::value) {
+            if constexpr(Actor_Has_GetBehavior<T>) {
                 m_behavior = T::GetBehavior();
-            } else if constexpr(ActorHasInitBehavior<T>::value) {
+            } else if constexpr(Actor_Has_InitBehavior<T>) {
                 m_behavior = T::INIT_Behavior;
             }
         }
@@ -85,17 +59,15 @@ namespace nano_caf::detail {
         }
 
         auto InitHandler() noexcept -> void override {
-            if constexpr (ActorHasInit<T>::value) {
+            if constexpr (Actor_Has_Init<T>) {
                 T::OnInit();
             }
         }
 
         auto ExitHandler(ExitReason reason) noexcept -> void override {
-            if constexpr (ActorHasExit<T>::value) {
+            if constexpr (Actor_Has_Exit<T>) {
                 T::OnExit(reason);
-            }
-
-            if constexpr(ActorHasOnExit<T>::value) {
+            } else if constexpr(Actor_Has_OnExit<T>) {
                 T::OnExit();
             }
         }
@@ -113,7 +85,7 @@ namespace nano_caf::detail {
             if(detail::ActorTimerContext::HandleMsg(msg)) {
                 return true;
             }
-            if constexpr(ActorHasGetBehavior<T>::value || ActorHasInitBehavior<T>::value) {
+            if constexpr(Actor_Has_GetBehavior<T> || Actor_Has_InitBehavior<T>) {
                 if(m_behavior.HandleMsg(msg)) return true;
             }
             return false;

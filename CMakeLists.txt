@@ -13,6 +13,7 @@ add_compile_options( -Wall -Wextra )
 
 add_library(nano_caf
         include/nano-caf/Status.h
+        include/nano-caf/util/MemberDetector.h
         include/nano-caf/util/TypeList.h
         include/nano-caf/util/MacroReflex.h
         include/nano-caf/util/ListElem.h

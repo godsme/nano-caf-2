@@ -44,9 +44,7 @@ namespace nano_caf {
         if(auto status = MailBox::SendMsg(msg); status != Status::BLOCKED) {
             return status;
         }
-
         m_cv.WakeUp();
-
         return Status::OK;
     }
 }
