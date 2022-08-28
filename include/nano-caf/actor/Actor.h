@@ -78,13 +78,30 @@ namespace nano_caf {
 
     public:
         template<typename F>
-        inline auto After(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+        inline auto OnTimeout(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, 1, std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        inline auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
-            return After(InMs(timeout), std::forward<F>(f));
+        inline auto OnTimeout(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
+            return OnTimeout(InMs(timeout), std::forward<F>(f));
+        }
+
+        template<typename F, typename Rep, typename Period, typename R = std::invoke_result_t<F>>
+        inline auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
+            auto future = std::make_shared<detail::FutureObject<R>>();
+            CAF_ASSERT_VALID_PTR_R(future, Future<R>::By(Status::OUT_OF_MEM));
+            auto timerId = OnTimeout(InMs(timeout), [future, cb = std::forward<F>(f)] {
+                if constexpr(std::is_void_v<R>) {
+                    cb();
+                    future->SetValue();
+                } else {
+                    future->SetValue(cb());
+                }
+                future->Commit();
+            });
+            CAF_ASSERT_TRUE_R(timerId.Ok(), Future<R>::By(timerId.GetStatus()));
+            return {future};
         }
 
         template<typename F>
@@ -111,7 +128,7 @@ namespace nano_caf {
         template<typename F>
         auto StartTimerWithUserCallback(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept -> Result<TimerId> {
             return StartTimer(spec, repeatTimes,
-                              [cb = std::forward<F>(f)](ActorPtr& actor,TimerId const& timerId) mutable -> Status {
+                              [cb = std::forward<F>(f)](ActorPtr& actor, TimerId const& timerId) mutable -> Status {
                                   return GlobalActorContext::Send<TimeoutMsg>(actor, timerId, std::forward<F>(cb));
                               });
         }

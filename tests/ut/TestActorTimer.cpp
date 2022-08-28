@@ -26,7 +26,7 @@ namespace {
 
             timerId_1 = *timer_1;
 
-            auto timer_2 = After(10ms, [this] {
+            auto timer_2 = OnTimeout(10ms, [this] {
                 Exit(ExitReason::ABNORMAL);
             });
 
@@ -68,7 +68,7 @@ namespace {
 
             timerId_1 = *timer_1;
 
-            auto timer_2 = After(3ms, [this] {
+            auto timer_2 = OnTimeout(3ms, [this] {
                 timerId_1.Cancel();
             });
 
