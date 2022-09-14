@@ -27,11 +27,9 @@ namespace nano_caf {
     }
 
     auto WorkSharingQueue::Shutdown() noexcept -> void {
-        {
-            std::unique_lock lock{m_lock};
-            if(m_shutdown) return;
-            m_shutdown = true;
-        }
+        std::unique_lock lock{m_lock};
+        if(m_shutdown) return;
+        m_shutdown = true;
         m_cv.notify_all();
     }
 

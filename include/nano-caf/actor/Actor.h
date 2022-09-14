@@ -15,83 +15,77 @@ namespace nano_caf {
     struct Actor {
         virtual ~Actor() = default;
 
-    private:
-        template<typename Rep, typename Period>
-        static inline auto InMs(std::chrono::duration<Rep, Period> timeout) -> Duration {
-            return std::chrono::microseconds(timeout).count();
-        }
-
     public:
         virtual auto Self() const noexcept -> ActorPtr = 0;
         virtual auto Exit(ExitReason) noexcept -> void = 0;
         virtual auto ChangeBehavior(Behavior const& to) noexcept -> void = 0;
 
         template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
-        inline auto Send(ActorPtr const& to, ARGS&& ... args) const noexcept -> Status {
+        auto Send(ActorPtr const& to, ARGS&& ... args) const noexcept -> Status {
             return to.SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(static_cast<ActorPtr const&>(Self()), std::forward<ARGS>(args)...));
         }
 
         template<typename MSG, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
-        inline auto ToSelf(ARGS&& ... args) const noexcept -> Status {
+        auto ToSelf(ARGS&& ... args) const noexcept -> Status {
             return Self().SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
         template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
-        inline auto Reply(ARGS&& ... args) const noexcept -> Status {
+        auto Reply(ARGS&& ... args) const noexcept -> Status {
             return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
         }
 
         template<typename R, Message::Category CATEGORY = Message::DEFAULT>
-        inline auto ForwardTo(ActorPtr const& to) const noexcept -> Future<R> {
+        auto ForwardTo(ActorPtr const& to) const noexcept -> Future<R> {
             return Future<R>::Forward(ForwardTo(to, CATEGORY));
         }
 
         virtual auto ForwardTo(ActorPtr const& to, Message::Category = Message::DEFAULT) const noexcept -> Status = 0;
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename ... ARGS>
-        inline auto Request(ActorPtr const& to, ARGS&& ... args) const noexcept -> Future<R> {
+        auto Request(ActorPtr const& to, ARGS&& ... args) const noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [](auto&& future) { return Future<R>{future}; },
                              std::forward<ARGS>(args)...);
         }
 
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
-        inline auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
+        auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
                              [&timeout, this](auto&& future) mutable -> Future<R> {
-                                return this->StartFutureTimer(InMs(timeout), future);
+                                return this->StartFutureTimer(Duration(timeout), future);
                              },
                              std::forward<ARGS>(args)...);
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>>
-        inline auto ExpectMsg(F&& f) noexcept -> Future<R> {
+        auto ExpectMsg(F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [](auto&&) { return Status::OK; });
         }
 
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename Rep, typename Period>
-        inline auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
+        auto ExpectMsg(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             return DoExpectMsg<MSG>(std::forward<F>(f), [this, &timeout](auto&& handler) {
-                return this->StartExpectMsgTimer(InMs(timeout), handler);
+                return this->StartExpectMsgTimer(Duration(timeout), handler);
             });
         }
 
     public:
         template<typename F>
-        inline auto OnTimeout(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+        auto OnTimeout(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, 1, std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        inline auto OnTimeout(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
-            return OnTimeout(InMs(timeout), std::forward<F>(f));
+        auto OnTimeout(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept ->  Result<TimerId> {
+            return OnTimeout(Duration(timeout), std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period, typename R = std::invoke_result_t<F>>
-        inline auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
+        auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             auto future = std::make_shared<detail::FutureObject<R>>();
             CAF_ASSERT_VALID_PTR_R(future, Future<R>::By(Status::OUT_OF_MEM));
-            auto timerId = OnTimeout(InMs(timeout), [future, cb = std::forward<F>(f)] {
+            auto timerId = OnTimeout(Duration(timeout), [future, cb = std::forward<F>(f)] {
                 if constexpr(std::is_void_v<R>) {
                     cb();
                     if(!future->SetValue()) return;
@@ -105,22 +99,22 @@ namespace nano_caf {
         }
 
         template<typename F>
-        inline auto Repeat(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+        auto Repeat(TimerSpec const& spec, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, repeatTimes, std::forward<F>(f));
         }
 
         template<typename F>
-        inline auto Repeat(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
+        auto Repeat(TimerSpec const& spec, F&& f) noexcept ->  Result<TimerId> {
             return StartTimerWithUserCallback(spec, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        inline auto Repeat(std::chrono::duration<Rep, Period> duration, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
-            return Repeat(InMs(duration), repeatTimes, std::forward<F>(f));
+        auto Repeat(std::chrono::duration<Rep, Period> duration, std::size_t repeatTimes, F&& f) noexcept ->  Result<TimerId> {
+            return Repeat(Duration(duration), repeatTimes, std::forward<F>(f));
         }
 
         template<typename F, typename Rep, typename Period>
-        inline auto Repeat(std::chrono::duration<Rep, Period> duration, F&& f) noexcept ->  Result<TimerId> {
+        auto Repeat(std::chrono::duration<Rep, Period> duration, F&& f) noexcept ->  Result<TimerId> {
             return Repeat(duration, std::numeric_limits<std::size_t>::max(), std::forward<F>(f));
         }
 

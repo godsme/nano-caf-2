@@ -12,15 +12,15 @@ using namespace std::chrono_literals;
 
 namespace {
     enum : uint32_t {
-        MSG_interface_id = 2,
+        MSG_interface_id  = 2,
         MSG1_interface_id = 3
     };
 
     __CAF_actor_interface(Msg, MSG_interface_id,
-        (Open,  (const long&) -> unsigned long),
-        (View,  (const long&) -> long),
+        (Open,    (const long&) -> unsigned long),
+        (View,    (const long&) -> long),
         (Discard, () -> void),
-        (Close, () -> void)
+        (Close,   () -> void)
     );
 
     struct Server : Actor {
@@ -63,7 +63,7 @@ namespace {
                 },
                 [this](Msg::Close) -> Future<void> {
                     return Request<Msg::Close>(server)
-                        .Then([this] { Exit(ExitReason::NORMAL); });
+                              .Then([this] { Exit(ExitReason::NORMAL); });
                 },
             };
         }
@@ -140,7 +140,7 @@ SCENARIO("Blocking Actor Unimplemented") {
 
 namespace {
     __CAF_actor_interface(Msg1, MSG1_interface_id,
-                          (Seek,  (const long&) -> long)
+        (Seek,  (const long&) -> long)
     );
 
     struct BaseActor : Actor {

@@ -12,13 +12,13 @@ SCENARIO("Empty TimerId") {
 }
 
 SCENARIO("TimerId, 0 repeat times should create an empty timer id") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     TimerId timerId{0x12345678, spec, 0};
     REQUIRE_FALSE(timerId);
 }
 
 SCENARIO("TimerId Expire") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     detail::TimerIdExt timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
@@ -29,7 +29,7 @@ SCENARIO("TimerId Expire") {
 }
 
 SCENARIO("Cancel TimerId") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     detail::TimerIdExt timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
@@ -40,7 +40,7 @@ SCENARIO("Cancel TimerId") {
 }
 
 SCENARIO("copy cons TimerId") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     TimerId timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
@@ -50,7 +50,7 @@ SCENARIO("copy cons TimerId") {
 }
 
 SCENARIO("copy assign TimerId") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     TimerId timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
@@ -62,7 +62,7 @@ SCENARIO("copy assign TimerId") {
 }
 
 SCENARIO("move cons TimerId") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     TimerId timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
@@ -72,7 +72,7 @@ SCENARIO("move cons TimerId") {
 }
 
 SCENARIO("move assign TimerId") {
-    TimerSpec spec = (uint64_t)10000;
+    TimerSpec spec = Duration(10000);
     TimerId timerId{0x12345678, spec, 1};
     REQUIRE(timerId);
 
