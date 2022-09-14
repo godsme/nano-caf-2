@@ -44,12 +44,12 @@ namespace {
     struct MyActor : Actor {
         ActorPtr server{};
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             exit_invoked = false;
             server = SpawnBlockingActor<Server, false>();
         }
 
-        auto OnExit() -> void {
+        auto OnActorExit() -> void {
             exit_invoked = true;
         }
 

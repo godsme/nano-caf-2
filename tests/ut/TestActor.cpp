@@ -33,7 +33,7 @@ namespace {
 
         PingActor(std::size_t times) : times{times} {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             pongActor = Spawn<PongActor>();
             Send<Ping>(pongActor, std::size_t(0));
         }
@@ -89,7 +89,9 @@ namespace {
             },
             [this](Msg::Seek, long value) -> Future<unsigned long> {
                 return After(2ms, [value] () -> unsigned long {
-                   return 100 + value;
+                   return value;
+                }).Then([](auto&& value) {
+                    return value + 100;
                 });
             },
             [this](Msg::Close) -> Future<void> {
@@ -103,11 +105,11 @@ namespace {
     struct ClientActor : Actor {
         ActorPtr server{};
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             server = Spawn<ServerActor, true>();
         }
 
-        auto OnExit() -> void {
+        auto OnActorExit() -> void {
             ActorWeakPtr weak = server;
             server.Release();
             weak.Wait(serverReason);

@@ -18,7 +18,7 @@ namespace {
 
         MyActor(std::size_t repeatTimes) : repeatTimes{repeatTimes} {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             auto timer_1 = Repeat(1ms, repeatTimes, []{
                 g_times++;
             });
@@ -60,7 +60,7 @@ namespace {
         TimerId timerId_1{};
         TimerId timerId_2{};
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             auto timer_1 = Repeat(1ms, []{
                 g_times++;
             });

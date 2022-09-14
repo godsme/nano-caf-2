@@ -68,7 +68,7 @@ namespace {
             , value{value}
         {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             using namespace std::chrono_literals;
             Request<Msg::Open>(server, 2000ms, value)
                 .Then([this](long r) {
@@ -142,7 +142,7 @@ namespace {
             , value{value}
         {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             Request<Msg::Close>(server, value)
                 .Then([this]() {
                     Exit(ExitReason::NORMAL);
@@ -238,7 +238,7 @@ namespace {
                 , value{value}
         {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             Request<Msg::Open>(server, value)
                     .Then([this](long r) {
                         result = r;

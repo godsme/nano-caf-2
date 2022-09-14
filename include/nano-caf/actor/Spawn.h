@@ -15,9 +15,9 @@
 
 namespace nano_caf::detail {
     /////////////////////////////////////////////////////////////
-    DEF_METHOD_DETECTOR(Actor_Has_Init, void, OnInit);
-    DEF_METHOD_DETECTOR(Actor_Has_Exit, void, OnInit, ExitReason);
-    DEF_METHOD_DETECTOR(Actor_Has_OnExit, void, OnExit);
+    DEF_METHOD_DETECTOR(Actor_Has_Init, void, OnActorInit);
+    DEF_METHOD_DETECTOR(Actor_Has_Exit, void, OnActorInit, ExitReason);
+    DEF_METHOD_DETECTOR(Actor_Has_OnExit, void, OnActorExit);
     DEF_METHOD_DETECTOR(Actor_Has_GetBehavior, Behavior, GetBehavior);
     DEF_MEMBER_VAR_DETECTOR(Actor_Has_InitBehavior, Behavior, INIT_Behavior);
 
@@ -58,15 +58,15 @@ namespace nano_caf::detail {
 
         auto InitHandler() noexcept -> void override {
             if constexpr (Actor_Has_Init<T>) {
-                T::OnInit();
+                T::OnActorInit();
             }
         }
 
         auto ExitHandler(ExitReason reason) noexcept -> void override {
             if constexpr (Actor_Has_Exit<T>) {
-                T::OnExit(reason);
+                T::OnActorExit(reason);
             } else if constexpr(Actor_Has_OnExit<T>) {
-                T::OnExit();
+                T::OnActorExit();
             }
         }
 

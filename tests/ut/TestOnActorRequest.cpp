@@ -65,7 +65,7 @@ namespace {
         long value{};
         RequestActor(long value) : value{value} {}
 
-        auto OnInit() -> void {
+        auto OnActorInit() -> void {
             server = Spawn<ServerActor>(101);
             if(!server) {
                 Exit(ExitReason::ABNORMAL);

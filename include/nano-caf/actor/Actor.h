@@ -94,9 +94,9 @@ namespace nano_caf {
             auto timerId = OnTimeout(InMs(timeout), [future, cb = std::forward<F>(f)] {
                 if constexpr(std::is_void_v<R>) {
                     cb();
-                    future->SetValue();
+                    if(!future->SetValue()) return;
                 } else {
-                    future->SetValue(cb());
+                    if(!future->SetValue(cb())) return;
                 }
                 future->Commit();
             });
