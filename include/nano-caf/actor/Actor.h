@@ -30,6 +30,11 @@ namespace nano_caf {
             return Self().SendMsg(MakeMessage<MsgType<MSG>, CATEGORY>(std::forward<ARGS>(args)...));
         }
 
+        template<Message::Category CATEGORY = Message::DEFAULT, typename F, typename = std::enable_if_t<std::is_invocable_r_v<void, F>>>
+        auto Async(F&& f) const noexcept -> Status {
+            return ToSelf<AsyncMsg, CATEGORY>(std::forward<F>(f));
+        }
+
         template<typename T, Message::Category CATEGORY = Message::DEFAULT, typename ... ARGS>
         auto Reply(ARGS&& ... args) const noexcept -> Status {
             return Send<T, CATEGORY>(CurrentSender(), std::forward<ARGS>(args)...);
@@ -52,7 +57,7 @@ namespace nano_caf {
         template<typename ATOM, Message::Category CATEGORY = Message::DEFAULT, typename R = typename ATOM::Type::ResultType, typename Rep, typename Period, typename ... ARGS>
         auto Request(ActorPtr const& to, std::chrono::duration<Rep, Period> timeout, ARGS&& ... args) noexcept -> Future<R> {
             return DoRequest<ATOM, CATEGORY>(to,
-                             [&timeout, this](auto&& future) mutable -> Future<R> {
+                             [this, &timeout](auto&& future) mutable -> Future<R> {
                                 return this->StartFutureTimer(Duration(timeout), future);
                              },
                              std::forward<ARGS>(args)...);
@@ -85,7 +90,7 @@ namespace nano_caf {
         auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             auto future = std::make_shared<detail::FutureObject<R>>();
             CAF_ASSERT_VALID_PTR_R(future, Future<R>::By(Status::OUT_OF_MEM));
-            auto timerId = OnTimeout(Duration(timeout), [future, cb = std::forward<F>(f)] {
+            auto timerId = OnTimeout(timeout, [future, cb = std::forward<F>(f)] {
                 if constexpr(std::is_void_v<R>) {
                     cb();
                     if(!future->SetValue()) return;

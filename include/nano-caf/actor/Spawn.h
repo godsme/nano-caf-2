@@ -83,6 +83,7 @@ namespace nano_caf::detail {
             if(detail::ActorTimerContext::HandleMsg(msg)) {
                 return true;
             }
+
             if constexpr(Actor_Has_GetBehavior<T> || Actor_Has_InitBehavior<T>) {
                 if(m_behavior.HandleMsg(msg)) return true;
             }

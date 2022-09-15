@@ -17,6 +17,7 @@
 namespace nano_caf {
     CAF_def_message(BootstrapMsg);
     CAF_def_message(ExitMsg, (reason, ExitReason));
+    CAF_def_message(AsyncMsg, (lambda, std::function<auto () -> void>));
 
     CAF_def_message(FutureDoneNotify, (notifier, std::shared_ptr<PromiseDoneNotifier>));
 

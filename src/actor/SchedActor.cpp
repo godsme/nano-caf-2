@@ -69,6 +69,10 @@ namespace nano_caf {
     auto SchedActor::HandleMsg(Message& msg) noexcept -> void {
         switch(msg.id) {
             case BootstrapMsg::ID: break; // ignore
+            case AsyncMsg::ID: {
+                msg.Body<AsyncMsg>()->lambda();
+                break;
+            }
             case FutureDoneNotify::ID: {
                 auto notifier = msg.Body<FutureDoneNotify>()->notifier;
                 notifier->Commit();
@@ -86,7 +90,6 @@ namespace nano_caf {
                     // This message didn't get processed.
                     msg.OnDiscard();
                 }
-
                 break;
             }
         }
