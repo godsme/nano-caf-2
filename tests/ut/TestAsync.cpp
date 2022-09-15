@@ -17,13 +17,16 @@ namespace {
             if(++num == 100) {
                 Exit(ExitReason::SHUTDOWN);
             } else {
-                Async<Message::URGENT>([this]{ Process(); });
+                Resched();
             }
         }
+
+        auto Resched() -> void {
+            Async<Message::URGENT>([this]{ Process(); });
+        }
+
         auto OnActorInit() -> void {
-            Async<Message::URGENT>([this]{
-                Process();
-            });
+            Resched();
         }
     };
 }
