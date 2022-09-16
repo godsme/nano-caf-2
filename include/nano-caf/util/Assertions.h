@@ -5,8 +5,11 @@
 #ifndef NANO_CAF_2_39CA41233EED45A0A7000DDF69571375
 #define NANO_CAF_2_39CA41233EED45A0A7000DDF69571375
 
-#include <spdlog/spdlog.h>
 #include <nano-caf/Status.h>
+
+#if USE_SPDLOG
+#include <spdlog/spdlog.h>
+#endif
 
 namespace nano_caf::detail {
     template<typename T, typename = void>
@@ -16,54 +19,78 @@ namespace nano_caf::detail {
     constexpr bool HasOperatorBool<T, std::void_t<decltype(&T::operator bool)>> = true;
 
     template<typename T>
-    inline constexpr auto SuccCheck(T&& value) -> std::pair<bool, Status> {
+    constexpr bool CouldBeBool = std::is_convertible_v<T, bool> || HasOperatorBool<T>;
+
+    template<typename T>
+    inline constexpr auto SuccCheck(T&& value) -> bool {
         using Type = std::decay_t<T>;
         if constexpr(std::is_same_v<Type, nano_caf::Status>) {
-            return {value ==  Status::OK, value};
+            return value ==  Status::OK;
         } else if constexpr(std::is_pointer_v<Type>) {
-            return {value != nullptr, Status::NULL_PTR};
-        } else if constexpr(std::is_convertible_v<Type, bool> || HasOperatorBool<Type>) {
-            return {(bool)value, Status::FAILED};
+            return value != nullptr;
+        } else if constexpr(CouldBeBool<Type>) {
+            return (bool)value;
         } else {
-            static_assert(std::is_convertible_v<Type, bool> ||
-                          std::is_pointer_v<Type> ||
-                          HasOperatorBool<Type> ||
+            static_assert(std::is_pointer_v<Type> ||
+                          CouldBeBool<Type> ||
                           std::is_same_v<Type, nano_caf::Status>);
-            return {false, Status::INVALID_ARG};
+            return false;
         }
     }
+
+    template<typename T>
+    inline constexpr auto GetStatus([[maybe_unused]] T&& value) -> Status {
+        using Type = std::decay_t<T>;
+        if constexpr(std::is_same_v<Type, nano_caf::Status>) {
+            return value;
+        } else if constexpr(std::is_pointer_v<Type>) {
+            return Status::NULL_PTR;
+        } else if constexpr(CouldBeBool<Type>) {
+            return Status::FAILED;
+        } else {
+            return Status::INVALID_ARG;
+        }
+    }
+
+#if USE_SPDLOG
+    template<typename ... Args>
+    inline auto DoLog(spdlog::source_loc const& loc, Args&& ... args) -> void {
+        spdlog::default_logger_raw()->log(loc, spdlog::level::err, std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    inline auto Log(spdlog::source_loc const& loc, char const* expr, [[maybe_unused]] T&& result) -> void {
+        using Type = std::decay_t<T>;
+        if constexpr(std::is_same_v<Type, nano_caf::Status>) {
+            DoLog(loc, "assertion failed: ({}) = {:x}", expr, result);
+        } else if constexpr(std::is_pointer_v<Type>) {
+            DoLog(loc, "assertion failed: ({}) = nullptr", expr);
+        } else if constexpr(CouldBeBool<Type>) {
+            DoLog(loc, "assertion failed: ({}) = false", expr);
+        }
+    }
+#endif
 }
 
-#define __CAF_LOG_SUCC(expr, status, result) \
-    SPDLOG_ERROR("{} failed, status = {}", #expr, status);  \
-    result
+#if USE_SPDLOG
+#define __CAF_LOG(expr, status) \
+   nano_caf::detail::Log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, #expr, status)
+#else
+#define __CAF_LOG(expr, status)
+#endif
 
-#define __CAF_LOG_BOOL(expr, result) \
-    SPDLOG_ERROR("{} expected to be true, but actually false", #expr);  \
-    result
-
-#define __CAF_LOG_PTR(p, result) \
-    SPDLOG_ERROR("{} = nullptr", #p);                            \
-    result
-
-#define __CAF_GENERIC_ASSERT_R(expr, result) do {                       \
-    if([[maybe_unused]] auto [result_, status_] = nano_caf::detail::SuccCheck(expr); !result_) {  \
-        using Type = std::decay_t<decltype(expr)>;                      \
-        if constexpr(std::is_same_v<Type, nano_caf::Status>) {          \
-            __CAF_LOG_SUCC(expr, status_, result);                      \
-        } else if constexpr(std::is_pointer_v<Type>) {                  \
-            __CAF_LOG_PTR(expr, result);                                \
-        } else if constexpr(std::is_convertible_v<Type, bool> || nano_caf::detail::HasOperatorBool<Type>) {        \
-            __CAF_LOG_BOOL(expr, result);                               \
-        }                                                               \
-    }                                                                   \
+#define __CAF_GENERIC_ASSERT_R(expr, result) do {             \
+    if(auto&& status_ = expr; !detail::SuccCheck(status_)) {  \
+         __CAF_LOG(expr, status_);                            \
+        result;                                               \
+    }                                                         \
 } while(0)
 
 #define CAF_ASSERT_R(expr, result) \
 __CAF_GENERIC_ASSERT_R(expr, return result)
 
 #define CAF_ASSERT(expr) \
-__CAF_GENERIC_ASSERT_R(expr, return status_)
+__CAF_GENERIC_ASSERT_R(expr, return detail::GetStatus(status_))
 
 #define CAF_ASSERT_(expr) \
 __CAF_GENERIC_ASSERT_R(expr, return {})

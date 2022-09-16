@@ -2,6 +2,7 @@
 // Created by Darwin Yuan on 2022/8/22.
 //
 #include <nano-caf/blocking/BlockingFuture.h>
+#include <thread>
 #include <catch.hpp>
 
 using namespace nano_caf;

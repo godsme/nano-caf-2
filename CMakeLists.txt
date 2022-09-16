@@ -9,6 +9,7 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
 )
 
+#-DUSE_SPDLOG=0
 add_compile_options( -Wall -Wextra )
 
 add_library(nano_caf
