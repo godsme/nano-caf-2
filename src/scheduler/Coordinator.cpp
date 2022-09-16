@@ -7,7 +7,7 @@
 
 namespace nano_caf {
     auto Coordinator::StartUp(std::size_t numOfWorkers) noexcept -> void {
-        CAF_ASSERT__(!working);
+        __CAF_ASSERT(!working);
         if(numOfWorkers == 0) numOfWorkers = 1;
         m_pendingTasks = std::make_unique<WorkSharingQueue>();
         m_workers.reserve(numOfWorkers);

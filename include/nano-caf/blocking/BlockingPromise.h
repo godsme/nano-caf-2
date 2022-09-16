@@ -72,18 +72,18 @@ namespace nano_caf {
 
     private:
         auto OnFail_(Status cause) noexcept -> void {
-            CAF_ASSERT__(m_object);
-            CAF_ASSERT__(m_object->OnFail(cause));
+            __CAF_ASSERT(m_object);
+            __CAF_ASSERT(m_object->OnFail(cause));
         }
 
         auto OnSuccess(ResultType const& value) noexcept -> void {
-            CAF_ASSERT__(m_object);
-            CAF_ASSERT__(m_object->SetValue(value));
+            __CAF_ASSERT(m_object);
+            __CAF_ASSERT(m_object->SetValue(value));
         }
 
         auto OnSuccess(ResultType&& value) noexcept -> void {
-            CAF_ASSERT__(m_object);
-            CAF_ASSERT__(m_object->SetValue(std::move(value)));
+            __CAF_ASSERT(m_object);
+            __CAF_ASSERT(m_object->SetValue(std::move(value)));
         }
 
     private:

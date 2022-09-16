@@ -14,7 +14,7 @@ namespace nano_caf::detail {
     }
 
     auto ExpectOnceMsgHandlers::RemoveHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void {
-        CAF_ASSERT__(handler);
+        __CAF_ASSERT(handler);
         auto result = std::find_if(m_handlers.begin(), m_handlers.end(), [&handler](auto&& elem) {
             return elem.second == handler;
         });

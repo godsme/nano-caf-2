@@ -143,11 +143,11 @@ namespace nano_caf {
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename CALLBACK>
         auto DoExpectMsg(F&& f, CALLBACK&& callback) noexcept -> Future<R> {
             auto handler = std::make_shared<detail::ExpectMsgHandler<MSG>>();
-            CAF_ASSERT_(handler);
+            _CAF_ASSERT(handler);
 
             auto future = handler->GetFuture();
             RegisterMsgHandler(MSG::ID, handler);
-            CAF_ASSERT_(callback(handler));
+            _CAF_ASSERT(callback(handler));
 
             return Future<MSG&>{future}.Then(std::forward<F>(f));
         }

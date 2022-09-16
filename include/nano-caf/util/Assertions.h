@@ -89,10 +89,10 @@ __CAF_GENERIC_ASSERT_R(expr, return result)
 #define CAF_ASSERT(expr) \
 __CAF_GENERIC_ASSERT_R(expr, return detail::GetStatus(status_))
 
-#define CAF_ASSERT_(expr) \
+#define _CAF_ASSERT(expr) \
 __CAF_GENERIC_ASSERT_R(expr, return {})
 
-#define CAF_ASSERT__(expr) \
+#define __CAF_ASSERT(expr) \
 __CAF_GENERIC_ASSERT_R(expr, return)
 
 #define CAF_ASSERT_WARN(expr) \
