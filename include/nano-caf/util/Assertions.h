@@ -6,26 +6,23 @@
 #define NANO_CAF_2_39CA41233EED45A0A7000DDF69571375
 
 #include <nano-caf/Status.h>
+#include <nano-caf/util/MemberDetector.h>
 
 #if USE_SPDLOG
 #include <spdlog/spdlog.h>
 #endif
 
 namespace nano_caf::detail {
-    template<typename T, typename = void>
-    constexpr bool HasOperatorBool = false;
+    DEF_METHOD_DETECTOR(HasOperatorBool, bool, operator bool);
 
     template<typename T>
-    constexpr bool HasOperatorBool<T, std::void_t<decltype(&T::operator bool)>> = true;
-
-    template<typename T>
-    constexpr bool CouldBeBool = std::is_convertible_v<T, bool> || HasOperatorBool<T>;
+    constexpr bool CouldBeBool = std::is_same_v<T, bool> || HasOperatorBool<T>;
 
     template<typename T>
     inline constexpr auto SuccCheck(T&& value) -> bool {
         using Type = std::decay_t<T>;
         if constexpr(std::is_same_v<Type, nano_caf::Status>) {
-            return value ==  Status::OK;
+            return value == Status::OK;
         } else if constexpr(std::is_pointer_v<Type>) {
             return value != nullptr;
         } else if constexpr(CouldBeBool<Type>) {
@@ -62,7 +59,7 @@ namespace nano_caf::detail {
     inline auto Log(spdlog::source_loc const& loc, char const* expr, [[maybe_unused]] T&& result) -> void {
         using Type = std::decay_t<T>;
         if constexpr(std::is_same_v<Type, nano_caf::Status>) {
-            DoLog(loc, "assertion failed: ({}) = {:x}", expr, result);
+            DoLog(loc, "assertion failed: ({}) = 0x{:08x}", expr, result);
         } else if constexpr(std::is_pointer_v<Type>) {
             DoLog(loc, "assertion failed: ({}) = nullptr", expr);
         } else if constexpr(CouldBeBool<Type>) {
