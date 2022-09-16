@@ -10,7 +10,7 @@ namespace nano_caf {
     LifoQueue::LifoQueue() : m_stack{Blocked()} {}
 
     auto LifoQueue::Enqueue(Message* msg) noexcept -> Status {
-        CAF_ASSERT_VALID_PTR(msg);
+        CAF_ASSERT(msg);
         auto* head = m_stack.load();
         auto* closed = Eof();
 

@@ -15,7 +15,7 @@ namespace nano_caf::detail {
         }
     }
     auto ActorCtlBlock::Wait(ExitReason& reason) noexcept -> Status {
-        CAF_ASSERT_TRUE(m_sync);
+        CAF_ASSERT(m_sync);
         auto&& future = m_sync->get_future();
         future.wait();
         reason = future.get();

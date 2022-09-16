@@ -34,7 +34,7 @@ namespace nano_caf {
     auto ActorSystem::StartUp(std::size_t numOfWorkers) noexcept -> Status {
         if(m_impl == nullptr) {
             m_impl = new ActorSystemImpl{};
-            CAF_ASSERT_NEW_PTR(m_impl);
+            CAF_ASSERT(m_impl);
 
             m_impl->StartUp(numOfWorkers);
         }
@@ -54,22 +54,22 @@ namespace nano_caf {
                      TimerSpec const& spec,
                      std::size_t repeatTimes,
                      TimeoutCallback&& callback) -> Result<TimerId> {
-        CAF_ASSERT_VALID_PTR(m_impl);
+        CAF_ASSERT(m_impl);
         return m_impl->StartTimer(self, spec, repeatTimes, std::move(callback));
     }
 
     auto ActorSystem::StopTimer(TimerId const& timerId) -> Status {
-        CAF_ASSERT_VALID_PTR(m_impl);
+        CAF_ASSERT(m_impl);
         return m_impl->StopTimer(timerId);
     }
 
     auto ActorSystem::ClearActorTimer(intptr_t actorId) -> Status {
-        CAF_ASSERT_VALID_PTR(m_impl);
+        CAF_ASSERT(m_impl);
         return m_impl->ClearActorTimer(actorId);
     }
 
     auto ActorSystem::Schedule(Resumable* resumable) noexcept -> Status {
-        CAF_ASSERT_VALID_PTR(m_impl);
+        CAF_ASSERT(m_impl);
         return m_impl->Schedule(resumable);
     }
 }

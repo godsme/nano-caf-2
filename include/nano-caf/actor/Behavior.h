@@ -25,10 +25,10 @@ namespace nano_caf {
             }
 
             auto handlers = std::make_shared<Handlers>();
-            CAF_ASSERT_NEW_PTR_VOID(handlers);
+            CAF_ASSERT__(handlers);
 
             auto behaviors = new detail::Behaviors{detail::BehaviorObject<ARGS>{std::move(args)}...};
-            CAF_ASSERT_NEW_PTR_VOID(behaviors);
+            CAF_ASSERT__(behaviors);
 
             handlers->emplace_back(behaviors);
             m_handlers = handlers;
@@ -59,7 +59,7 @@ namespace nano_caf {
             if(!rhs) return {lhs.m_handlers};
 
             auto handlers = std::make_shared<Handlers>(*lhs.m_handlers);
-            CAF_ASSERT_VALID_PTR_R(handlers, {});
+            CAF_ASSERT_(handlers);
             handlers->insert(handlers->end(), rhs.m_handlers->begin(), rhs.m_handlers->end());
             return {handlers};
         }

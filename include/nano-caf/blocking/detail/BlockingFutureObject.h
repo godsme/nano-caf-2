@@ -18,7 +18,7 @@ namespace nano_caf::detail {
         template<typename CB, typename = std::enable_if_t<std::is_convertible_v<CB, Callback>>>
         auto SetCallback(CB&& cb) -> Status {
             std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!notified && !m_cb, Status::INVALID_OP);
+            CAF_ASSERT_R(!notified && !m_cb, Status::INVALID_OP);
             if(m_result) {
                 cb(std::move(*m_result));
                 notified = true;
@@ -52,7 +52,7 @@ namespace nano_caf::detail {
         template<typename T, typename TAG>
         auto Set(T&& value, TAG tag) noexcept -> Status {
             std::unique_lock lock{m_mutex};
-            CAF_ASSERT_TRUE_R(!notified && !m_result, Status::INVALID_OP);
+            CAF_ASSERT_R(!notified && !m_result, Status::INVALID_OP);
             DoSet(std::forward<T>(value), tag);
             return Status::OK;
         }

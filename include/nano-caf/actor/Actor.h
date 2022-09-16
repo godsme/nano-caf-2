@@ -89,7 +89,7 @@ namespace nano_caf {
         template<typename F, typename Rep, typename Period, typename R = std::invoke_result_t<F>>
         auto After(std::chrono::duration<Rep, Period> timeout, F&& f) noexcept -> Future<R> {
             auto future = std::make_shared<detail::FutureObject<R>>();
-            CAF_ASSERT_VALID_PTR_R(future, Future<R>::By(Status::OUT_OF_MEM));
+            CAF_ASSERT_R(future, Future<R>::By(Status::OUT_OF_MEM));
             auto timerId = OnTimeout(timeout, [future, cb = std::forward<F>(f)] {
                 if constexpr(std::is_void_v<R>) {
                     cb();
@@ -99,7 +99,7 @@ namespace nano_caf {
                 }
                 future->Commit();
             });
-            CAF_ASSERT_TRUE_R(timerId.Ok(), Future<R>::By(timerId.GetStatus()));
+            CAF_ASSERT_R(timerId.Ok(), Future<R>::By(timerId.GetStatus()));
             return {future};
         }
 
@@ -143,11 +143,11 @@ namespace nano_caf {
         template<typename MSG, typename F, typename R = std::invoke_result_t<F, MSG>, typename CALLBACK>
         auto DoExpectMsg(F&& f, CALLBACK&& callback) noexcept -> Future<R> {
             auto handler = std::make_shared<detail::ExpectMsgHandler<MSG>>();
-            CAF_ASSERT_VALID_PTR_R(handler, {});
+            CAF_ASSERT_(handler);
 
             auto future = handler->GetFuture();
             RegisterMsgHandler(MSG::ID, handler);
-            CAF_ASSERT_R(callback(handler), {});
+            CAF_ASSERT_(callback(handler));
 
             return Future<MSG&>{future}.Then(std::forward<F>(f));
         }
@@ -155,7 +155,7 @@ namespace nano_caf {
         template<typename R>
         auto StartFutureTimer(TimerSpec const& spec, std::shared_ptr<detail::FutureObject<R>> const& future) -> Future<R> {
             Result<TimerId> result = StartTimer(spec, future);
-            CAF_ASSERT_TRUE_R(result.Ok(), Future<R>::By(result.GetStatus()));
+            CAF_ASSERT_R(result.Ok(), Future<R>::By(result.GetStatus()));
             CAF_ASSERT_R(future->RegisterTimerObserver(*result), Future<R>::By(status_));
             return Future<R>{future};
         }
@@ -164,7 +164,7 @@ namespace nano_caf {
         auto StartExpectMsgTimer(TimerSpec const& spec, std::shared_ptr<detail::ExpectMsgHandler<MSG>>& handler) -> Status {
             std::shared_ptr<detail::CancellableMsgHandler> cancellableMsgHandler = handler;
             auto result = StartTimer(spec, cancellableMsgHandler);
-            CAF_ASSERT_TRUE_R(result.Ok(), result.GetStatus());
+            CAF_ASSERT_R(result.Ok(), result.GetStatus());
             return handler->GetFuture()->RegisterTimerObserver(*result);
         }
 

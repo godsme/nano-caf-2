@@ -8,7 +8,7 @@
 namespace nano_caf {
     auto ActorWeakPtr::Wait(ExitReason& reason) -> Status {
         auto ctlBlock = reinterpret_cast<detail::ActorCtlBlock*>(Parent::CtlBlock());
-        CAF_ASSERT_VALID_PTR(ctlBlock);
+        CAF_ASSERT(ctlBlock);
         return ctlBlock->Wait(reason);
     }
 

@@ -8,13 +8,13 @@
 
 namespace nano_caf::detail {
     auto ExpectOnceMsgHandlers::AddHandler(MsgTypeId id, std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> Status {
-        CAF_ASSERT_VALID_PTR(handler);
+        CAF_ASSERT(handler);
         m_handlers.emplace(id, handler);
         return Status::OK;
     }
 
     auto ExpectOnceMsgHandlers::RemoveHandler(std::shared_ptr<detail::CancellableMsgHandler> const& handler) noexcept -> void {
-        CAF_ASSERT_VALID_PTR_VOID(handler);
+        CAF_ASSERT__(handler);
         auto result = std::find_if(m_handlers.begin(), m_handlers.end(), [&handler](auto&& elem) {
             return elem.second == handler;
         });

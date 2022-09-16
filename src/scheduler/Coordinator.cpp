@@ -7,7 +7,7 @@
 
 namespace nano_caf {
     auto Coordinator::StartUp(std::size_t numOfWorkers) noexcept -> void {
-        CAF_ASSERT_TRUE_VOID(!working);
+        CAF_ASSERT__(!working);
         if(numOfWorkers == 0) numOfWorkers = 1;
         m_pendingTasks = std::make_unique<WorkSharingQueue>();
         m_workers.reserve(numOfWorkers);
@@ -19,7 +19,7 @@ namespace nano_caf {
     }
 
     auto Coordinator::Schedule(Resumable* task) noexcept -> Status {
-        CAF_ASSERT_TRUE_R(working, Status::CLOSED);
+        CAF_ASSERT_R(working, Status::CLOSED);
         m_pendingTasks->Enqueue(task);
         return Status::OK;
     }

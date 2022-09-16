@@ -8,85 +8,70 @@
 #include <spdlog/spdlog.h>
 #include <nano-caf/Status.h>
 
-#define __CAF_ASSERT(expr, result) do {                          \
-    if(auto status_ = expr; status_ != nano_caf::Status::OK) {   \
-        SPDLOG_ERROR("{} failed, status = {}", #expr, status_);  \
-        result;                                                  \
-    }                                                            \
+namespace nano_caf::detail {
+    template<typename T, typename = void>
+    constexpr bool HasOperatorBool = false;
+
+    template<typename T>
+    constexpr bool HasOperatorBool<T, std::void_t<decltype(&T::operator bool)>> = true;
+
+    template<typename T>
+    inline constexpr auto SuccCheck(T&& value) -> std::pair<bool, Status> {
+        using Type = std::decay_t<T>;
+        if constexpr(std::is_same_v<Type, nano_caf::Status>) {
+            return {value ==  Status::OK, value};
+        } else if constexpr(std::is_pointer_v<Type>) {
+            return {value != nullptr, Status::NULL_PTR};
+        } else if constexpr(std::is_convertible_v<Type, bool> || HasOperatorBool<Type>) {
+            return {(bool)value, Status::FAILED};
+        } else {
+            static_assert(std::is_convertible_v<Type, bool> ||
+                          std::is_pointer_v<Type> ||
+                          HasOperatorBool<Type> ||
+                          std::is_same_v<Type, nano_caf::Status>);
+            return {false, Status::INVALID_ARG};
+        }
+    }
+}
+
+#define __CAF_LOG_SUCC(expr, status, result) \
+    SPDLOG_ERROR("{} failed, status = {}", #expr, status);  \
+    result
+
+#define __CAF_LOG_BOOL(expr, result) \
+    SPDLOG_ERROR("{} expected to be true, but actually false", #expr);  \
+    result
+
+#define __CAF_LOG_PTR(p, result) \
+    SPDLOG_ERROR("{} = nullptr", #p);                            \
+    result
+
+#define __CAF_GENERIC_ASSERT_R(expr, result) do {                       \
+    if([[maybe_unused]] auto [result_, status_] = nano_caf::detail::SuccCheck(expr); !result_) {  \
+        using Type = std::decay_t<decltype(expr)>;                      \
+        if constexpr(std::is_same_v<Type, nano_caf::Status>) {          \
+            __CAF_LOG_SUCC(expr, status_, result);                      \
+        } else if constexpr(std::is_pointer_v<Type>) {                  \
+            __CAF_LOG_PTR(expr, result);                                \
+        } else if constexpr(std::is_convertible_v<Type, bool> || nano_caf::detail::HasOperatorBool<Type>) {        \
+            __CAF_LOG_BOOL(expr, result);                               \
+        }                                                               \
+    }                                                                   \
 } while(0)
 
 #define CAF_ASSERT_R(expr, result) \
-__CAF_ASSERT(expr, return result)
+__CAF_GENERIC_ASSERT_R(expr, return result)
 
 #define CAF_ASSERT(expr) \
-CAF_ASSERT_R(expr, status_)
+__CAF_GENERIC_ASSERT_R(expr, return status_)
 
-#define CAF_ASSERT_VOID(expr) \
-CAF_ASSERT_R(expr, )
+#define CAF_ASSERT_(expr) \
+__CAF_GENERIC_ASSERT_R(expr, return {})
 
-#define CAF_ASSERT_BOOL(expr) \
-CAF_ASSERT_R(expr, false)
-
-#define CAF_ASSERT_NIL(expr) \
-CAF_ASSERT_R(expr, nullptr)
+#define CAF_ASSERT__(expr) \
+__CAF_GENERIC_ASSERT_R(expr, return)
 
 #define CAF_ASSERT_WARN(expr) \
-__CAF_ASSERT(expr, )
-
-///////////////////////////////////////////////////////////////////////////
-#define __CAF_ASSERT_TRUE(expr, result) do {                         \
-    if(!(expr)) {                                                    \
-        result;                                                      \
-    }                                                                \
-} while(0)
-
-#define CAF_ASSERT_TRUE_R(expr, result) \
-__CAF_ASSERT_TRUE(expr, return result)
-
-#define CAF_ASSERT_TRUE(expr) \
-CAF_ASSERT_TRUE_R(expr, nano_caf::Status::FAILED)
-
-#define CAF_ASSERT_TRUE_VOID(expr) \
-CAF_ASSERT_TRUE_R(expr, )
-
-#define CAF_ASSERT_TRUE_NIL(expr) \
-CAF_ASSERT_TRUE_R(expr, nullptr)
-
-#define CAF_ASSERT_TRUE_BOOL(expr) \
-CAF_ASSERT_TRUE_R(expr, false)
-
-#define CAF_ASSERT_TRUE_WARN(expr) \
-__CAF_ASSERT_TRUE(expr, )
-
-///////////////////////////////////////////////////////////////////////////
-#define __CAF_ASSERT_VALID_PTR_R(p, result) do {                     \
-    if((p) == nullptr) {                                             \
-        SPDLOG_ERROR("{} = nullptr", #p);                            \
-        result;                                                      \
-    }                                                                \
-} while(0)
-
-#define CAF_ASSERT_VALID_PTR_R(p, result)   \
-__CAF_ASSERT_VALID_PTR_R(p, return result)
-
-#define CAF_ASSERT_VALID_PTR(p) \
-CAF_ASSERT_VALID_PTR_R(p, nano_caf::Status::NULL_PTR)
-
-#define CAF_ASSERT_VALID_PTR_VOID(p) \
-CAF_ASSERT_VALID_PTR_R(p, )
-
-#define CAF_ASSERT_VALID_PTR_NIL(p) \
-CAF_ASSERT_VALID_PTR_R(p, nullptr)
-
-#define CAF_ASSERT_VALID_PTR_BOOL(p) \
-CAF_ASSERT_VALID_PTR_R(p, false)
-
-#define CAF_ASSERT_VALID_PTR_WARN(p) \
-__CAF_ASSERT_VALID_PTR_R(p, )
-
-#define CAF_ASSERT_NEW_PTR(p) \
-CAF_ASSERT_VALID_PTR_R(p, nano_caf::Status::OUT_OF_MEM)
-
-#define CAF_ASSERT_NEW_PTR_VOID(p) CAF_ASSERT_VALID_PTR_VOID(p)
+__CAF_GENERIC_ASSERT_R(expr, )
 
 #endif //NANO_CAF_2_39CA41233EED45A0A7000DDF69571375

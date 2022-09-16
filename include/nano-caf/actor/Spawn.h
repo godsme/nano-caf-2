@@ -107,7 +107,7 @@ namespace nano_caf::detail {
         }
 
         auto ForwardTo(ActorPtr const& to, Message::Category category = Message::DEFAULT) const noexcept -> Status override {
-            CAF_ASSERT_VALID_PTR(m_currentMsg);
+            CAF_ASSERT(m_currentMsg);
             if(category != Message::DEFAULT) {
                 m_currentMsg->category = category;
             }
