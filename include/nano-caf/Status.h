@@ -26,6 +26,7 @@ namespace nano_caf {
 
         constexpr Status(E value) : m_value{value} {}
         constexpr explicit operator E() const { return m_value; }
+        constexpr auto IsOk() const -> bool { return m_value == OK; }
 
         inline friend constexpr auto operator==(Status const& lhs, Status const& rhs) -> bool {
             return lhs.m_value == rhs.m_value;

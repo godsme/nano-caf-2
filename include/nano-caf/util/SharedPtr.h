@@ -59,6 +59,30 @@ namespace nano_caf {
                 m_ptr = nullptr;
             }
         }
+
+        friend inline auto operator==(SharedPtr<T> const& lhs, SharedPtr<T> const& rhs) noexcept -> bool {
+            return lhs.m_ptr == rhs.m_ptr;
+        }
+
+        friend inline auto operator==(SharedPtr<T> const& lhs, std::nullptr_t) noexcept -> bool {
+            return lhs.m_ptr == nullptr;
+        }
+
+        friend inline auto operator!=(SharedPtr<T> const& lhs, std::nullptr_t) noexcept -> bool {
+            return lhs.m_ptr != nullptr;
+        }
+
+        friend inline auto operator!=(SharedPtr<T> const& lhs, SharedPtr<T> const& rhs) noexcept -> bool {
+            return !operator==(lhs, rhs);
+        }
+
+        friend inline auto operator==(std::nullptr_t, SharedPtr<T> const& rhs) noexcept -> bool {
+            return nullptr == rhs.m_ptr;
+        }
+
+        friend inline auto operator!=(std::nullptr_t, SharedPtr<T> const& rhs) noexcept -> bool {
+            return nullptr != rhs.m_ptr;
+        }
     };
 
     template <typename Tp, typename CTL_BLOCK, typename MEM_ALLOCATOR = DefaultMemAllocator, typename ... ARGS>

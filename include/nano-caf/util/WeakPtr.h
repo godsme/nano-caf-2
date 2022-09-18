@@ -73,6 +73,30 @@ namespace nano_caf {
         ~WeakPtr() {
             Reset();
         }
+
+        friend inline auto operator==(WeakPtr<T> const& lhs, WeakPtr<T> const& rhs) noexcept -> bool {
+            return lhs.m_ptr == rhs.m_ptr;
+        }
+
+        friend inline auto operator==(WeakPtr<T> const& lhs, std::nullptr_t) noexcept -> bool {
+            return lhs.m_ptr == nullptr;
+        }
+
+        friend inline auto operator!=(WeakPtr<T> const& lhs, std::nullptr_t) noexcept -> bool {
+            return lhs.m_ptr != nullptr;
+        }
+
+        friend inline auto operator!=(WeakPtr<T> const& lhs, WeakPtr<T> const& rhs) noexcept -> bool {
+            return !operator==(lhs, rhs);
+        }
+
+        friend inline auto operator==(std::nullptr_t, WeakPtr<T> const& rhs) noexcept -> bool {
+            return nullptr == rhs.m_ptr;
+        }
+
+        friend inline auto operator!=(std::nullptr_t, WeakPtr<T> const& rhs) noexcept -> bool {
+            return nullptr != rhs.m_ptr;
+        }
     };
 }
 
